@@ -8,10 +8,12 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "basic.h"
+#include <forward_list>
+#include <utility>
+
 
 using namespace std;
-
-
 
 
 
@@ -63,11 +65,10 @@ void snp_info_read(unordered_map<string, snp_info> * hashtable_pointer, int chr)
 
 
 
-void prune_info_read(vector<string> * pointer1, unordered_map<string, snp_assoc> * pointer2, int chr)
+void prune_info_read(vector<string> * pointer1, unordered_map<string, forward_list<pair<string, float>>> * pointer2, int chr)
 {
-	// fill (*pointer1)
 	
-	//======== file reading module ========
+	//======== fill (*pointer1) ========
 	char filename[100] = "../genotype_185_dosage_matrix_qc/post_prune/chr";
 	char chrom[10];
 	sprintf(chrom, "%d", chr);
@@ -93,20 +94,57 @@ void prune_info_read(vector<string> * pointer1, unordered_map<string, snp_assoc>
 	//======================================
 
 
+	//======== fill (*pointer2) ========
+	strcpy(filename, "../genotype_185_dosage_matrix_qc/post_prune/chr");
+	sprintf(chrom, "%d", chr);
+	strcat(filename, chrom);
+	strcat(filename, ".post_prune.txt");
+	//puts(filename);
 
-	// fill (*pointer2)
+	file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
 
+	input_length = 10000;
+	char input1[input_length];
+	while(fgets(input1, input_length, file_in) != NULL)
+	{
+		trim(input1);
 
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input1, sep);
+		string snp_unpruned = p;
 
+		// initialize the hashtable item
+		forward_list<pair<string, float>> list;
+		(* pointer2).emplace(snp_unpruned, list);
 
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+			// append this pair into the hashed forward_list
+			pair<string, float> snp_pair;
+			pair_split(p, &snp_pair);
+			(* pointer2)[snp_unpruned].push_front(snp_pair);
 
+			p = strtok(NULL, sep);
+		}
+	}
 
-
-
-
-
+	fclose (file_in);
+	//======================================
 
 }
+
 
 
 

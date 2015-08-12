@@ -10,4 +10,6 @@ There are several components in this project:
 
 4. optimization.cpp: This is the main routine of the optimization program. It will call other routine to get genotype data and work on expression data, for stochastic gradient descent. It may call other subroutines for detailed stochastic gradient descent algorithm.
 
-5. xxx
+5. basic.cpp: Some basic functions that may be used by the whole program.
+
+6. xxx
