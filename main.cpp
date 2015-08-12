@@ -21,6 +21,10 @@ what we should have at hand by now:
 #include <stdio.h>
 #include <stdlib.h>
 #include "genotype.h"
+#include <unordered_map>
+#include <string>
+#include <array>
+
 
 
 using namespace std;
@@ -31,9 +35,84 @@ int main()
 	cout << "This is the entrance of the program...\n";
 
 
-	int chr = 1;
-	char individual[20] = "GTEX-TKQ1";
-	dosage_load(chr, individual);
+	//int chr = 1;
+	//char individual[20] = "GTEX-TKQ1";
+	//dosage_load(chr, individual);
+
+
+
+
+	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
+	puts("preparing the snp info...");
+	array<unordered_map<string, snp_info>, 22> snp_info_list;
+
+	int i;
+	for(i=0; i<22; i++)
+	{
+		int chr = i+1;
+		unordered_map<string, snp_info> hashtable;
+		snp_info_list[i] = hashtable;
+		snp_info_read(&snp_info_list[i], chr);
+	}
+	puts("snp info preparation done!");
+
+	//===== test the hashtable here: 1. the length; 2. a sample =====
+	//cout << (snp_info_list[0]).size() << endl;
+	//cout << (snp_info_list[0]).at("rs2073814").count << "+" << (snp_info_list[0]).at("rs2073814").position << endl;
+	//cout << (snp_info_list[5]).size() << endl;
+	// for (auto& x: hashtable)
+	// {
+	// 	cout << x.first << ":" << x.second.count << "+" << x.second.position << endl;
+	// }
+	//===============================================================
+	//============================================================================================================
+
+
+
+
+
+	//===================================== prepare the pruning information ======================================
+	puts("preparing the pruning (association of pruned with un-pruned snps) info...");
+	array<vector<string>, 22> snp_unpruned_list;
+	array<unordered_map<string, snp_assoc>, 22> snp_prune_assoc_list;
+
+	for(i=0; i<22; i++)
+	{
+		int chr = i+1;
+		vector<string> snp_unpruned;
+		unordered_map<string, snp_assoc> snp_prune_assoc;
+
+		snp_unpruned_list[i] = snp_unpruned;
+		snp_prune_assoc_list[i] = snp_prune_assoc;
+
+		prune_info_read(&snp_unpruned_list[i], &snp_prune_assoc_list[i], chr);
+	}
+	puts("pruning info preparation done!");
+
+	//===== test the hashtable here: 1. the length; 2. a sample =====
+	//cout << (snp_unpruned_list[3]).size() << endl;
+	//cout << (snp_unpruned_list[4])[2] << endl;
+	// for (auto& x: hashtable)
+	// {
+	// 	cout << x.first << ":" << x.second.count << "+" << x.second.position << endl;
+	// }
+	//===============================================================
+
+
+
+
+	//============================================================================================================
+
+
+
+
+
+
+
+
+
+
+
 	// rpkm_load();
 
 
