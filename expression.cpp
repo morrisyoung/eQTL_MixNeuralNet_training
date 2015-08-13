@@ -20,57 +20,107 @@ void rpkm_load(unordered_map<string, unordered_map<string, vector<float>>> * eQT
 {
 
 	int index = 0;
-	unordered_map<int, int> index_rep;
+	unordered_map<int, string> index_rep;
 
 
-
-	/* to work on
-	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples";
+	char filename[100] = "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct";
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
 	}
-	int input_length = 10000;
+	int input_length = 100000;
 	char input[input_length];
+	int count = 0;
 	while(fgets(input, input_length, file_in) != NULL)
 	{
-		trim(input);
-
-		const char * sep = "\t";
-		char * p;
-		p = strtok(input, sep);
-		string eTissue = p;
-		unordered_map<string, vector<float>> rep;
-		eQTL_tissue_rep.emplace(eTissue, rep);
-
-		int count = 0;
-		while(p)
+		count++;
+		switch(count)
 		{
-			count++;
-			if(count == 1)  // this is the eTissue
+			case 1:
 			{
-				p = strtok(NULL, sep);
-				continue;
+				break;
 			}
 
-			// append this sample, and iterate across all samples
-			string sample = p;
-			vector<float> list;
-			eQTL_tissue_rep[eTissue].emplace(sample, list);
-			eQTL_samples.emplace(sample, eTissue);
+			case 2:
+			{
+				break;
+			}
 
-			p = strtok(NULL, sep);
+			case 3:
+			{
+				// fill the index_rep, with (* eQTL_samples_pointer)
+				index = 0;
+				trim(input);
+
+				const char * sep = "\t";
+				char * p;
+				p = strtok(input, sep);
+
+				while(p)
+				{
+					index++;
+					if(index == 1 || index == 2)
+					{
+						p = strtok(NULL, sep);
+						continue;
+					}
+
+					string sample = p;
+ 					unordered_map<string, string>::const_iterator got = (* eQTL_samples_pointer).find(sample);
+  					if ( got != (* eQTL_samples_pointer).end() )
+  					{
+  						index_rep.emplace(index, sample);
+  					}
+
+					p = strtok(NULL, sep);
+				}
+
+				break;
+			}
+
+			default:
+			{
+				// fill the (* gene_list_pointer), and (* eQTL_tissue_rep_pointer)
+				index = 0;
+				trim(input);
+
+				const char * sep = "\t";
+				char * p;
+				p = strtok(input, sep);
+				string gene = p;
+				(* gene_list_pointer).push_back(gene);
+
+				while(p)
+				{
+					index++;
+					if(index == 1 || index == 2)  // this is the eTissue
+					{
+						p = strtok(NULL, sep);
+						continue;
+					}
+
+ 					unordered_map<int, string>::const_iterator got = index_rep.find(index);
+  					if ( got != index_rep.end() )
+  					{
+						char rpkm[100];
+						strcpy(rpkm, p);
+						float expression = stof(rpkm);
+						string sample = index_rep[index];
+						string eTissue = (* eQTL_samples_pointer)[sample];
+						(* eQTL_tissue_rep_pointer)[eTissue][sample].push_back(expression);
+  					}
+
+					p = strtok(NULL, sep);
+				}
+
+				break;
+			}
 		}
+
 
 	}
 	fclose (file_in);
-	*/
-
-
-
-
-
 
 
 

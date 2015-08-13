@@ -187,8 +187,14 @@ int main()
 
 
 	rpkm_load(&eQTL_tissue_rep, &eQTL_samples, &gene_list);
+	// // simple testing:
+	// //gene_list_pointer: size of gene_list; a sample
+	// cout << gene_list.size() << endl;
+	// cout << gene_list[2] << endl;
+	// // eQTL_tissue_rep_pointer:
+	// cout << eQTL_tissue_rep["Thyroid"]["GTEX-SN8G-1526-SM-4DM79"].size() << endl;
+	// cout << eQTL_tissue_rep["Thyroid"]["GTEX-SN8G-1526-SM-4DM79"][3] << endl;
 	//============================================================================================================
-
 
 
 
