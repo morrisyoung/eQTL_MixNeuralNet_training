@@ -22,10 +22,13 @@ what we should have at hand by now:
 #include <stdlib.h>
 #include "genotype.h"
 #include <unordered_map>
+#include <string.h>
 #include <string>
 #include <array>
 #include <forward_list>
 #include <utility>
+#include "basic.h"
+#include "expression.h"
 
 
 
@@ -37,6 +40,7 @@ int main()
 	cout << "This is the entrance of the program...\n";
 
 
+	// sub-routine to be constructed
 	//int chr = 1;
 	//char individual[20] = "GTEX-TKQ1";
 	//dosage_load(chr, individual);
@@ -129,14 +133,63 @@ int main()
 
 
 
+	//===================================== prepare the expression matrix ======================================
+	// what we need:
+	// 1. list of eQTL tissues, hashing all samples with their rpkm value;
+	// 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file; (so we'll need a index list to pick up relevant rpkm values)
+	// 3. array of all genes (assuming all genes in the source file are those to be used)
+	// specifically:
+	unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+	unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
+	vector<string> gene_list;  // all genes from the source file
+	// then we need to initialize some of them before reading the rpkm file
+	// eQTL_tissue_rep, eQTL_samples --> "phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples"
+	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 10000;
+	char input[input_length];
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string eTissue = p;
+		unordered_map<string, vector<float>> rep;
+		eQTL_tissue_rep.emplace(eTissue, rep);
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the eTissue
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+
+			// append this sample, and iterate across all samples
+			string sample = p;
+			vector<float> list;
+			eQTL_tissue_rep[eTissue].emplace(sample, list);
+			eQTL_samples.emplace(sample, eTissue);
+
+			p = strtok(NULL, sep);
+		}
+
+	}
+	fclose (file_in);
 
 
+	rpkm_load(&eQTL_tissue_rep, &eQTL_samples, &gene_list);
+	//============================================================================================================
 
 
-
-
-
-	// rpkm_load();
 
 
 
