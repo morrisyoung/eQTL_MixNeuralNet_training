@@ -142,19 +142,21 @@ void prune_info_read(vector<string> * pointer1, unordered_map<string, forward_li
 
 
 
-void snp_dosage_load(vector<float> * vec_pointer, string individual)
+void snp_dosage_load(vector<float> * vec_pointer, int chr, string individual)
 {
 
-	/*
-	//======== file reading module ========
+	//======== get all SNPs with their snp_info (count, position) ========
 	char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
 	char chrom[10];
 	sprintf(chrom, "%d", chr);
 	strcat(filename, chrom);
 	strcat(filename, "/SNP_dosage_");
-	strcat(filename, individual);
+	char individual1[20];
+	StrToCharSeq(individual1, individual);
+	strcat(filename, individual1);
 	strcat(filename, ".txt");
-	puts(filename);
+	//puts("the current file worked on is: ");
+	//puts(filename);
 
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
@@ -166,13 +168,14 @@ void snp_dosage_load(vector<float> * vec_pointer, string individual)
 	char input[input_length];
 	while(fgets(input, input_length, file_in) != NULL)
 	{
-		cout << input;
-		// do something here
+		trim(input);
+
+		float dosage = stof(input);
+		(* vec_pointer).push_back(dosage);
+
 	}
 
-	fclose (file_in);
+	fclose(file_in);
 	//======================================
-	*/
-
 
 }

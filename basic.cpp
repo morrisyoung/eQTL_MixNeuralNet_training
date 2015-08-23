@@ -55,3 +55,15 @@ void pair_split(char * p, pair<string, float> * pointer)
 	(* pointer).first = snp;
 
 }
+
+
+void StrToCharSeq(char * str1, string str)
+{
+	int i = 0;
+	for (i=0; i<str.length(); ++i)
+	{
+		str1[i] = str[i];
+	}
+	str1[i] = '\0';
+
+}

@@ -30,7 +30,7 @@ void prune_info_read(vector<string> *, unordered_map<string, forward_list<pair<s
 
 
 // read dosage chunk (for one individual on all chromosomes)
-void snp_dosage_load(vector<float> *, string);
+void snp_dosage_load(vector<float> *, int, string);
 
 
 

@@ -11,7 +11,6 @@ what we should have at hand by now:
 2. after getting the data, do the stochastic gradient descent algorithm;
 3. pay attention to the data structure used for storing all the parameters (coefficients);
 4. find a way to terminate the optimization process;
-
 */
 
 
@@ -40,19 +39,25 @@ int main()
 	cout << "This is the entrance of the program...\n";
 
 
-	// sub-routine to be constructed: get the actual genotype from (currently) files
-	//int chr = 1;
-	//char individual[20] = "GTEX-TKQ1";
-	//dosage_load(chr, individual);
+	// maybe here accept some command lines
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
 
+	/* temporarily
 
-
-
-
-	//==================== get the actual genotype from (currently) files =====================
+	//==================== get the actual genotype from (currently) files: for one individual on all chromosomes =====================
 	puts("get the dosage data for one individual (test)...");
-	array<vector<float>, 22> snp_dosage_list;
+	// test sample (individual):
 	string individual = "GTEX-TKQ1";  // for testing
+
+	array<vector<float>, 22> snp_dosage_list;
 
 	int i;
 	for(i=0; i<22; i++)
@@ -60,14 +65,16 @@ int main()
 		int chr = i+1;
 		vector<float> vec;
 		snp_dosage_list[i] = vec;
-		snp_dosage_load(&snp_dosage_list[i], individual);
+		snp_dosage_load(&snp_dosage_list[i], chr, individual);
 	}
 	puts("snp dosage loading (test) done!");
-
-
-
-
+	//===== simple test =====
+	//cout << snp_dosage_list[2].size() << endl;
+	//cout << snp_dosage_list[2][7] << endl;
+	//===============================================================
 	//============================================================================================================
+
+	*/
 
 
 

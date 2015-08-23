@@ -21,6 +21,10 @@ void trim(char *);
 void pair_split(char *, pair<string, float> *);
 
 
+// transform the string to char sequence
+void StrToCharSeq(char *, string);
+
+
 
 #endif
 
