@@ -2,7 +2,7 @@
 the outline of the entire program:
 
 what we should have at hand by now:
-1. genotype: grouped by chromosomes, and split for different individuals; read on-demand;
+1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion;
 2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
 
 
@@ -40,7 +40,7 @@ int main()
 	cout << "This is the entrance of the program...\n";
 
 
-	// sub-routine to be constructed
+	// sub-routine to be constructed: get the actual genotype from (currently) files
 	//int chr = 1;
 	//char individual[20] = "GTEX-TKQ1";
 	//dosage_load(chr, individual);
@@ -50,7 +50,13 @@ int main()
 
 
 
+
+
+
+
 	/* temporarily
+	// yes we need this information to characterize the cis- snps or not, in practical computation
+
 
 	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
 	puts("preparing the snp info...");
@@ -76,8 +82,6 @@ int main()
 	// }
 	//===============================================================
 	//============================================================================================================
-
-
 	*/
 
 
@@ -86,7 +90,14 @@ int main()
 
 
 
+
+
+
 	/* temporarily
+	// feedback: we don't need to load all these information into the main program to process; we can simply pre-process them, and
+	//			directly load the pre-processed prior information into this main program (to keep coding simple)
+	// so: we need another source file -- each snp with its prior score value (integrated from other associated pruned snps, and chromatin states prior knowledge)
+
 
 
 	//===================================== prepare the pruning information ======================================
@@ -133,6 +144,10 @@ int main()
 
 
 
+
+
+	/* temporarily
+
 	//===================================== prepare the expression matrix ======================================
 	// what we need:
 	// 1. list of eQTL tissues, hashing all samples with their rpkm value;
@@ -142,6 +157,7 @@ int main()
 	unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 	unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 	vector<string> gene_list;  // all genes from the source file
+
 	// then we need to initialize some of them before reading the rpkm file
 	// eQTL_tissue_rep, eQTL_samples --> "phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples"
 	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples";
@@ -194,8 +210,9 @@ int main()
 	// // eQTL_tissue_rep_pointer:
 	// cout << eQTL_tissue_rep["Thyroid"]["GTEX-SN8G-1526-SM-4DM79"].size() << endl;
 	// cout << eQTL_tissue_rep["Thyroid"]["GTEX-SN8G-1526-SM-4DM79"][3] << endl;
-	//============================================================================================================
+	// //============================================================================================================
 
+	*/
 
 
 
