@@ -54,21 +54,22 @@ int main()
 
 
 
-	/* temporarily
 	// yes we need this information to characterize the cis- snps or not, in practical computation
 
-
 	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
-	puts("preparing the snp info...");
-	array<unordered_map<string, snp_info>, 22> snp_info_list;
+	puts("preparing the snp info (index --> snp name and chromosome positions)...");
+	array<vector<string>, 22> snp_name_list;
+	array<vector<long>, 22> snp_pos_list;
 
 	int i;
 	for(i=0; i<22; i++)
 	{
 		int chr = i+1;
-		unordered_map<string, snp_info> hashtable;
-		snp_info_list[i] = hashtable;
-		snp_info_read(&snp_info_list[i], chr);
+		vector<string> vec1;
+		vector<long> vec2;
+		snp_name_list[i] = vec1;
+		snp_pos_list[i] = vec2;
+		snp_info_read(&snp_name_list[i], &snp_pos_list[i], chr);
 	}
 	puts("snp info preparation done!");
 
@@ -82,7 +83,6 @@ int main()
 	// }
 	//===============================================================
 	//============================================================================================================
-	*/
 
 
 
@@ -93,11 +93,13 @@ int main()
 
 
 
-	/* temporarily
+
+
+	/* permanently
+
 	// feedback: we don't need to load all these information into the main program to process; we can simply pre-process them, and
 	//			directly load the pre-processed prior information into this main program (to keep coding simple)
 	// so: we need another source file -- each snp with its prior score value (integrated from other associated pruned snps, and chromatin states prior knowledge)
-
 
 
 	//===================================== prepare the pruning information ======================================
@@ -135,8 +137,10 @@ int main()
 	//===============================================================
 	//============================================================================================================
 
-
 	*/
+
+
+
 
 
 

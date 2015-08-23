@@ -17,7 +17,7 @@ using namespace std;
 
 
 
-void snp_info_read(unordered_map<string, snp_info> * hashtable_pointer, int chr)
+void snp_info_read(vector<string> * vec_name_pointer, vector<long> * vec_pos_pointer, int chr)
 {
 	//======== get all SNPs with their snp_info (count, position) ========
 	char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
@@ -36,24 +36,18 @@ void snp_info_read(unordered_map<string, snp_info> * hashtable_pointer, int chr)
 
 	int input_length = 100;
 	char input[input_length];
-	char input2[input_length];
-	long count = 0;
 	while(fgets(input, input_length, file_in) != NULL)
 	{
-		// the target from this code section: snp (string); count (long); position (long)
-		count++;
-
+		// the target from this code section: snp (string); position (long)
+		char input2[input_length];
 		strcpy(input2, input);
 		char * pos = strstr(input2, " ");
 		pos++;
 		string snp = strtok(input, " ");
 		long position = strtol(pos, NULL, 10);
 
-		snp_info SNP_info;
-		SNP_info.count = count;
-		SNP_info.position = position;
-
-		(* hashtable_pointer).emplace(snp, SNP_info);
+		(* vec_name_pointer).push_back(snp);
+		(* vec_pos_pointer).push_back(position);
 	}
 
 	fclose(file_in);

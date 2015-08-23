@@ -13,7 +13,6 @@
 using namespace std;
 
 
-// the MRCA struct for the h1/h11, storing the tMRCA value and the pointed position in list1
 // this can also be substituted by pair<long, long>
 typedef struct snp_info
 {
@@ -23,7 +22,7 @@ typedef struct snp_info
 
 
 // read snp_info into the specified hashtable
-void snp_info_read(unordered_map<string, snp_info> *, int);
+void snp_info_read(vector<string> *, vector<long> *, int);
 
 
 // read the un-pruned snp list and the association file (pruned snps with the un-pruned snps) into specified vector or hashtable
