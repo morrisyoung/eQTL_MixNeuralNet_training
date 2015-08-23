@@ -29,8 +29,8 @@ void snp_info_read(vector<string> *, vector<long> *, int);
 void prune_info_read(vector<string> *, unordered_map<string, forward_list<pair<string, float>>> *, int);
 
 
-// read dosage chunk (for one individual on one chromosome)
-void dosage_load(int, char *);
+// read dosage chunk (for one individual on all chromosomes)
+void snp_dosage_load(vector<float> *, string);
 
 
 

@@ -142,8 +142,7 @@ void prune_info_read(vector<string> * pointer1, unordered_map<string, forward_li
 
 
 
-
-void dosage_load(int chr, char * individual)
+void snp_dosage_load(vector<float> * vec_pointer, string individual)
 {
 
 	/*

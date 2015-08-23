@@ -49,10 +49,35 @@ int main()
 
 
 
+	//==================== get the actual genotype from (currently) files =====================
+	puts("get the dosage data for one individual (test)...");
+	array<vector<float>, 22> snp_dosage_list;
+	string individual = "GTEX-TKQ1";  // for testing
+
+	int i;
+	for(i=0; i<22; i++)
+	{
+		int chr = i+1;
+		vector<float> vec;
+		snp_dosage_list[i] = vec;
+		snp_dosage_load(&snp_dosage_list[i], individual);
+	}
+	puts("snp dosage loading (test) done!");
 
 
 
 
+	//============================================================================================================
+
+
+
+
+
+
+
+
+
+	/* temporarily
 
 	// yes we need this information to characterize the cis- snps or not, in practical computation
 
@@ -84,7 +109,7 @@ int main()
 	//===============================================================
 	//============================================================================================================
 
-
+	*/
 
 
 
