@@ -2,8 +2,8 @@ CC=	g++
 OPT=	-std=c++11
 #LIBS=	-lm -lpthread
 LIBS=
-SRCS=	main.cpp basic.cpp expression.cpp genotype.cpp
-OBJS=	main.o basic.o expression.o genotype.o
+SRCS=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp
+OBJS=	main.o basic.o expression.o genotype.o optimization.o
 
 EXECUTABLE=	main
 

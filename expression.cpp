@@ -67,12 +67,11 @@ void rpkm_load(unordered_map<string, unordered_map<string, vector<float>>> * eQT
 					}
 
 					string sample = p;
- 					//unordered_map<string, string>::const_iterator got = (* eQTL_samples_pointer).find(sample);
-  					//if ( got != (* eQTL_samples_pointer).end() )
-  					//{
-  					//	index_rep.emplace(index, sample);
-  					//}
-					index_rep.emplace(index, sample);
+ 					unordered_map<string, string>::const_iterator got = (* eQTL_samples_pointer).find(sample);
+  					if ( got != (* eQTL_samples_pointer).end() )
+  					{
+  						index_rep.emplace(index, sample);
+  					}
 
 					p = strtok(NULL, sep);
 				}
@@ -100,22 +99,16 @@ void rpkm_load(unordered_map<string, unordered_map<string, vector<float>>> * eQT
 						continue;
 					}
 
- 					//unordered_map<int, string>::const_iterator got = index_rep.find(index);
-  					//if ( got != index_rep.end() )
-  					//{
-					//	char rpkm[100];
-					//	strcpy(rpkm, p);
-					//	float expression = stof(rpkm);
-					//	string sample = index_rep[index];
-					//	string eTissue = (* eQTL_samples_pointer)[sample];
-					//	(* eQTL_tissue_rep_pointer)[eTissue][sample].push_back(expression);
-  					//}
-					char rpkm[100];
-					strcpy(rpkm, p);
-					float expression = stof(rpkm);
-					string sample = index_rep[index];
-					string eTissue = (* eQTL_samples_pointer)[sample];
-					(* eQTL_tissue_rep_pointer)[eTissue][sample].push_back(expression);
+ 					unordered_map<int, string>::const_iterator got = index_rep.find(index);
+  					if ( got != index_rep.end() )
+  					{
+						char rpkm[100];
+						strcpy(rpkm, p);
+						float expression = stof(rpkm);
+						string sample = index_rep[index];
+						string eTissue = (* eQTL_samples_pointer)[sample];
+						(* eQTL_tissue_rep_pointer)[eTissue][sample].push_back(expression);
+  					}
 
 					p = strtok(NULL, sep);
 				}
