@@ -8,8 +8,16 @@
 using namespace std;
 
 
+typedef struct gene_pos
+{
+	int chr;
+	long tss;
+}gene_pos;
+
+
+
 // load the expression matrix into memory
-void rpkm_load();
+long int rpkm_load();
 
 
 // load tss for all genes, from the annotation file

@@ -39,7 +39,10 @@ using namespace std;
 
 // global variables definition and initialization
 //===========================================================
+long int num_snp = 0;
 int cell_env = 400;
+long int num_gene = 0;
+
 
 // genotype relevant:
 array<vector<string>, 22> snp_name_list;
@@ -53,7 +56,7 @@ array<vector<long>, 22> snp_pos_list;
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 vector<string> gene_list;  // all genes from the source file
-unordered_map<string, long> gene_tss;  // TSS for all genes (including those pruned genes)
+unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 
 // parameter space:
 
@@ -69,7 +72,7 @@ unordered_map<string, long> gene_tss;  // TSS for all genes (including those pru
 
 int main()
 {
-	cout << "This is the entrance of the program...\n";
+	cout << "[now enter the program]\n";
 
 
 	// maybe here accept some command lines
@@ -85,21 +88,10 @@ int main()
 
 
 	// yes we need this information to characterize the cis- snps or not, in practical computation
-
 	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
 	puts("preparing the snp info (index --> snp name and chromosome positions)...");
-
-	int i;
-	for(i=0; i<22; i++)
-	{
-		int chr = i+1;
-		vector<string> vec1;
-		vector<long> vec2;
-		snp_name_list[i] = vec1;
-		snp_pos_list[i] = vec2;
-		snp_info_read(&snp_name_list[i], &snp_pos_list[i], chr);
-	}
-	puts("snp info preparation done!");
+	num_snp = snp_info_read();
+	cout << "there are " << num_snp << " snps totally." << endl;
 	//============================================================================================================
 
 
@@ -157,54 +149,9 @@ int main()
 
 
 
-
-
-
 	//===================================== prepare the expression matrix ======================================
-	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
-	FILE * file_in = fopen(filename, "r");
-	if(file_in == NULL)
-	{
-		fputs("File error\n", stderr); exit (1);
-	}
-	int input_length = 10000;
-	char input[input_length];
-	while(fgets(input, input_length, file_in) != NULL)
-	{
-		trim(input);
-
-		const char * sep = "\t";
-		char * p;
-		p = strtok(input, sep);
-		string eTissue = p;
-		unordered_map<string, vector<float>> rep;
-		eQTL_tissue_rep.emplace(eTissue, rep);
-
-		int count = 0;
-		while(p)
-		{
-			count++;
-			if(count == 1)  // this is the eTissue
-			{
-				p = strtok(NULL, sep);
-				continue;
-			}
-
-			// append this sample, and iterate across all samples
-			string sample = p;
-			vector<float> list;
-			eQTL_tissue_rep[eTissue].emplace(sample, list);
-			eQTL_samples.emplace(sample, eTissue);
-
-			p = strtok(NULL, sep);
-		}
-
-	}
-	fclose (file_in);
-
-	rpkm_load();
-
-	tss_load();
+	num_gene = rpkm_load();
+	tss_load();  // gene_tss
 	//============================================================================================================
 
 
@@ -215,21 +162,12 @@ int main()
 
 
 
-
-
-
-
-
-
-
-
-
-
 	optimize();
 
 
 
 	cout << "Optimization done! Please find the results in 'result' folder.\n";
+	cout << "[now leave the program]\n";
 
 	return 0;
 }

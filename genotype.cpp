@@ -11,50 +11,64 @@
 #include "basic.h"
 #include <forward_list>
 #include <utility>
+#include "global.h"
 
 
 using namespace std;
 
 
-
-void snp_info_read(vector<string> * vec_name_pointer, vector<long> * vec_pos_pointer, int chr)
+long int snp_info_read()
 {
-	//======== get all SNPs with their snp_info (count, position) ========
-	char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
-	char chrom[10];
-	sprintf(chrom, "%d", chr);
-	strcat(filename, chrom);
-	strcat(filename, "/SNP_info.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
+	long int num = 0;
 
-	FILE * file_in = fopen(filename, "r");
-	if(file_in == NULL)
+	int i;
+	for(i=0; i<22; i++)
 	{
-		fputs("File error\n", stderr); exit (1);
+		int chr = i+1;
+		vector<string> vec1;
+		vector<long> vec2;
+		snp_name_list[i] = vec1;
+		snp_pos_list[i] = vec2;
+
+		//======== get all SNPs with their snp_info (count, position) ========
+		char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+		char chrom[10];
+		sprintf(chrom, "%d", chr);
+		strcat(filename, chrom);
+		strcat(filename, "/SNP_info.txt");
+		//puts("the current file worked on is: ");
+		//puts(filename);
+
+		FILE * file_in = fopen(filename, "r");
+		if(file_in == NULL)
+		{
+			fputs("File error\n", stderr); exit (1);
+		}
+
+		int input_length = 100;
+		char input[input_length];
+		while(fgets(input, input_length, file_in) != NULL)
+		{
+			// the target from this code section: snp (string); position (long)
+			char input2[input_length];
+			strcpy(input2, input);
+			char * pos = strstr(input2, " ");
+			pos++;
+			string snp = strtok(input, " ");
+			long position = strtol(pos, NULL, 10);
+
+			snp_name_list[i].push_back(snp);
+			snp_pos_list[i].push_back(position);
+		}
+
+		fclose(file_in);
+		//======================================
+
+		num += snp_name_list[i].size();
 	}
 
-	int input_length = 100;
-	char input[input_length];
-	while(fgets(input, input_length, file_in) != NULL)
-	{
-		// the target from this code section: snp (string); position (long)
-		char input2[input_length];
-		strcpy(input2, input);
-		char * pos = strstr(input2, " ");
-		pos++;
-		string snp = strtok(input, " ");
-		long position = strtol(pos, NULL, 10);
-
-		(* vec_name_pointer).push_back(snp);
-		(* vec_pos_pointer).push_back(position);
-	}
-
-	fclose(file_in);
-	//======================================
-
+	return num;
 }
-
 
 
 

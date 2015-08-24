@@ -22,7 +22,7 @@ typedef struct snp_info
 
 
 // read snp_info into the specified hashtable
-void snp_info_read(vector<string> *, vector<long> *, int);
+long int snp_info_read();
 
 
 // read the un-pruned snp list and the association file (pruned snps with the un-pruned snps) into specified vector or hashtable
