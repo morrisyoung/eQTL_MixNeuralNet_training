@@ -29,6 +29,7 @@ what we should have at hand by now:
 #include "expression.h"
 #include "optimization.h"
 #include "global.h"
+#include "parameter_init.h"
 
 
 
@@ -45,10 +46,16 @@ array<vector<string>, 22> snp_name_list;
 array<vector<long>, 22> snp_pos_list;
 
 // expression relevant:
+// what we need:
+// 1. list of eQTL tissues, hashing all samples with their rpkm value;
+// 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
+// 3. array of all genes (assuming all genes in the source file are those to be used)
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 vector<string> gene_list;  // all genes from the source file
+unordered_map<string, long> gene_tss;  // TSS for all genes (including those pruned genes)
 
+// parameter space:
 
 
 
@@ -75,8 +82,6 @@ int main()
 	//
 	//
 	//
-
-
 
 
 	// yes we need this information to characterize the cis- snps or not, in practical computation
@@ -154,15 +159,8 @@ int main()
 
 
 
-	//===================================== prepare the expression matrix ======================================
-	// what we need:
-	// 1. list of eQTL tissues, hashing all samples with their rpkm value;
-	// 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file; (so we'll need a index list to pick up relevant rpkm values)
-	// 3. array of all genes (assuming all genes in the source file are those to be used)
-	// specifically: see global variables
 
-	// then we need to initialize some of them before reading the rpkm file
-	// eQTL_tissue_rep, eQTL_samples --> "phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples"
+	//===================================== prepare the expression matrix ======================================
 	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
@@ -204,21 +202,21 @@ int main()
 	}
 	fclose (file_in);
 
-	rpkm_load(&eQTL_tissue_rep, &eQTL_samples, &gene_list);
-	// simple testing:
-	//gene_list_pointer: size of gene_list; a sample
-	cout << gene_list.size() << endl;
-	cout << gene_list[2] << endl;
-	// eQTL_tissue_rep_pointer:
-	cout << eQTL_tissue_rep["Thyroid"].size() << endl;
+	rpkm_load();
+
+	tss_load();
 	//============================================================================================================
-
-
 
 
 
 	// initialize all the parameters
 	para_init();
+
+
+
+
+
+
 
 
 
