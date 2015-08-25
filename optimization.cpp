@@ -80,6 +80,51 @@ void optimize()
 
 
 
+/// parameter space is as followed (used for main optimization routine):
+// long int num_snp = 0;
+// int num_cellenv = 400;
+// long int num_gene = 0;
+// int num_etissue = 0;
+
+
+// // genotype relevant:
+// array<vector<string>, 22> snp_name_list;
+// array<vector<long>, 22> snp_pos_list;
+// // TODO:
+// //array<vector<float>, 22> snp_prior_list;
+
+
+// // expression relevant:
+// // what we need:
+// // 1. list of eQTL tissues, hashing all samples with their rpkm value;
+// // 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
+// // 3. array of all genes (assuming all genes in the source file are those to be used)
+// unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+// unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
+// vector<string> gene_list;  // all genes from the source file
+
+// // information table:
+// unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
+// unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
+
+
+
+// // parameter containers:
+// vector<vector<float *> *> para_cis_gene;
+// vector<float *> para_snp_cellenv;
+// vector<vector<float *> *> para_cellenv_gene;
+
+// // information table:
+// unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
+
+
+
+
+
+
+
+
+
 
 
 

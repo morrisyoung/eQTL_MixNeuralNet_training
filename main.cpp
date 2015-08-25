@@ -44,6 +44,7 @@ using namespace std;
 long int num_snp = 0;
 int num_cellenv = 400;
 long int num_gene = 0;
+int num_etissue = 0;
 
 
 // genotype relevant:
@@ -64,12 +65,13 @@ vector<string> gene_list;  // all genes from the source file
 
 // information table:
 unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
+unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 
 
 // parameter containers:
-vector<float *> para_cis_gene;
+vector<vector<float *>> para_cis_gene;
 vector<float *> para_snp_cellenv;
-vector<float *> para_cellenv_gene;
+vector<vector<float *>> para_cellenv_gene;
 
 // information table:
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
@@ -113,11 +115,23 @@ int main()
 
 
 
+
 	//===================================== prepare the expression matrix =======================================
-	num_gene = rpkm_load();  // eQTL_samples; gene_list; eQTL_tissue_rep
-	tss_load();  // gene_tss
+	num_gene = gene_rpkm_load();  // eQTL_samples; gene_list; eQTL_tissue_rep
+	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
+	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
+	cout << "there are " << num_etissue << " eTissues in the current framework." << endl;
+	puts("number of training samples in each eTissue are as followed:");
+	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
+	{
+		string eTissue = it->first;
+		cout << eTissue << ":" << (it->second).size() << endl;
+	}
+	gene_tss_load();  // gene_tss
+	gene_xymt_load();  // unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 	//============================================================================================================
+
 
 
 
@@ -137,7 +151,6 @@ int main()
 	// 	cout << gene << ":" << first << " " << second << " " << (second - first) << endl;
 	// }
 	//============================================================================================================
-
 	//===================================== initialize all the parameters ========================================
 	puts("parameter space initialization...");
 	para_init();

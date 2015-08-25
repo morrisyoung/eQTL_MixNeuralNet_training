@@ -17,12 +17,15 @@ typedef struct gene_pos
 
 
 // load the expression matrix into memory
-long int rpkm_load();
+long int gene_rpkm_load();
 
 
 // load tss for all genes, from the annotation file
-void tss_load();
+void gene_tss_load();
 
+
+// map all the X, Y, MT genes to unordered_map<string, int> gene_xymt_rep
+void gene_xymt_load();
 
 
 

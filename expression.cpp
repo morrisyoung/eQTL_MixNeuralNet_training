@@ -19,7 +19,7 @@
 using namespace std;
 
 
-long int rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
+long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 {
 	puts("load rpkm matrix...");
 	//===================================== eQTL_samples ===========================================
@@ -169,7 +169,7 @@ long int rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 
 
 
-void tss_load()
+void gene_tss_load()
 {
 	puts("loading the tss for genes...");
 
@@ -234,4 +234,30 @@ void tss_load()
 
 }
 
+
+
+
+void gene_xymt_load()
+{
+	puts("loading the X, Y, MT gene list...");
+
+	char filename[100] = "../gencode.v18.genes.patched_contigs.gtf_gene_xymt";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100000;
+	char input[input_length];
+	int count = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		// fill in this: unordered_map<string, int> gene_xymt_rep
+		trim(input);
+		string gene = input;
+		gene_xymt_rep[gene] = 1;
+	}
+	fclose (file_in);
+
+}
 

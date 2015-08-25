@@ -22,48 +22,89 @@ using namespace std;
 // TODO we should actually initialize the value of these parameters in some way (from prior knowledge, or some other ways)
 void para_init()
 {
-	// from snp to cell env variables
 	long int i;
+	int j;
+
+	//=============== from snp to cell env variables ===============
 	for(i=0; i<num_cellenv; i++)
 	{
 		float * p = (float *)malloc( sizeof(float) * num_snp );
 		para_snp_cellenv.push_back(p);
 	}
-	// from cell env variables to genes
-	for(i=0; i<num_gene; i++)
+
+	//=============== from cell env variables to genes ===============
+	for(j=0; j<num_etissue; j++)
 	{
-		float * p = (float *)malloc( sizeof(float) * num_cellenv );
-		para_cellenv_gene.push_back(p);
+		vector<float *> vec;
+		para_cellenv_gene.push_back(vec);
+		for(i=0; i<num_gene; i++)
+		{
+			float * p = (float *)malloc( sizeof(float) * num_cellenv );
+			para_cellenv_gene[j].push_back(p);
+		}
 	}
 
-	// initialize: vector<float *> para_cis_gene
-	for(i=0; i<gene_list.size(); i++)
+	//=============== initialize: vector<float *> para_cis_gene ===============
+	for(j=0; j<num_etissue; j++)
 	{
-		string gene = gene_list[i];
-		long first = gene_cis_index[gene].first;  // index
-		long second = gene_cis_index[gene].second;  // index
-		long amount = second - first + 1;
-		float * p = (float *)malloc( sizeof(float) * amount );
-		para_cis_gene.push_back(p);
+		vector<float *> vec;
+		para_cis_gene.push_back(vec);
+		for(i=0; i<gene_list.size(); i++)
+		{
+			string gene = gene_list[i];
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				float * p = NULL;  // null pointer
+				para_cis_gene[j].push_back(p);
+				continue;
+			}
+			else
+			{
+				long first = gene_cis_index[gene].first;  // index
+				long second = gene_cis_index[gene].second;  // index
+				long amount = second - first + 1;
+				float * p = (float *)malloc( sizeof(float) * amount );
+				para_cis_gene[j].push_back(p);
+			}
+		}
 	}
 
 }
+
 
 
 void para_release()
 {
-	// from snp to cell env variables
 	long int i;
+	int j;
+
+	//=============== from snp to cell env variables ===============
 	for(i=0; i<num_cellenv; i++)
 	{
 		free(para_snp_cellenv[i]);
 	}
-	// from cell env variables to genes
-	for(i=0; i<num_gene; i++)
+
+	//=============== from cell env variables to genes ===============
+	for(j=0; j<num_etissue; j++)
 	{
-		free(para_cellenv_gene[i]);
+		for(i=0; i<num_gene; i++)
+		{
+			free(para_cellenv_gene[j][i]);
+		}
 	}
+
+	//=============== initialize: vector<float *> para_cis_gene ===============
+	for(j=0; j<num_etissue; j++)
+	{
+		for(i=0; i<gene_list.size(); i++)
+		{
+			free(para_cis_gene[j][i]);
+		}
+	}
+
 }
+
 
 
 // loading and preparing some gene (cis- relevant) mate data
@@ -122,3 +163,4 @@ void gene_meta_init()
 	}
 
 }
+
