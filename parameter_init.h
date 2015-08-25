@@ -9,8 +9,18 @@
 using namespace std;
 
 
-
+// initializing the parameter space
 void para_init();
+
+
+// release all the dynamically allocated memory at the end of the program
+void para_release();
+
+
+// loading and preparing some gene (cis- relevant) mate data
+void gene_meta_init();
+
+
 
 
 

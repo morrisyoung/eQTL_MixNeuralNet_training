@@ -13,6 +13,7 @@
 #include "genotype.h"
 #include "optimization.h"
 #include "global.h"
+#include "main.h"
 
 
 
@@ -70,7 +71,7 @@ void optimize()
 
 	// part#1:
 	// cis- parameter list for each gene (across different tissues); all SNP to cell_env parameter table; cell env to all 20k genes (across different tissues)
-	
+
 
 
 

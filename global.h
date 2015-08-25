@@ -5,13 +5,14 @@
 #define GLOBAL_H
 
 #include "expression.h"
+#include "main.h"
 
 
 using namespace std;
 
 
 // number of cell environment variables; default value is 400
-extern int cell_env;
+extern int num_cellenv;
 
 // number of un-pruned snps
 extern long int num_snp;
@@ -19,6 +20,17 @@ extern long int num_snp;
 // number of genes
 extern long int num_gene;
 
+// mapping the gene to cis snp indices (start position and end position)
+extern unordered_map<string, tuple_long> gene_cis_index;
+
+// cis parameter table
+extern vector<float *> para_cis_gene;
+
+// snp to cell env variable parameter container
+extern vector<float *> para_snp_cellenv;
+
+// cell env variable to gene parameter container
+extern vector<float *> para_cellenv_gene;;
 
 
 // genotype relevant:

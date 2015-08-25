@@ -12,6 +12,8 @@
 #include <forward_list>
 #include <utility>
 #include "global.h"
+#include "main.h"
+
 
 
 using namespace std;

@@ -30,6 +30,8 @@ what we should have at hand by now:
 #include "optimization.h"
 #include "global.h"
 #include "parameter_init.h"
+#include "main.h"
+#include <vector>
 
 
 
@@ -40,13 +42,15 @@ using namespace std;
 // global variables definition and initialization
 //===========================================================
 long int num_snp = 0;
-int cell_env = 400;
+int num_cellenv = 400;
 long int num_gene = 0;
-
 
 // genotype relevant:
 array<vector<string>, 22> snp_name_list;
 array<vector<long>, 22> snp_pos_list;
+// TODO:
+//array<vector<float>, 22> snp_prior_list;
+
 
 // expression relevant:
 // what we need:
@@ -59,6 +63,11 @@ vector<string> gene_list;  // all genes from the source file
 unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 
 // parameter space:
+vector<float *> para_cis_gene;
+vector<float *> para_snp_cellenv;
+vector<float *> para_cellenv_gene;
+
+unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position)
 
 
 
@@ -90,23 +99,17 @@ int main()
 	// yes we need this information to characterize the cis- snps or not, in practical computation
 	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
 	puts("preparing the snp info (index --> snp name and chromosome positions)...");
-	num_snp = snp_info_read();
+	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 	//============================================================================================================
 
 
 
 
-
-
-
-	/* permanently
-
+	/* permanently removed
 	// thought (Aug.23): we don't need to load all these information into the main program to process; we can simply pre-process them, and
 	//			directly load the pre-processed prior information into this main program (to keep coding simple)
 	// so: we need another source file -- each snp with its prior score value (integrated from other associated pruned snps, and chromatin states prior knowledge)
-
-
 	//===================================== prepare the pruning information ======================================
 	puts("preparing the pruning (association of pruned with un-pruned snps) info...");
 	array<vector<string>, 22> snp_unpruned_list;
@@ -125,23 +128,7 @@ int main()
 		prune_info_read(&snp_unpruned_list[i], &snp_prune_assoc_list[i], chr);
 	}
 	puts("pruning info preparation done!");
-
-	//===== test the hashtable here: 1. the length; 2. a sample =====
-	//forward_list<pair<string, float>> list = snp_prune_assoc_list[2]["rs83616"];
-	//for ( auto it = list.begin(); it != list.end(); ++it )
-	//	cout << (*it).first << "+" << (*it).second << endl;
-	//cout << snp_prune_assoc_list[5].size() << endl;
-
-	//cout << (snp_unpruned_list[3]).size() << endl;
-	//cout << (snp_unpruned_list[4])[2] << endl;
-
-	// for (auto& x: hashtable)
-	// {
-	// 	cout << x.first << ":" << x.second.count << "+" << x.second.position << endl;
-	// }
-	//===============================================================
 	//============================================================================================================
-
 	*/
 
 
@@ -149,15 +136,36 @@ int main()
 
 
 
-	//===================================== prepare the expression matrix ======================================
-	num_gene = rpkm_load();
+	//===================================== prepare the expression matrix =======================================
+	num_gene = rpkm_load();  // eQTL_samples; gene_list; eQTL_tissue_rep
 	tss_load();  // gene_tss
+	cout << "there are " << num_gene << " genes totally." << endl;
 	//============================================================================================================
 
 
 
-	// initialize all the parameters
+
+
+	//===================================== gene meta data preparation ===========================================
+	puts("gene meta data (cis- index) preparation...");
+	gene_meta_init();
+	// test
+	// for ( auto it = gene_cis_index.begin(); it != gene_cis_index.end(); ++it )
+	// {
+	// 	string gene = it->first;
+	// 	long first = (it->second).first;
+	// 	long second = (it->second).second;
+	// 	int chr = gene_tss[gene].chr;
+	// 	long start = snp_pos_list[chr-1][first];
+	// 	long end = snp_pos_list[chr-1][second];
+	// 	cout << gene << ":" << first << " " << second << " " << (second - first) << endl;
+	// }
+	//============================================================================================================
+
+	//===================================== initialize all the parameters ========================================
+	puts("parameter space initialization...");
 	para_init();
+	//============================================================================================================
 
 
 
@@ -168,6 +176,6 @@ int main()
 
 	cout << "Optimization done! Please find the results in 'result' folder.\n";
 	cout << "[now leave the program]\n";
-
+	para_release();
 	return 0;
 }
