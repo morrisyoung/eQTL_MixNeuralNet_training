@@ -25,10 +25,6 @@ typedef struct snp_info
 long int snp_info_read();
 
 
-// read the un-pruned snp list and the association file (pruned snps with the un-pruned snps) into specified vector or hashtable
-void prune_info_read(vector<string> *, unordered_map<string, forward_list<pair<string, float>>> *, int);
-
-
 // read dosage chunk (for one individual on all chromosomes)
 void snp_dosage_load(vector<float> *, int, string);
 

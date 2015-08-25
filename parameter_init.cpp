@@ -19,6 +19,7 @@ using namespace std;
 
 
 // initializing the parameter space
+// TODO we should actually initialize the value of these parameters in some way (from prior knowledge, or some other ways)
 void para_init()
 {
 	// from snp to cell env variables
