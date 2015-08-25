@@ -32,6 +32,8 @@ extern array<vector<long>, 22> snp_pos_list;
 extern unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 extern unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 extern vector<string> gene_list;  // all genes from the source file
+extern vector<string> etissue_list;  // eTissues in order
+extern unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
 extern unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 extern unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 

@@ -164,6 +164,30 @@ long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 	}
 	fclose (file_in);
 
+
+	//===================================== etissue_list ===========================================
+	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
+	{
+		string etissue = it->first;
+		etissue_list.push_back(etissue);
+	}
+
+
+	//===================================== esample_tissue_rep ===========================================
+	//unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		string etissue = etissue_list[i];
+		vector<string> vec;
+		esample_tissue_rep[etissue] = vec;
+		for(auto it=eQTL_tissue_rep[etissue].begin(); it != eQTL_tissue_rep[etissue].end(); ++it)
+		{
+			string esample = it->first;
+			esample_tissue_rep[etissue].push_back(esample);
+		}
+	}
+
+
 	return gene_list.size();
 }
 

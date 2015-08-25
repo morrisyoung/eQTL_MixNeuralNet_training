@@ -17,6 +17,15 @@ void opt_para_init();
 void opt_para_release();
 
 
+
+void forward_backward_prop_batch(string, int, int);
+
+
+
+void gradient_descent();
+
+
+
 // main routine
 void optimize();
 

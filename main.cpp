@@ -32,6 +32,7 @@ what we should have at hand by now:
 #include "parameter_init.h"
 #include "main.h"
 #include <vector>
+#include "parameter_save.h"
 
 
 
@@ -62,6 +63,9 @@ array<vector<long>, 22> snp_pos_list;
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 vector<string> gene_list;  // all genes from the source file
+vector<string> etissue_list;  // eTissues in order
+unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
+
 
 // information table:
 unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
@@ -121,8 +125,8 @@ int main()
 	puts("number of training samples in each eTissue are as followed:");
 	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
 	{
-		string eTissue = it->first;
-		cout << eTissue << ":" << (it->second).size() << endl;
+		string etissue = it->first;
+		cout << etissue << ":" << (it->second).size() << endl;
 	}
 	gene_tss_load();  // gene_tss
 	gene_xymt_load();  // gene_xymt_rep
@@ -142,14 +146,18 @@ int main()
 
 
 
+
 	//======================================= main optimization routine ==========================================
 	optimize();
 	//============================================================================================================
 
 
 
+
+	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene
 	cout << "Optimization done! Please find the results in 'result' folder.\n";
 	cout << "[now leave the program]\n";
 	para_release();
 	return 0;
 }
+
