@@ -26,7 +26,9 @@ long int snp_info_read();
 
 
 // read dosage chunk (for one individual on all chromosomes)
-void snp_dosage_load(vector<float> *, int, string);
+void snp_dosage_load(array<vector<float>, 22> *, string);
+
+
 
 
 

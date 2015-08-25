@@ -105,15 +105,11 @@ int main()
 	//
 
 
-	// yes we need this information to characterize the cis- snps or not, in practical computation
-	//==================== prepare the snp information (hashtable: (snp, (count, position))) =====================
+	//======================================= prepare the snp information ========================================
 	puts("preparing the snp info (index --> snp name and chromosome positions)...");
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 	//============================================================================================================
-
-
-
 
 
 	//===================================== prepare the expression matrix =======================================
@@ -129,28 +125,16 @@ int main()
 		cout << eTissue << ":" << (it->second).size() << endl;
 	}
 	gene_tss_load();  // gene_tss
-	gene_xymt_load();  // unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
+	gene_xymt_load();  // gene_xymt_rep
 	//============================================================================================================
-
-
-
 
 
 	//===================================== gene meta data preparation ===========================================
 	puts("gene meta data (cis- index) preparation...");
-	gene_meta_init();
-	// test
-	// for ( auto it = gene_cis_index.begin(); it != gene_cis_index.end(); ++it )
-	// {
-	// 	string gene = it->first;
-	// 	long first = (it->second).first;
-	// 	long second = (it->second).second;
-	// 	int chr = gene_tss[gene].chr;
-	// 	long start = snp_pos_list[chr-1][first];
-	// 	long end = snp_pos_list[chr-1][second];
-	// 	cout << gene << ":" << first << " " << second << " " << (second - first) << endl;
-	// }
+	gene_meta_init();  // gene_cis_index
 	//============================================================================================================
+
+
 	//===================================== initialize all the parameters ========================================
 	puts("parameter space initialization...");
 	para_init();
@@ -158,8 +142,9 @@ int main()
 
 
 
-
+	//======================================= main optimization routine ==========================================
 	optimize();
+	//============================================================================================================
 
 
 

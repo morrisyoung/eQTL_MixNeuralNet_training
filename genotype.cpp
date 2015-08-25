@@ -74,40 +74,47 @@ long int snp_info_read()
 
 
 
-void snp_dosage_load(vector<float> * vec_pointer, int chr, string individual)
+void snp_dosage_load(array<vector<float>, 22> * array_pointer, string individual)
 {
-
-	//======== get all SNPs with their snp_info (count, position) ========
-	char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
-	char chrom[10];
-	sprintf(chrom, "%d", chr);
-	strcat(filename, chrom);
-	strcat(filename, "/SNP_dosage_");
-	char individual1[20];
-	StrToCharSeq(individual1, individual);
-	strcat(filename, individual1);
-	strcat(filename, ".txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
-	FILE * file_in = fopen(filename, "r");
-	if(file_in == NULL)
+	int i;
+	for(i=0; i<22; i++)
 	{
-		fputs("File error\n", stderr); exit (1);
+		int chr = i+1;
+
+		//======== get all SNPs with their snp_info (count, position) ========
+		char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+		char chrom[10];
+		sprintf(chrom, "%d", chr);
+		strcat(filename, chrom);
+		strcat(filename, "/SNP_dosage_");
+		char individual1[20];
+		StrToCharSeq(individual1, individual);
+		strcat(filename, individual1);
+		strcat(filename, ".txt");
+		//puts("the current file worked on is: ");
+		//puts(filename);
+
+		FILE * file_in = fopen(filename, "r");
+		if(file_in == NULL)
+		{
+			fputs("File error\n", stderr); exit (1);
+		}
+
+		int input_length = 100;
+		char input[input_length];
+		int j = 0;
+		while(fgets(input, input_length, file_in) != NULL)
+		{
+			trim(input);
+
+			float dosage = stof(input);
+			(* array_pointer)[i][j] = dosage;
+			j ++;
+		}
+
+		fclose(file_in);
+		//======================================
 	}
-
-	int input_length = 100;
-	char input[input_length];
-	while(fgets(input, input_length, file_in) != NULL)
-	{
-		trim(input);
-
-		float dosage = stof(input);
-		(* vec_pointer).push_back(dosage);
-
-	}
-
-	fclose(file_in);
-	//======================================
 
 }
+
