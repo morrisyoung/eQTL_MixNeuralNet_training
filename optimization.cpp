@@ -11,9 +11,11 @@
 #include <forward_list>
 #include <utility>
 #include "genotype.h"
+#include "expression.h"
 #include "optimization.h"
 #include "global.h"
-#include "main.h"
+#include "main.h"  // typedef struct tuple_long
+#include <math.h>       /* exp */
 
 
 
@@ -171,28 +173,6 @@ string sample_to_individual(string sample)
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 {
-
-	//=================================== our parameter space ===================================
-	// long int num_snp = 0;
-	// int num_cellenv = 400;
-	// long int num_gene = 0;
-	// int num_etissue = 0;
-	// array<vector<string>, 22> snp_name_list;
-	// array<vector<long>, 22> snp_pos_list;
-	// unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
-	// unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
-	// vector<string> gene_list;  // all genes from the source file
-	// vector<string> etissue_list;  // eTissues in order
-	// vector<vector<string>> esample_tissue_list;  // esample lists of all etissues
-	// unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
-	// unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
-	// vector<vector<float *>> para_cis_gene;
-	// vector<float *> para_snp_cellenv;
-	// vector<vector<float *>> para_cellenv_gene;
-	// unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
-	//============================================================================================
-
-
 	for(int count=0; count<batch_size; count++)
 	{
 		int pos = (pos_start + count) % (num_esample);
@@ -203,30 +183,80 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		// get the: 0. esample and individual; 1. genotype; 2. expression data.
 		// to: 1. forward_backward propagation
 
-
-
-		// // genotype dosage data
-		// cout << "getting the dosage data for individual #" << individual << endl;
-		// //string individual = "GTEX-TKQ1";  // for testing sample (individual)
-		// snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
-		// // expression rpkm data: eQTL_tissue_rep[etissue][esample]
-		// cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
-
-
+		// genotype dosage data
+		cout << "getting the dosage data for individual #" << individual << endl;
+		snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
+		// expression rpkm data: eQTL_tissue_rep[etissue][esample]
+		cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
 
 
 		//========================================================================
-		// two step: forward propagation; backward propagation (gradient descent)
+		// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
 		//========================================================================
 		// step#1: ... (cis-; cell env)
+		// ****************************** part1: cis- *********************************
+		// for cis-, two issues:
+		// 1. if this is a XYMT gene, jump;
+		// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			int chr = gene_tss[gene].chr;
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				gene_rpkm_exp[i] = 0;
+			}
+			else
+			{
+				gene_rpkm_exp[i] = 0;
+				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+				for(int k=0; k<num; k++)
+				{
+					int pos = gene_cis_index[gene].first + k;
+					float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
+					gene_rpkm_exp[i] += dosage * para_cis_gene[i][k];
+				}
+			}
+		}
 
-		// ************** part1: cis- ***************
+		// ********************* part2: cell env relevant parameters *********************
+		// from snp to cell env variables
+		for(int i=0; i<num_cellenv; i++)
+		{
+			cellenv_hidden_var[i] = 0;
+			long count = 0;
+			for(int j=0; j<22; j++)  // across all the chromosomes
+			{
+				int chr = j+1;
+				for(long k=0; k<snp_dosage_list[j].size(); k++)
+				{
+					float dosage = snp_dosage_list[j][k];
+					cellenv_hidden_var[i] += dosage * para_snp_cellenv[i][count];
+					count ++;
+				}
+			}
+		}
 
-		// for cis-: 1. if this is a XYMT gene, jump; 2. we use "gene_cis_index" to get the length of the cis- parameter array
+		// perform the activation function here (logistic or something else)
+		for(int i=0; i<num_cellenv; i++)
+		{
+			cellenv_hidden_var[i] = 1 / ( 1 + exp( - cellenv_hidden_var[i] ));
+		}
+
+		// from cell env variables to genes
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			for(int j=0; j<num_cellenv; j++)
+			{
+				gene_rpkm_exp[i] += para_cellenv_gene[i][j] * cellenv_hidden_var[j];
+			}
+		}
 
 
 
-		// ************** part2: cell env relevant parameters **************
+
 
 
 		//========================================================================
@@ -246,6 +276,27 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 		// ************** part2: cell env relevant parameters **************
 		// for gene in gene_list:
+
+
+
+
+
+
+// TODO: ignore all tissue specificity now
+// parameter space
+vector<vector<float *>> para_cis_gene;
+vector<float *> para_snp_cellenv;
+vector<vector<float *>> para_cellenv_gene;
+vector<vector<float *>> para_dev_cis_gene;
+vector<float *> para_dev_snp_cellenv;
+vector<vector<float *>> para_dev_cellenv_gene;
+array<vector<float>, 22> snp_dosage_list;
+vector<float> gene_rpkm_exp;
+vector<float> cellenv_hidden_var;
+
+
+
+
 
 
 	}
