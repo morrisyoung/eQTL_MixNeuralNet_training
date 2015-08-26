@@ -24,8 +24,8 @@ using namespace std;
 // these variables are specially designed for this routine -- optimization
 // need to initialize some local containers:
 array<vector<float>, 22> snp_dosage_list;
-vector<float> gene_rpkm_exp;
-vector<float> cellenv_hidden_var;
+vector<float> gene_rpkm_exp;  // with length "num_gene"
+vector<float> cellenv_hidden_var;  // with length "num_cellenv"
 
 // parameter derivative containers:
 vector<vector<float *>> para_dev_cis_gene;
@@ -33,15 +33,15 @@ vector<float *> para_dev_snp_cellenv;
 vector<vector<float *>> para_dev_cellenv_gene;
 
 
-
-
 // learning control parameters:
 int iter_learn_out = 5;  // iteration across all tissues
 int iter_learn_in = 20;  // iteration across all samples from one tissue
 int batch_size = 15;
-
-
-
+int rate_learner = 1;  // the learning rate
+// TODO: regularization coefficients (maybe most of them are pretty empirical)
+//
+//
+//
 
 //======================================================================================================
 
@@ -61,7 +61,7 @@ void opt_para_init()
 	}
 
 	//=============== gene_rpkm_exp ===============
-	for(int i=0; i<gene_list.size(); i++)
+	for(int i=0; i<num_gene; i++)
 	{
 		gene_rpkm_exp.push_back(0);
 	}
@@ -72,22 +72,19 @@ void opt_para_init()
 		cellenv_hidden_var.push_back(0);
 	}
 
-	long int i;
-	int j;
-
 	//=============== para_dev_snp_cellenv ===============
-	for(i=0; i<num_cellenv; i++)
+	for(int i=0; i<num_cellenv; i++)
 	{
 		float * p = (float *)malloc( sizeof(float) * num_snp );
 		para_dev_snp_cellenv.push_back(p);
 	}
 
 	//=============== para_dev_cellenv_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
 		vector<float *> vec;
 		para_dev_cellenv_gene.push_back(vec);
-		for(i=0; i<num_gene; i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			float * p = (float *)malloc( sizeof(float) * num_cellenv );
 			para_dev_cellenv_gene[j].push_back(p);
@@ -95,11 +92,11 @@ void opt_para_init()
 	}
 
 	//=============== para_dev_cis_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
 		vector<float *> vec;
 		para_dev_cis_gene.push_back(vec);
-		for(i=0; i<gene_list.size(); i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
 			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
@@ -127,28 +124,25 @@ void opt_para_init()
 
 void opt_para_release()
 {
-	long int i;
-	int j;
-
 	//=============== para_dev_snp_cellenv ===============
-	for(i=0; i<num_cellenv; i++)
+	for(int i=0; i<num_cellenv; i++)
 	{
 		free(para_dev_snp_cellenv[i]);
 	}
 
 	//=============== para_dev_cellenv_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
-		for(i=0; i<num_gene; i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			free(para_dev_cellenv_gene[j][i]);
 		}
 	}
 
 	//=============== para_dev_cis_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
-		for(i=0; i<gene_list.size(); i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			free(para_dev_cis_gene[j][i]);
 		}
@@ -162,7 +156,6 @@ void opt_para_release()
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 {
-
 
 	//=================================== our parameter space ===================================
 	// long int num_snp = 0;
@@ -183,7 +176,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// vector<vector<float *>> para_cellenv_gene;
 	// unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
 	//============================================================================================
-
 
 
 	for(int count=0; count<batch_size; count++)
@@ -210,6 +202,10 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		// step#1: ... (cis-; cell env)
 
 		// ************** part1: cis- ***************
+
+		// for cis-: 1. if this is a XYMT gene, jump; 2. we use "gene_cis_index" to get the length of the cis- parameter array
+
+
 
 		// ************** part2: cell env relevant parameters **************
 
@@ -245,6 +241,9 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 void gradient_descent()
 {
+	// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand)
+
+
 
 }
 

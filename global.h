@@ -22,6 +22,7 @@ extern long int num_gene;
 extern int num_etissue;
 
 
+
 // genotype relevant:
 extern array<vector<string>, 22> snp_name_list;
 extern array<vector<long>, 22> snp_pos_list;

@@ -18,7 +18,7 @@ void para_release();
 
 
 // loading and preparing some gene (cis- relevant) mate data
-void gene_meta_init();
+void gene_cis_index_init();
 
 
 

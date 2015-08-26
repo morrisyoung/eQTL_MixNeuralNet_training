@@ -66,7 +66,6 @@ vector<string> gene_list;  // all genes from the source file
 vector<string> etissue_list;  // eTissues in order
 unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
 
-
 // information table:
 unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
@@ -79,12 +78,6 @@ vector<vector<float *>> para_cellenv_gene;
 
 // information table:
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
-
-
-
-
-
-
 
 //===========================================================
 
@@ -133,12 +126,10 @@ int main()
 	//============================================================================================================
 
 
-	//===================================== gene meta data preparation ===========================================
+	//===================================== gene cis index data preparation ======================================
 	puts("gene meta data (cis- index) preparation...");
-	gene_meta_init();  // gene_cis_index
+	gene_cis_index_init();  // gene_cis_index
 	//============================================================================================================
-
-
 	//===================================== initialize all the parameters ========================================
 	puts("parameter space initialization...");
 	para_init();
@@ -147,9 +138,14 @@ int main()
 
 
 
+
+
 	//======================================= main optimization routine ==========================================
 	optimize();
 	//============================================================================================================
+
+
+
 
 
 

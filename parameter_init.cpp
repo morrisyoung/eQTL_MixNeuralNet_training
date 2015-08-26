@@ -108,7 +108,7 @@ void para_release()
 
 
 // loading and preparing some gene (cis- relevant) mate data
-void gene_meta_init()
+void gene_cis_index_init()
 {
 	// initialize the following one:
 	// unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position)
