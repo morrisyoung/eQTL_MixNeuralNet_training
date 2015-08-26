@@ -20,6 +20,7 @@
 using namespace std;
 
 
+
 //====================================== local global variables ========================================
 // these variables are specially designed for this routine -- optimization
 // need to initialize some local containers:
@@ -152,6 +153,20 @@ void opt_para_release()
 
 
 
+// transform the sample ID (like "GTEX-R55E-0826-SM-2TC5M") into individual ID (here is the first 9 digits)
+string sample_to_individual(string sample)
+{
+	string individual;
+	for(int i=0; i<9; i++)  // TODO: in next stage, the individual ID may be longer
+	{
+		individual.push_back(sample[i]);
+	}
+
+	return individual;
+}
+
+
+
 
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
@@ -182,17 +197,21 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	{
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
+		string individual = sample_to_individual(esample);
 
+		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data.
-		// to: 1. forward_backward propagation; 2. gradient descent.
+		// to: 1. forward_backward propagation
 
-		// genotype dosage data
-		puts("get the dosage data for one individual (test)...");
-		string individual = "GTEX-TKQ1";  // for testing sample (individual)
-		snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
-		puts("snp dosage loading (test) done!");
-		// expression rpkm data
-		//eQTL_tissue_rep[etissue][esample]
+
+
+		// // genotype dosage data
+		// cout << "getting the dosage data for individual #" << individual << endl;
+		// //string individual = "GTEX-TKQ1";  // for testing sample (individual)
+		// snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
+		// // expression rpkm data: eQTL_tissue_rep[etissue][esample]
+		// cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
+
 
 
 
@@ -231,7 +250,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 	}
 
-	// aggragate the results from all samples in this mini- batch
+	// aggragate the results from all samples in this mini- batch, in some way
 
 
 }
@@ -241,8 +260,63 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 void gradient_descent()
 {
-	// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand)
+	// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand, as followed)
 
+	// parameter containers:
+	//vector<vector<float *>> para_cis_gene;
+	//vector<float *> para_snp_cellenv;
+	//vector<vector<float *>> para_cellenv_gene;
+
+	// parameter derivative containers:
+	//vector<vector<float *>> para_dev_cis_gene;
+	//vector<float *> para_dev_snp_cellenv;
+	//vector<vector<float *>> para_dev_cellenv_gene;
+
+	//====================== para_cis_gene ==========================
+	for(int i=0; i<num_etissue; i++)
+	{
+		string etissue = etissue_list[i];
+		for(int j=0; j<num_gene; j++)
+		{
+			string gene = gene_list[j];
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				continue;
+			}
+			else
+			{
+				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+				for(int k=0; k<num; k++)
+				{
+					para_cis_gene[i][j][k] = para_cis_gene[i][j][k] - rate_learner * para_dev_cis_gene[i][j][k];
+				}
+			}
+		}
+	}
+
+	//====================== para_snp_cellenv ==========================
+	for(int i=0; i<num_cellenv; i++)
+	{
+		for(long j=0; j<num_snp; j++)
+		{
+			para_snp_cellenv[i][j] = para_snp_cellenv[i][j] - rate_learner * para_dev_snp_cellenv[i][j];
+		}
+	}
+
+	//====================== para_cellenv_gene ==========================
+	for(int i=0; i<num_etissue; i++)
+	{
+		string etissue = etissue_list[i];
+		for(int j=0; j<num_gene; j++)
+		{
+			string gene = gene_list[j];
+			for(int k=0; k<num_cellenv; k++)
+			{
+				para_cellenv_gene[i][j][k] = para_cellenv_gene[i][j][k] - rate_learner * para_dev_cellenv_gene[i][j][k];
+			}
+		}
+	}
 
 
 }
@@ -264,11 +338,13 @@ void optimize()
 		for(int count2=0; count2<num_etissue; count2++)  // one count2 is for one tissue
 		{
 			string etissue = etissue_list[count2];
+			int num_esample = eQTL_tissue_rep[etissue].size();
 
 			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a 15-sized mini-batch in current tissue
 			{
-				int num_esample = eQTL_tissue_rep[etissue].size();
 				int pos_start = (batch_size * count3) % (num_esample);
+
+				printf("now we are working on %d iter_out, %s tissue (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, etissue.c_str(), num_esample, count3+1, batch_size);
 
 				forward_backward_prop_batch(etissue, pos_start, num_esample);
 

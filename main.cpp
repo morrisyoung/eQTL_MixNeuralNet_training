@@ -33,6 +33,8 @@ what we should have at hand by now:
 #include "main.h"
 #include <vector>
 #include "parameter_save.h"
+#include <sys/time.h>
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 
 
@@ -88,6 +90,12 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 int main()
 {
 	cout << "[now enter the program]\n";
+
+	//============== timing starts ================
+    struct timeval time_start;
+    struct timeval time_end;
+    double diff;
+    gettimeofday(&time_start, NULL);
 
 
 	// maybe here accept some command lines
@@ -149,11 +157,17 @@ int main()
 
 
 
-
+	//============== save parameters and release memory ================
 	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene
 	cout << "Optimization done! Please find the results in 'result' folder.\n";
-	cout << "[now leave the program]\n";
 	para_release();
+
+	//============== timing ends ================
+    gettimeofday(&time_end, NULL);
+    diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
+    printf("Time used totally is %f seconds.\n", diff);
+
+	cout << "[now leave the program]\n";
 	return 0;
 }
 
