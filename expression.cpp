@@ -172,6 +172,14 @@ long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 		etissue_list.push_back(etissue);
 	}
 
+	//===================================== etissue_index_map ===========================================
+	// unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing above)
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		string etissue = etissue_list[i];
+		etissue_index_map[etissue] = i;
+	}
+
 
 	//===================================== esample_tissue_rep ===========================================
 	//unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues

@@ -66,6 +66,7 @@ unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  //
 unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 vector<string> gene_list;  // all genes from the source file
 vector<string> etissue_list;  // eTissues in order
+unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing above)
 unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
 
 // information table:

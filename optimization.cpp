@@ -173,6 +173,8 @@ string sample_to_individual(string sample)
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 {
+	int etissue_index = etissue_index_map[etissue];
+
 	//******************* initialize all the parameter derivatives (as 0) *******************
 	//***************************************************************************************
 	// vector<vector<float *>> para_dev_cis_gene;
@@ -189,7 +191,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 			for(int k=0; k<num; k++)
 			{
-				para_dev_cis_gene[i][k] = 0;
+				para_dev_cis_gene[etissue_index][i][k] = 0;
 			}
 		}
 	}
@@ -208,7 +210,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	{
 		for(int j=0; j<num_cellenv; j++)
 		{
-			para_dev_cellenv_gene[i][j] = 0;
+			para_dev_cellenv_gene[etissue_index][i][j] = 0;
 		}
 	}
 
@@ -237,7 +239,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
 		//========================================================================
 		// step#1: ... (cis-; cell env)
-		// ****************************** part1: cis- *********************************
+		// ****************************** [part1] cis- *********************************
 		// for cis-, two issues:
 		// 1. if this is a XYMT gene, jump;
 		// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
@@ -258,12 +260,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				{
 					int pos = gene_cis_index[gene].first + k;
 					float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
-					gene_rpkm_exp[i] += dosage * para_cis_gene[i][k];
+					gene_rpkm_exp[i] += dosage * para_cis_gene[etissue_index][i][k];
 				}
 			}
 		}
 
-		// ********************* part2: cell env relevant parameters *********************
+		// ********************* [part2] cell env relevant parameters *********************
 		// from snp to cell env variables
 		for(int i=0; i<num_cellenv; i++)
 		{
@@ -281,7 +283,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 		}
 
-		// perform the activation function here (logistic or something else)
+		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		for(int i=0; i<num_cellenv; i++)
 		{
 			cellenv_hidden_var[i] = 1 / ( 1 + exp( - cellenv_hidden_var[i] ));
@@ -293,56 +295,75 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			string gene = gene_list[i];
 			for(int j=0; j<num_cellenv; j++)
 			{
-				gene_rpkm_exp[i] += para_cellenv_gene[i][j] * cellenv_hidden_var[j];
+				gene_rpkm_exp[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_hidden_var[j];
 			}
 		}
 
 
 
 
-
-
 		//========================================================================
 		// step#2: ... (cis- parameters;  cell env relevant parameters)
+		// *********************** [part1] cis- ************************
+		// pseudo: (expected rpkm - real rpkm) * genotype
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			int chr = gene_tss[gene].chr;
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				continue;
+			}
+			else
+			{
+				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+				for(int k=0; k<num; k++)
+				{
+					int pos = gene_cis_index[gene].first + k;
+					float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
+					para_dev_cis_gene[etissue_index][i][k] += (gene_rpkm_exp[i] - eQTL_tissue_rep[etissue][esample][i]) * dosage;
+				}
+			}
+		}
 
-		// ************** part1: cis- ***************
-		// for gene in "gene_list":
-		// if gene in gene_xymt_rep: continue;
-		// else:
-		// int chr = gene_tss[gene]
-		// long start = gene_cis_index[gene].first;
-		// long end = gene_cis_index[gene].second;
+		// ***************** [part2] cell env relevant parameters *****************
+		// from cell env to genes
+		// pseudo: (expected rpkm - real rpkm) * cell_env
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			for(int j=0; j<num_cellenv; j++)
+			{
+				para_dev_cellenv_gene[etissue_index][i][j] += (gene_rpkm_exp[i] - eQTL_tissue_rep[etissue][esample][i]) * cellenv_hidden_var[j];
+			}
+		}
 
-		// for index= start; index<= end; index++:
-		// dosage = snp_dosage_list[chr-1][index];
-
-
-		// ************** part2: cell env relevant parameters **************
-		// for gene in gene_list:
-
-
-
-
-
-
-	// TODO: ignore all tissue specificity now
-	// parameter space
-	// vector<vector<float *>> para_cis_gene;
-	// vector<float *> para_snp_cellenv;
-	// vector<vector<float *>> para_cellenv_gene;
-	// vector<vector<float *>> para_dev_cis_gene;
-	// vector<float *> para_dev_snp_cellenv;
-	// vector<vector<float *>> para_dev_cellenv_gene;
-	// array<vector<float>, 22> snp_dosage_list;
-	// vector<float> gene_rpkm_exp;
-	// vector<float> cellenv_hidden_var;
-
-
-
+		// from snp to cell env
+		// pseudo: [ \sum w3 * (expected rpkm - real rpkm) ] * g'(w2 * x1) * x1
+		for(int i=0; i<num_cellenv; i++)
+		{
+			long count = 0;
+			for(int j=0; j<22; j++)  // across all the chromosomes
+			{
+				int chr = j+1;
+				for(long k=0; k<snp_dosage_list[j].size(); k++)
+				{
+					float dosage = snp_dosage_list[j][k];
+					float temp = 0;
+					for(int t=0; t<num_gene; t++)
+					{
+						temp += para_cellenv_gene[etissue_index][t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
+					}
+					temp *= cellenv_hidden_var[i] * ( 1 - cellenv_hidden_var[i] ) * dosage;
+					para_dev_snp_cellenv[i][count] += temp;
+					count ++;
+				}
+			}
+		}
 
 
 	}
-
 
 
 	//******************* aggregation *******************
@@ -363,7 +384,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 			for(int k=0; k<num; k++)
 			{
-				para_dev_cis_gene[i][k] = para_dev_cis_gene[i][k] / batch_size;
+				para_dev_cis_gene[etissue_index][i][k] = para_dev_cis_gene[etissue_index][i][k] / batch_size;
 			}
 		}
 	}
@@ -382,14 +403,13 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	{
 		for(int j=0; j<num_cellenv; j++)
 		{
-			para_dev_cellenv_gene[i][j] = para_dev_cellenv_gene[i][j] / batch_size;
+			para_dev_cellenv_gene[etissue_index][i][j] = para_dev_cellenv_gene[etissue_index][i][j] / batch_size;
 		}
 	}
 
 
 
-
-	// TODO add the regulation relevant items.
+	// TODO add the regulation relevant items
 
 
 

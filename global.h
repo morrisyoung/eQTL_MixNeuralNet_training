@@ -34,6 +34,7 @@ extern unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_r
 extern unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 extern vector<string> gene_list;  // all genes from the source file
 extern vector<string> etissue_list;  // eTissues in order
+extern unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing above)
 extern unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
 extern unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 extern unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
