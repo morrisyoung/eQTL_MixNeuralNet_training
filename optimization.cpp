@@ -275,6 +275,18 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
+	// batch parameters
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
 
 
 	//******************* enter the mini-batch *******************
@@ -361,6 +373,19 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 
 
+		// ********************* [part3] linear or non-linear batches *********************
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+
+
 
 
 		//========================================================================
@@ -424,6 +449,20 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 
 
+
+		// ********************* [part3] linear or non-linear batches *********************
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+
+
 	}
 
 
@@ -468,6 +507,18 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
+	// batch parameters
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
 
 
 	// TODO add the regulation relevant items
