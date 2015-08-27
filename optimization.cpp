@@ -29,12 +29,16 @@ using namespace std;
 array<vector<float>, 22> snp_dosage_list;
 vector<float> gene_rpkm_exp;  // with length "num_gene"
 vector<float> cellenv_hidden_var;  // with length "num_cellenv"
+vector<float> batch_var;  // with length "num_batch"
+vector<float> batch_hidden_var;  // with length "num_batch_hidden"
 
 
 // parameter derivative containers:
 vector<vector<float *>> para_dev_cis_gene;
 vector<float *> para_dev_snp_cellenv;
 vector<vector<float *>> para_dev_cellenv_gene;
+vector<float *> para_dev_batch_batch_hidden;
+vector<float *> para_dev_batch_hidden_gene;
 
 
 // some assistant components:
@@ -102,6 +106,18 @@ void opt_para_init()
 		cellenv_hidden_var.push_back(0);
 	}
 
+	//=============== batch_var ===============
+	for(int i=0; i<num_batch; i++)
+	{
+		batch_var.push_back(0);
+	}
+
+	//=============== batch_hidden_var ===============
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		batch_hidden_var.push_back(0);
+	}
+
 	//=============== para_dev_snp_cellenv ===============
 	for(int i=0; i<num_cellenv; i++)
 	{
@@ -145,6 +161,20 @@ void opt_para_init()
 				para_dev_cis_gene[j].push_back(p);
 			}
 		}
+	}
+
+	//=============== para_dev_batch_batch_hidden ===============
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		float * p = (float *)malloc( sizeof(float) * num_batch );
+		para_dev_batch_batch_hidden.push_back(p);
+	}
+
+	//=============== para_dev_batch_hidden_gene ===============
+	for(int i=0; i<num_gene; i++)
+	{
+		float * p = (float *)malloc( sizeof(float) * num_batch_hidden );
+		para_dev_batch_hidden_gene.push_back(p);
 	}
 
 	//=============== snp_prior_list ===============
@@ -210,6 +240,18 @@ void opt_para_release()
 		{
 			free(para_dev_cis_gene[j][i]);
 		}
+	}
+
+	//=============== para_dev_batch_batch_hidden ===============
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		free(para_dev_batch_batch_hidden[i]);
+	}
+
+	//=============== para_dev_batch_hidden_gene ===============
+	for(int i=0; i<num_gene; i++)
+	{
+		free(para_dev_batch_hidden_gene[i]);
 	}
 
 }
@@ -609,7 +651,6 @@ void gradient_descent()
 void optimize()
 {
 	puts("============== entering the optimization routine...");
-
 	opt_para_init();
 
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
@@ -635,5 +676,4 @@ void optimize()
 
 	opt_para_release();
 	puts("============== leaving the optimization routine...");
-
 }
