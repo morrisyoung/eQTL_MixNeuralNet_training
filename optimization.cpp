@@ -419,27 +419,32 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 		}
 
-
 		// ********************* [part3] linear or non-linear batches *********************
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		// vector<float> batch_var;  // with length "num_batch"
-		// vector<float> batch_hidden_var;  // with length "num_batch_hidden"
-		// vector<float *> para_dev_batch_batch_hidden;
-		// vector<float *> para_dev_batch_hidden_gene;
+		// from original batch to hidden batch
+		for(int i=0; i<num_batch_hidden; i++)
+		{
+			batch_hidden_var[i] = 0;
+			for(int j=0; j<num_batch; j++)
+			{
+				batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
+			}
+		}
 
+		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
+		for(int i=0; i<num_batch_hidden; i++)
+		{
+			batch_hidden_var[i] = 1 / ( 1 + exp( - batch_hidden_var[i] ));
+		}
 
-
-
-
+		// from hidden batch to genes
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			for(int j=0; j<num_batch_hidden; j++)
+			{
+				gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * batch_hidden_var[j];
+			}
+		}
 
 
 		//========================================================================
@@ -503,25 +508,34 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 
 
-
 		// ********************* [part3] linear or non-linear batches *********************
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		// vector<float> batch_var;  // with length "num_batch"
-		// vector<float> batch_hidden_var;  // with length "num_batch_hidden"
-		// vector<float *> para_dev_batch_batch_hidden;
-		// vector<float *> para_dev_batch_hidden_gene;
+		// from hidden batch to genes
+		// pseudo: (expected rpkm - real rpkm) * hidden batch var
+		for(int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			for(int j=0; j<num_batch_hidden; j++)
+			{
+				para_dev_batch_hidden_gene[i][j] += (gene_rpkm_exp[i] - eQTL_tissue_rep[etissue][esample][i]) * batch_hidden_var[j];
+			}
+		}
 
-
-
+		// from original batch to hidden batch
+		// pseudo: [ \sum w5 * (expected rpkm - real rpkm) ] * g'(w4 * x2) * x2
+		for(int i=0; i<num_batch_hidden; i++)
+		{
+			for(int j=0; j<num_batch; j++)
+			{
+				float batch_value = batch_var[j];
+				float temp = 0;
+				for(int t=0; t<num_gene; t++)
+				{
+					temp += para_batch_hidden_gene[t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
+				}
+				temp *= batch_hidden_var[i] * ( 1 - batch_hidden_var[i] ) * batch_value;
+				para_dev_batch_batch_hidden[i][j] += temp;
+			}
+		}
 
 	}
 
