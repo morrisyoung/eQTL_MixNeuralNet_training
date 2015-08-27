@@ -317,18 +317,23 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-	// batch parameters
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
+	// vector<float *> para_dev_batch_batch_hidden;
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			para_dev_batch_batch_hidden[i][j] = 0;
+		}
+	}
+
+	// vector<float *> para_dev_batch_hidden_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			para_dev_batch_hidden_gene[i][j] = 0;
+		}
+	}
 
 
 	//******************* enter the mini-batch *******************
@@ -426,6 +431,13 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		//
 		//
 		//
+		// vector<float> batch_var;  // with length "num_batch"
+		// vector<float> batch_hidden_var;  // with length "num_batch_hidden"
+		// vector<float *> para_dev_batch_batch_hidden;
+		// vector<float *> para_dev_batch_hidden_gene;
+
+
+
 
 
 
@@ -503,6 +515,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		//
 		//
 		//
+		// vector<float> batch_var;  // with length "num_batch"
+		// vector<float> batch_hidden_var;  // with length "num_batch_hidden"
+		// vector<float *> para_dev_batch_batch_hidden;
+		// vector<float *> para_dev_batch_hidden_gene;
+
+
 
 
 	}
@@ -549,18 +567,23 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-	// batch parameters
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
+	// vector<float *> para_dev_batch_batch_hidden;
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			para_dev_batch_batch_hidden[i][j] = para_dev_batch_batch_hidden[i][j] / batch_size;
+		}
+	}
+
+	// vector<float *> para_dev_batch_hidden_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			para_dev_batch_hidden_gene[i][j] = para_dev_batch_hidden_gene[i][j] / batch_size;
+		}
+	}
 
 
 	// TODO add the regulation relevant items
