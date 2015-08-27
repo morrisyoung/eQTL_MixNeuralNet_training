@@ -53,8 +53,6 @@ int num_etissue = 0;
 // genotype relevant:
 array<vector<string>, 22> snp_name_list;
 array<vector<long>, 22> snp_pos_list;
-// TODO:
-//array<vector<float>, 22> snp_prior_list;
 
 
 // expression relevant:

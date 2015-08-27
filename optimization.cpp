@@ -30,10 +30,18 @@ array<vector<float>, 22> snp_dosage_list;
 vector<float> gene_rpkm_exp;  // with length "num_gene"
 vector<float> cellenv_hidden_var;  // with length "num_cellenv"
 
+
 // parameter derivative containers:
 vector<vector<float *>> para_dev_cis_gene;
 vector<float *> para_dev_snp_cellenv;
 vector<vector<float *>> para_dev_cellenv_gene;
+
+
+// some assistant components:
+// the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
+// per etissue, per chromosome, for each snp
+// we still need to integrate distance prior later on with the following prior information
+vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
 
 
 // learning control parameters:
@@ -41,12 +49,21 @@ int iter_learn_out = 5;  // iteration across all tissues
 int iter_learn_in = 20;  // iteration across all samples from one tissue
 int batch_size = 15;
 int rate_learner = 1;  // the learning rate
-// TODO: regularization coefficients (maybe most of them are pretty empirical)
 //
 //
 //
 
 //======================================================================================================
+
+
+
+// load all the cis- snp prior information (tissue specific) from file outside
+void opt_snp_prior_load()
+{
+
+
+}
+
 
 
 
@@ -120,6 +137,25 @@ void opt_para_init()
 		}
 	}
 
+	//=============== snp_prior_list ===============
+	//vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
+	// TODO: or fill this table with data from file
+	for(int i=0; i<num_etissue; i++)
+	{
+		string etissue = etissue_list[i];
+		vector<vector<float>> vec;
+		snp_prior_list.push_back(vec);
+		for(int j=0; j<22; j++)
+		{
+			int chr = j+1;
+			vector<float> vec1;
+			snp_prior_list[i].push_back(vec1);
+			for(int k=0; k<snp_name_list.size(); k++)
+			{
+				snp_prior_list[i][j].push_back(1.0);  // 1.0 is used to cover the memory temporarily
+			}
+		}
+	}
 
 }
 
@@ -410,6 +446,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 	// TODO add the regulation relevant items
+
 
 
 
