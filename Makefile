@@ -2,8 +2,8 @@ CC=	g++
 OPT=	-std=c++11
 #LIBS=	-lm -lpthread
 LIBS=
-SRCS=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp
-OBJS=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o
+SRCS=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp
+OBJS=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o
 
 EXECUTABLE=	main
 
