@@ -20,6 +20,10 @@ extern long int num_snp;
 extern long int num_gene;
 // number of eQTL tissues
 extern int num_etissue;
+// number of original batch variables
+extern int num_batch;
+// number of hidden batch variables
+extern int num_batch_hidden;
 
 
 
@@ -48,6 +52,10 @@ extern vector<vector<float *>> para_cis_gene;
 extern vector<float *> para_snp_cellenv;
 // cell env variable to gene parameter container
 extern vector<vector<float *>> para_cellenv_gene;
+// original batch to hidden batch
+extern vector<float *> para_batch_batch_hidden;
+// hidden batch to genes
+extern vector<float *> para_batch_hidden_gene;
 // mapping the gene to cis snp indices (start position and end position)
 extern unordered_map<string, tuple_long> gene_cis_index;
 

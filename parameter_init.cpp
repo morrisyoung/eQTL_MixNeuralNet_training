@@ -22,22 +22,19 @@ using namespace std;
 // TODO we should actually initialize the value of these parameters in some way (from prior knowledge, or some other ways)
 void para_init()
 {
-	long int i;
-	int j;
-
 	//=============== from snp to cell env variables ===============
-	for(i=0; i<num_cellenv; i++)
+	for(int i=0; i<num_cellenv; i++)
 	{
 		float * p = (float *)malloc( sizeof(float) * num_snp );
 		para_snp_cellenv.push_back(p);
 	}
 
 	//=============== from cell env variables to genes ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
 		vector<float *> vec;
 		para_cellenv_gene.push_back(vec);
-		for(i=0; i<num_gene; i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			float * p = (float *)malloc( sizeof(float) * num_cellenv );
 			para_cellenv_gene[j].push_back(p);
@@ -45,11 +42,11 @@ void para_init()
 	}
 
 	//=============== initialize: vector<float *> para_cis_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
 		vector<float *> vec;
 		para_cis_gene.push_back(vec);
-		for(i=0; i<gene_list.size(); i++)
+		for(long i=0; i<gene_list.size(); i++)
 		{
 			string gene = gene_list[i];
 			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
@@ -70,37 +67,61 @@ void para_init()
 		}
 	}
 
+	//=============== from original batch to hidden batch ===============
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		float * p = (float *)malloc( sizeof(float) * num_batch );
+		para_batch_batch_hidden.push_back(p);
+	}
+
+	//=============== from hidden batch to genes ===============
+	for(int i=0; i<num_gene; i++)
+	{
+		float * p = (float *)malloc( sizeof(float) * num_batch_hidden );
+		para_batch_hidden_gene.push_back(p);
+	}
+
+
 }
 
 
 
 void para_release()
 {
-	long int i;
-	int j;
-
 	//=============== from snp to cell env variables ===============
-	for(i=0; i<num_cellenv; i++)
+	for(int i=0; i<num_cellenv; i++)
 	{
 		free(para_snp_cellenv[i]);
 	}
 
 	//=============== from cell env variables to genes ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
-		for(i=0; i<num_gene; i++)
+		for(int i=0; i<num_gene; i++)
 		{
 			free(para_cellenv_gene[j][i]);
 		}
 	}
 
 	//=============== initialize: vector<float *> para_cis_gene ===============
-	for(j=0; j<num_etissue; j++)
+	for(int j=0; j<num_etissue; j++)
 	{
-		for(i=0; i<gene_list.size(); i++)
+		for(long i=0; i<gene_list.size(); i++)
 		{
 			free(para_cis_gene[j][i]);
 		}
+	}
+
+	//=============== from original batch to hidden batch ===============
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		free(para_batch_batch_hidden[i]);
+	}
+
+	//=============== from hidden batch to genes ===============
+	for(int i=0; i<num_gene; i++)
+	{
+		free(para_batch_hidden_gene[i]);
 	}
 
 }

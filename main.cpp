@@ -48,6 +48,9 @@ long int num_snp = 0;
 int num_cellenv = 400;
 long int num_gene = 0;
 int num_etissue = 0;
+// TODO: for the following two, we should later on prepared read data from file and automatically get their values
+int num_batch = 100;
+int num_batch_hidden = 100;
 
 
 // genotype relevant:
@@ -76,6 +79,8 @@ unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 vector<vector<float *>> para_cis_gene;
 vector<float *> para_snp_cellenv;
 vector<vector<float *>> para_cellenv_gene;
+vector<float *> para_batch_batch_hidden;
+vector<float *> para_batch_hidden_gene;
 
 // information table:
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
@@ -131,6 +136,8 @@ int main()
 	gene_tss_load();  // gene_tss
 	gene_xymt_load();  // gene_xymt_rep
 	//============================================================================================================
+
+
 
 
 	//===================================== gene cis index data preparation ======================================
