@@ -42,6 +42,8 @@ vector<vector<float *>> para_dev_cellenv_gene;
 // per etissue, per chromosome, for each snp
 // we still need to integrate distance prior later on with the following prior information
 vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
+// pairwise phylogenetic distance between etissues
+vector<vector<float>> tissue_hierarchical_pairwise;
 
 
 // learning control parameters:
@@ -57,13 +59,21 @@ int rate_learner = 1;  // the learning rate
 
 
 
-// load all the cis- snp prior information (tissue specific) from file outside
+// load all the cis- snp prior information (tissue specific) from prepared file outside
 void opt_snp_prior_load()
 {
 
 
 }
 
+
+
+// load the pairwise tissue hierarchy from prepared file outside
+void opt_tissue_hierarch_load()
+{
+
+
+}
 
 
 
@@ -154,6 +164,21 @@ void opt_para_init()
 			{
 				snp_prior_list[i][j].push_back(1.0);  // 1.0 is used to cover the memory temporarily
 			}
+		}
+	}
+
+	//=============== tissue_hierarchical_pairwise ===============
+	//vector<vector<float>> tissue_hierarchical_pairwise;
+	// TODO: or fill this table with data from file
+	for(int i=0; i<num_etissue; i++)
+	{
+		string etissue1 = etissue_list[i];
+		vector<float> vec;
+		tissue_hierarchical_pairwise.push_back(vec);
+		for(int j=0; j<num_etissue; j++)
+		{
+			string etissue2 = etissue_list[j];
+			tissue_hierarchical_pairwise[i].push_back(1.0);
 		}
 	}
 

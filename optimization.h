@@ -16,6 +16,10 @@ using namespace std;
 void opt_snp_prior_load();
 
 
+// load the pairwise tissue hierarchy from prepared file outside
+void opt_tissue_hierarch_load();
+
+
 // initialize some local parameter containers
 void opt_para_init();
 
