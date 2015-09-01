@@ -51,11 +51,13 @@ int num_etissue = 0;
 // TODO: for the following two, we should later on prepared read data from file and automatically get their values
 int num_batch = 100;
 int num_batch_hidden = 100;
+int num_individual = 0;
 
 
 // genotype relevant:
 array<vector<string>, 22> snp_name_list;
 array<vector<long>, 22> snp_pos_list;
+unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
 // expression relevant:
@@ -118,6 +120,13 @@ int main()
 	puts("preparing the snp info (index --> snp name and chromosome positions)...");
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
+
+	/* temporarily
+	// load the genotype for all individuals on all chromosomes
+	puts("loading all dosage data for these snps for all individuals.");
+	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
+	cout << "there are " << num_individual << " individuals." << endl;
+	*/
 	//============================================================================================================
 
 

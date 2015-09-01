@@ -118,3 +118,72 @@ void snp_dosage_load(array<vector<float>, 22> * array_pointer, string individual
 
 }
 
+
+
+void dosage_load()
+{
+	// fill in: int num_individual; unordered_map<string, vector<vector<float>>> snp_dosage_rep;
+	// int num_individual;
+	char filename[100] = "../list_individual.txt";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100;
+	char input[input_length];
+	int count = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		string individual = input;
+		vector<vector<float>> vec;
+		snp_dosage_rep[individual] = vec;
+		count ++;
+	}
+	fclose(file_in);
+	num_individual = count;
+ 
+	// unordered_map<string, vector<vector<float>>> snp_dosage_rep;
+	for(auto it = snp_dosage_rep.begin(); it != snp_dosage_rep.end(); ++it)
+	{
+		string individual = it->first;
+		for(int i=0; i<22; i++)
+		{
+			int chr = i+1;
+			vector<float> vec;
+			snp_dosage_rep[individual].push_back(vec);
+			// read the dosage file for this individual on this chromosome
+			char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+			char chrom[10];
+			sprintf(chrom, "%d", chr);
+			strcat(filename, chrom);
+			strcat(filename, "/SNP_dosage_");
+			char individual1[20];
+			StrToCharSeq(individual1, individual);
+			strcat(filename, individual1);
+			strcat(filename, ".txt");
+			//puts("the current file worked on is: ");
+			//puts(filename);
+
+			FILE * file_in = fopen(filename, "r");
+			if(file_in == NULL)
+			{
+				fputs("File error\n", stderr); exit (1);
+			}
+			int input_length = 100;
+			char input[input_length];
+			while(fgets(input, input_length, file_in) != NULL)
+			{
+				trim(input);
+
+				float dosage = stof(input);
+				snp_dosage_rep[individual][i].push_back(dosage);
+			}
+			fclose(file_in);
+		}
+	}
+
+}
+

@@ -24,12 +24,17 @@ extern int num_etissue;
 extern int num_batch;
 // number of hidden batch variables
 extern int num_batch_hidden;
+// number of individuals
+extern int num_individual;
+
 
 
 
 // genotype relevant:
 extern array<vector<string>, 22> snp_name_list;
 extern array<vector<long>, 22> snp_pos_list;
+extern unordered_map<string, vector<vector<float>>> snp_dosage_rep;
+
 
 
 
