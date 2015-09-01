@@ -50,7 +50,7 @@ void opt_snp_prior_load();
 
 
 // load the pairwise tissue hierarchy from prepared file outside
-void opt_tissue_hierarch_load();
+void opt_tissue_hierarchy_load();
 
 
 // initialize some local parameter containers

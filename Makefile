@@ -1,7 +1,7 @@
+#CC=	/ifs/scratch/c2b2/ip_lab/sy2515/HPC/shuo-gcc-4.9.1/bin/g++
 CC=	g++
-OPT=	-std=c++11
-#LIBS=	-lm -lpthread
-LIBS=
+OPT=	-std=c++11 -static-libstdc++
+LIBS=	-lm
 SRCS=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp
 OBJS=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o
 

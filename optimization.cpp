@@ -74,9 +74,68 @@ void opt_snp_prior_load()
 
 
 // load the pairwise tissue hierarchy from prepared file outside
-void opt_tissue_hierarch_load()
+void opt_tissue_hierarchy_load()
 {
+	// target: vector<vector<float>> tissue_hierarchical_pairwise;
+	// init
+	for(int i=0; i<num_etissue; i++)
+	{
+		vector<float> vec;
+		for(int j=0; j<num_etissue; j++)
+		{
+			vec.push_back(0);
+		}
+		tissue_hierarchical_pairwise.push_back(vec);
+	}
 
+	// load from data source
+	char filename[100] = "../tissue_hierarchy_normalized.txt";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100000;
+	char input[input_length];
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string eTissue1 = p;
+		int index1 = etissue_index_map[eTissue1];
+		int index2 = 0;
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the eTissue1
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+			if(count == 2)  // this is the eTissue2
+			{
+				string eTissue2 = p;
+				int index2 = etissue_index_map[eTissue2];
+
+				p = strtok(NULL, sep);
+				continue;
+			}
+			if(count == 3)
+			{
+				float dist = stof(p);
+				tissue_hierarchical_pairwise[index1][index2] = dist;
+				tissue_hierarchical_pairwise[index2][index1] = dist;
+				break;
+			}
+		}
+
+	}
+	fclose (file_in);
 
 }
 
@@ -266,6 +325,7 @@ void opt_para_release()
 void optimize()
 {
 	puts("============== entering the optimization routine...");
+	opt_tissue_hierarchy_load();
 	opt_para_init();
 
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
