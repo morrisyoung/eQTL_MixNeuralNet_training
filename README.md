@@ -1,4 +1,4 @@
-Implementation (C++) for gene expression with regulation.
+Implementation (C++) for gene expression with regulation. (both the codes and the document to be finished...)
 
 There are several components in this project:
 
