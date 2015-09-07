@@ -28,10 +28,9 @@ extern vector<float *> para_dev_batch_hidden_gene;
 
 
 // some assistant components:
-// the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
-// per etissue, per chromosome, for each snp
-// we still need to integrate distance prior later on with the following prior information
-extern vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
+// the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states); per etissue, per chromosome, for each snp
+// TODO: we also still need to integrate distance prior later on with the following prior information
+extern unordered_map<string, vector<vector<float>>> prior_tissue_rep;
 // pairwise phylogenetic distance between etissues
 extern vector<vector<float>> tissue_hierarchical_pairwise;
 

@@ -43,10 +43,9 @@ vector<float *> para_dev_batch_hidden_gene;
 
 
 // some assistant components:
-// the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
-// per etissue, per chromosome, for each snp
-// we still need to integrate distance prior later on with the following prior information
-vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
+// the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states); per etissue, per chromosome, for each snp
+// TODO: we also still need to integrate distance prior later on with the following prior information
+unordered_map<string, vector<vector<float>>> prior_tissue_rep;
 // pairwise phylogenetic distance between etissues
 vector<vector<float>> tissue_hierarchical_pairwise;
 
@@ -65,9 +64,93 @@ int rate_learner = 1;  // the learning rate
 
 
 // load all the cis- snp prior information (tissue specific) from prepared file outside
+// fill in the following: unordered_map<string, vector<vector<float>>> prior_tissue_rep
 void opt_snp_prior_load()
 {
+	// get the eTissue-index map
+	unordered_map<string, string> index_map;  // for temporary usage
+	char filename[100] = "../prior.score.unpruned/prior_tissue_index.txt";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 1000;
+	char input[input_length];
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
 
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string eTissue = p;
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the eTissue
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+			if(count == 2)  // this is the index
+			{
+				string index = p;
+				index_map[eTissue] = index;
+				break;
+			}
+		}
+	}
+	fclose (file_in);
+
+	// get the prior score for each eTissue, on all chromosomes
+	for( auto it = index_map.begin(); it != index_map.end(); ++it )
+	{
+		string eTissue = it->first;
+		string index = it->second;
+		vector<vector<float>> vec;
+		prior_tissue_rep[eTissue] = vec;
+
+		int i;
+		for(i=0; i<22; i++)
+		{
+			int chr = i+1;
+			vector<float> vec;
+			prior_tissue_rep[eTissue].push_back(vec);
+
+			//======== get all SNPs with their snp_info (count, position) ========
+			char filename[100] = "../prior.score.unpruned/etissue";
+			char temp[10];
+			StrToCharSeq(temp, index);
+			strcat(filename, temp);
+			strcat(filename, "/chr");
+			sprintf(temp, "%d", chr);
+			strcat(filename, temp);
+			strcat(filename, ".score");
+			//puts("the current file worked on is: ");
+			//puts(filename);
+
+			FILE * file_in = fopen(filename, "r");
+			if(file_in == NULL)
+			{
+				fputs("File error\n", stderr); exit (1);
+			}
+
+			int input_length = 100;
+			char input[input_length];
+			while(fgets(input, input_length, file_in) != NULL)
+			{
+				trim(input);
+
+				float prior = stof(input);
+				prior_tissue_rep[eTissue][i].push_back(prior);
+			}
+			fclose(file_in);
+			//======================================
+		}
+	}
 
 }
 
@@ -237,41 +320,6 @@ void opt_para_init()
 		para_dev_batch_hidden_gene.push_back(p);
 	}
 
-	//=============== snp_prior_list ===============
-	//vector<vector<vector<float>>> snp_prior_list;  // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states)
-	// TODO: or fill this table with data from file
-	for(int i=0; i<num_etissue; i++)
-	{
-		string etissue = etissue_list[i];
-		vector<vector<float>> vec;
-		snp_prior_list.push_back(vec);
-		for(int j=0; j<22; j++)
-		{
-			int chr = j+1;
-			vector<float> vec1;
-			snp_prior_list[i].push_back(vec1);
-			for(int k=0; k<snp_name_list.size(); k++)
-			{
-				snp_prior_list[i][j].push_back(1.0);  // 1.0 is used to cover the memory temporarily
-			}
-		}
-	}
-
-	//=============== tissue_hierarchical_pairwise ===============
-	//vector<vector<float>> tissue_hierarchical_pairwise;
-	// TODO: or fill this table with data from file
-	for(int i=0; i<num_etissue; i++)
-	{
-		string etissue1 = etissue_list[i];
-		vector<float> vec;
-		tissue_hierarchical_pairwise.push_back(vec);
-		for(int j=0; j<num_etissue; j++)
-		{
-			string etissue2 = etissue_list[j];
-			tissue_hierarchical_pairwise[i].push_back(1.0);
-		}
-	}
-
 }
 
 
@@ -314,6 +362,7 @@ void opt_para_release()
 		free(para_dev_batch_hidden_gene[i]);
 	}
 
+
 }
 
 
@@ -327,6 +376,7 @@ void optimize()
 	puts("============== entering the optimization routine...");
 	opt_tissue_hierarchy_load();
 	opt_para_init();
+	opt_snp_prior_load();
 
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
 	{

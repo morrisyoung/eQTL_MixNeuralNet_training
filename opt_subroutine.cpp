@@ -367,6 +367,13 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 	// TODO add the regulation relevant items TODO
+	// don't forget to add the distance prior to the cis- regulation
+
+
+
+
+
+
 
 
 
