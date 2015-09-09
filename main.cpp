@@ -54,13 +54,13 @@ int num_batch_hidden = 100;
 int num_individual = 0;
 
 
-// genotype relevant:
+//// genotype relevant:
 array<vector<string>, 22> snp_name_list;
 array<vector<long>, 22> snp_pos_list;
 unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
-// expression relevant:
+//// expression relevant:
 // what we need:
 // 1. list of eQTL tissues, hashing all samples with their rpkm value;
 // 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
@@ -68,8 +68,9 @@ unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 vector<string> gene_list;  // all genes from the source file
+unordered_map<string, int> gene_index_map;  // re-map those genes into their order (reversed hashing of above)
 vector<string> etissue_list;  // eTissues in order
-unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing above)
+unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing of above)
 unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
 
 // information table:
@@ -77,7 +78,15 @@ unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those
 unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 
 
-// parameter containers:
+//// batch relevant: (TODO)
+// batch variables are per genotype per sample (one individual may produce several RNA samples)
+//
+//
+
+
+
+
+//// parameter containers:
 vector<vector<float *>> para_cis_gene;
 vector<float *> para_snp_cellenv;
 vector<vector<float *>> para_cellenv_gene;
@@ -158,6 +167,7 @@ int main()
 	//===================================== initialize all the parameters ========================================
 	puts("parameter space initialization...");
 	para_init();
+	beta_prior_fill();  // must happen after the above procedure
 	//============================================================================================================
 
 

@@ -21,6 +21,9 @@ void para_release();
 void gene_cis_index_init();
 
 
+// use the prior beta we get from GTEx to initialize the cis- regularization items
+void beta_prior_fill();
+
 
 
 

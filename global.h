@@ -42,6 +42,7 @@ extern unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 extern unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
 extern unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
 extern vector<string> gene_list;  // all genes from the source file
+extern unordered_map<string, int> gene_index_map;  // re-map those genes into their order (reversed hashing of above)
 extern vector<string> etissue_list;  // eTissues in order
 extern unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing above)
 extern unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues

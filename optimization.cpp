@@ -265,7 +265,7 @@ void opt_para_init()
 	//=============== para_dev_snp_cellenv ===============
 	for(int i=0; i<num_cellenv; i++)
 	{
-		float * p = (float *)malloc( sizeof(float) * num_snp );
+		float * p = (float *)calloc( num_snp, sizeof(float) );
 		para_dev_snp_cellenv.push_back(p);
 	}
 
@@ -276,7 +276,7 @@ void opt_para_init()
 		para_dev_cellenv_gene.push_back(vec);
 		for(int i=0; i<num_gene; i++)
 		{
-			float * p = (float *)malloc( sizeof(float) * num_cellenv );
+			float * p = (float *)calloc( num_cellenv, sizeof(float) );
 			para_dev_cellenv_gene[j].push_back(p);
 		}
 	}
@@ -301,7 +301,7 @@ void opt_para_init()
 				long first = gene_cis_index[gene].first;  // index
 				long second = gene_cis_index[gene].second;  // index
 				long amount = second - first + 1;
-				float * p = (float *)malloc( sizeof(float) * amount );
+				float * p = (float *)calloc( amount, sizeof(float) );
 				para_dev_cis_gene[j].push_back(p);
 			}
 		}
@@ -310,14 +310,14 @@ void opt_para_init()
 	//=============== para_dev_batch_batch_hidden ===============
 	for(int i=0; i<num_batch_hidden; i++)
 	{
-		float * p = (float *)malloc( sizeof(float) * num_batch );
+		float * p = (float *)calloc( num_batch, sizeof(float) );
 		para_dev_batch_batch_hidden.push_back(p);
 	}
 
 	//=============== para_dev_batch_hidden_gene ===============
 	for(int i=0; i<num_gene; i++)
 	{
-		float * p = (float *)malloc( sizeof(float) * num_batch_hidden );
+		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
 		para_dev_batch_hidden_gene.push_back(p);
 	}
 
