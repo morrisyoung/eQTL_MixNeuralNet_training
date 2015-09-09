@@ -157,6 +157,7 @@ void opt_snp_prior_load()
 
 
 // load the pairwise tissue hierarchy from prepared file outside
+// TODO: maybe we should check whether this makes the results better
 void opt_tissue_hierarchy_load()
 {
 	// target: vector<vector<float>> tissue_hierarchical_pairwise;

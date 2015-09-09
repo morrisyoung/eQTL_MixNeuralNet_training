@@ -366,11 +366,87 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
-	// TODO add the regulation relevant items TODO
+	// [TODO] add the regulation relevant items [TODO]
 	// don't forget to add the distance prior to the cis- regulation
 
 
 
+	//===================================== Regularization in Regression =====================================
+	//========================================================================================================
+	// there are several classes of prior knowledge that we need to consider
+	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
+	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
+	// 3.1. hierarchical regularization tuned by the learned tissue hierarchy
+	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
+	// 4.(TODO) regularization for parameters from batch variables to batch_hidden, and from batch_hidden to genes
+
+
+	// define the sigma here that may be used by L1 regularization
+	float sigma = 0.0001;
+
+
+
+	// TODO: add the lambda_{LASSO} and lambda_{ridge}
+
+
+
+
+	//===================================== part#1 =====================================
+	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		int chr = gene_tss[gene].chr;
+		long int index_start = gene_cis_index[gene].first;
+		long int index_end = gene_cis_index[gene].second;
+		long int amount = index_end - index_start;
+		for(int j=0; j<=amount; j++)
+		{
+			long int pos = j+index_start;  // the pos in snp list
+
+			/// the value of current cis- beta:
+			float beta = para_cis_gene[etissue_index][i][j];
+
+			/// the prior that we need (if there is) for tuning the relative strength of L1 and L2 regularization:
+			float prior = 0;
+			unordered_map<string, vector<vector<float>>>::const_iterator got = prior_tissue_rep.find(etissue);
+			if( got != prior_tissue_rep.end() )
+			{
+				prior = prior_tissue_rep[etissue][chr-1][pos];
+			}
+			else
+			{
+				prior = 1;
+			}
+			float alpha = 1 / ( 1 + exp(-(prior-1)) );
+
+			/// the derivative of the beta:
+			float derivative1 = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
+			float derivative2 = 2 * beta;  // L2 regularization item is differentiable
+
+			/// and the value of its derivative should be added with that derivative item from regularization:
+			para_dev_cis_gene[etissue_index][i][j] += (1-alpha) * derivative1 + alpha * derivative2;
+		}
+	}
+
+	//===================================== part#2 =====================================
+	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		for(int j=0; j<num_cellenv; j++)
+		{
+			/// the value of current cellenv beta:
+			float beta = para_cellenv_gene[etissue_index][i][j];
+			/// the derivative of the beta:
+			float derivative = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
+			/// and the value of its derivative should be added with that derivative item from regularization:
+			para_dev_cellenv_gene[etissue_index][i][j] += derivative;
+		}
+	}
+
+	//===================================== part#3 =====================================
+	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
 
 
 
@@ -383,6 +459,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+
+
+
+
+	//===================================== end of Regularization ============================================
+	//========================================================================================================
 
 }
 
