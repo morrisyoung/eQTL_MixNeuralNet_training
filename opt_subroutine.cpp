@@ -366,10 +366,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
-	// [TODO] add the regulation relevant items [TODO]
-	// don't forget to add the distance prior to the cis- regulation
-
-
 
 	//===================================== Regularization in Regression =====================================
 	//========================================================================================================
@@ -378,21 +374,27 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
 	// 3.1. hierarchical regularization tuned by the learned tissue hierarchy
 	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
-	// 4.(TODO) regularization for parameters from batch variables to batch_hidden, and from batch_hidden to genes
+	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 
+	//===================================== part#0 =====================================
+	// initialize some learning parameters
 
 	// define the sigma here that may be used by L1 regularization
 	float sigma = 0.0001;
 
-
-
-	// TODO: add the lambda_{LASSO} and lambda_{ridge}
-
-
-
+	// regularization strength lambda:
+	// path#1: add the lambda_{LASSO} and lambda_{ridge} for the cis- regularization
+	// path#2: add the lambda for cellenv-gene regularization
+	// path#3: and the lambda for batch-batch_hidden and batch_hidden-gene
+	float lambda_lasso = 1.0;
+	float lambda_ridge = 1.0;
+	float lambda_cellenv_gene = 1.0;
+	float lambda_batch_batch_hidden = 1.0;
+	float lambda_batch_hidden_gene = 1.0;
 
 	//===================================== part#1 =====================================
 	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
+	// TODO: not yet integrated the distance prior information
 	for(int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
@@ -425,7 +427,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			float derivative2 = 2 * beta;  // L2 regularization item is differentiable
 
 			/// and the value of its derivative should be added with that derivative item from regularization:
-			para_dev_cis_gene[etissue_index][i][j] += (1-alpha) * derivative1 + alpha * derivative2;
+			para_dev_cis_gene[etissue_index][i][j] += lambda_lasso * (1-alpha) * derivative1 + lambda_ridge * alpha * derivative2;
 		}
 	}
 
@@ -441,27 +443,47 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			/// the derivative of the beta:
 			float derivative = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
 			/// and the value of its derivative should be added with that derivative item from regularization:
-			para_dev_cellenv_gene[etissue_index][i][j] += derivative;
+			para_dev_cellenv_gene[etissue_index][i][j] +=  lambda_cellenv_gene * derivative;
 		}
 	}
 
 	//===================================== part#3 =====================================
 	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
+	// TODO: as this part is too un-stable (group LASSO, or hierarchical regularization), we now don't use them
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+	//===================================== part#4 =====================================
+	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
+	// from batch to batch_hidden:
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			/// the value of current batch beta:
+			float beta = para_batch_batch_hidden[i][j];
+			/// the derivative of the beta:
+			float derivative = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
+			/// and the value of its derivative should be added with that derivative item from regularization:
+			para_dev_batch_batch_hidden[i][j] += lambda_batch_batch_hidden * derivative;
+		}
+	}
+	// from batch_hidden to gene:
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			/// the value of current batch beta:
+			float beta = para_batch_hidden_gene[i][j];
+			/// the derivative of the beta:
+			float derivative = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
+			/// and the value of its derivative should be added with that derivative item from regularization:
+			para_dev_batch_hidden_gene[i][j] += lambda_batch_hidden_gene * derivative;
+		}
+	}
 
 	//===================================== end of Regularization ============================================
 	//========================================================================================================
