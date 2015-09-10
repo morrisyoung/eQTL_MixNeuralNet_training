@@ -52,8 +52,8 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 5;  // iteration across all tissues
-int iter_learn_in = 20;  // iteration across all samples from one tissue
-int batch_size = 20;
+int iter_learn_in = 10;  // iteration across all samples from one tissue
+int batch_size = 1;  // better be 20
 int rate_learner = 1;  // the learning rate
 
 //======================================================================================================
@@ -387,13 +387,11 @@ void optimize()
 			{
 				int pos_start = (batch_size * count3) % (num_esample);
 
-				printf("[@@@] now we are working on %d iter_out, %s tissue (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, etissue.c_str(), num_esample, count3+1, batch_size);
+				printf("[@@@] now we are working on %d iter_out (%d total), eTissue #%d -- %s (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, iter_learn_out, count2+1, etissue.c_str(), num_esample, count3+1, batch_size);
 
-				/*
 				forward_backward_prop_batch(etissue, pos_start, num_esample);
 
 				gradient_descent();
-				*/
 
 			}
 		}

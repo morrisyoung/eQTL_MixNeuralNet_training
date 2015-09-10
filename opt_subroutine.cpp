@@ -402,13 +402,18 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	for(int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
+
+
+		cout << gene << endl;
+
+
 		int chr = gene_tss[gene].chr;
-		long int index_start = gene_cis_index[gene].first;
-		long int index_end = gene_cis_index[gene].second;
-		long int amount = index_end - index_start + 1;
+		long index_start = gene_cis_index[gene].first;
+		long index_end = gene_cis_index[gene].second;
+		long amount = index_end - index_start + 1;
 		for(int j=0; j<amount; j++)
 		{
-			long int pos = j + index_start;  // the pos in snp list
+			long pos = j + index_start;  // the pos in snp list
 
 			/// the value of current cis- beta:
 			float beta = para_cis_gene[etissue_index][i][j];
@@ -424,16 +429,40 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			{
 				prior = 1;
 			}
+
+			// debug
+			//cout << "###" << endl;
+
 			float alpha = 1 / ( 1 + exp(-(prior-1)) );
+
+			// debug
+			//cout << "###" << endl;
 
 			/// the derivative of the beta:
 			float derivative1 = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
 			float derivative2 = 2 * beta;  // L2 regularization item is differentiable
 
+			// debug
+			//cout << "###" << endl;
+
+
 			/// and the value of its derivative should be added with that derivative item from regularization:
 			para_dev_cis_gene[etissue_index][i][j] += lambda_lasso * (1-alpha) * derivative1 + lambda_ridge * alpha * derivative2;
+
+
+			// debug
+			//cout << "###" << endl;
+
 		}
 	}
+
+
+
+
+
+	// debug
+	cout << "***" << endl;
+
 
 	//===================================== part#2 =====================================
 	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
@@ -464,6 +493,11 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	//
 
 
+	// debug
+	cout << "***" << endl;
+
+
+
 	//===================================== part#4 =====================================
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 	// from batch to batch_hidden:
@@ -479,6 +513,14 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			para_dev_batch_batch_hidden[i][j] += lambda_batch_batch_hidden * derivative;
 		}
 	}
+
+
+	// debug
+	cout << "***" << endl;
+
+
+
+
 	// from batch_hidden to gene:
 	for(int i=0; i<num_gene; i++)
 	{
