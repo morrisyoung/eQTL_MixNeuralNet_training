@@ -50,6 +50,8 @@ long int num_gene = 0;
 int num_etissue = 0;
 // TODO: for the following two, we should later on prepared read data from file and automatically get their values
 int num_batch = 100;
+//int num_batch_individual = 0;
+//int num_batch_sample = 0;
 int num_batch_hidden = 100;
 int num_individual = 0;
 
@@ -78,12 +80,10 @@ unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those
 unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 
 
-//// batch relevant: (TODO)
+//// batch variables:
 // batch variables are per genotype per sample (one individual may produce several RNA samples)
-//
-//
-
-
+unordered_map<string, vector<float>> batch_individual;
+unordered_map<string, vector<float>> batch_sample;
 
 
 //// parameter containers:
@@ -168,6 +168,21 @@ int main()
 	puts("parameter space initialization...");
 	para_init();
 	beta_prior_fill();  // must happen after the above procedure
+	batch_load();  // load the batch variables
+	// fill in the total number of batch variables
+	num_batch = 0;
+	for( auto it = batch_individual.begin(); it != batch_individual.end(); ++it )
+	{
+		int temp = it->second.size();
+		num_batch += temp;
+		break;
+	}
+	for( auto it = batch_sample.begin(); it != batch_sample.end(); ++it )
+	{
+		int temp = it->second.size();
+		num_batch += temp;
+		break;
+	}
 	//============================================================================================================
 
 
@@ -180,7 +195,6 @@ int main()
 	//============================================================================================================
 
 
-	cout << "test..." << endl;
 
 
 

@@ -111,7 +111,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		string individual = sample_to_individual(esample);
 
 		//=================================================== init ============================================================
-		// get the: 0. esample and individual; 1. genotype; 2. expression data.
+		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
 		// to: 1. forward_backward propagation
 
 		// genotype dosage data
@@ -119,6 +119,22 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
 		// expression rpkm data: eQTL_tissue_rep[etissue][esample]
 		cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
+		// and the batch variable for this individual and this sample
+		int num_batch_individual = batch_individual[individual].size();
+		int index = 0;
+		for(int i=0; i<num_batch_individual; i++)
+		{
+			float value = batch_individual[individual][i];
+			batch_var[index] = value;
+			index++;
+		}
+		int num_batch_sample = batch_sample[esample].size();
+		for(int i=0; i<num_batch_sample; i++)
+		{
+			float value = batch_sample[esample][i];
+			batch_var[index] = value;
+			index++;
+		}
 
 
 		//========================================================================

@@ -51,6 +51,16 @@ extern unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 
 
 
+
+// batch variables:
+// batch variables are per genotype per sample (one individual may produce several RNA samples)
+extern unordered_map<string, vector<float>> batch_individual;
+extern unordered_map<string, vector<float>> batch_sample;
+
+
+
+
+
 // parameter space:
 // cis parameter table
 extern vector<vector<float *>> para_cis_gene;

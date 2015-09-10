@@ -285,13 +285,15 @@ void beta_prior_fill()
 				}
 				if(count == 2)  // this is the snp
 				{
-					string str = p;
-					snp = str;
+					snp = p;
+					p = strtok(NULL, sep);
 					continue;
 				}
 				if(count == 3)  // this is the beta
 				{
-					float beta = stof(p);
+					char temp[100];
+					strcpy(temp, p);
+					float beta = stof(temp);
 					beta_rep[eTissue][gene][snp] = beta;
 					break;
 				}
@@ -348,6 +350,110 @@ void beta_prior_fill()
 		// end filling this tissue
 	}
 
+}
+
+
+
+void batch_load()
+{
+	// fill in the following
+	//unordered_map<string, vector<float>> batch_individual;
+	//unordered_map<string, vector<float>> batch_sample;
+	//============================ part#1: fill in individual batch rep ============================
+	//unordered_map<string, vector<float>> batch_individual;
+	char filename[100] = "../batch_var_individual.txt";
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+
+	int input_length = 20000;
+	char input[input_length];
+	int count_line = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		count_line++;
+		if(count_line == 1)continue;
+
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string individual = p;
+		vector<float> vec;
+		batch_individual[individual] = vec;
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the individual
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+
+			char temp[100];
+			strcpy(temp, p);
+			float value = stof(temp);
+			batch_individual[individual].push_back(value);
+			p = strtok(NULL, sep);
+		}
+	}
+	fclose(file_in);
+
+
+	//============================ part#2: fill in sample batch rep ============================
+	//unordered_map<string, vector<float>> batch_sample;
+	filename[0] = '\0';
+	strcat(filename, "../batch_var_sample.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+
+	count_line = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		count_line++;
+		if(count_line == 1)continue;
+
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string sample = p;
+		vector<float> vec;
+		batch_sample[sample] = vec;
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the individual
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+
+			char temp[100];
+			strcpy(temp, p);
+			float value = stof(temp);
+			batch_sample[sample].push_back(value);
+			p = strtok(NULL, sep);
+		}
+	}
+	fclose(file_in);
 
 }
 
