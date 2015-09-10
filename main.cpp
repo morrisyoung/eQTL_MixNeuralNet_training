@@ -35,6 +35,7 @@ what we should have at hand by now:
 #include "parameter_save.h"
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
+#include "parameter_test.h"
 
 
 
@@ -104,7 +105,9 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 int main()
 {
-	cout << "[now enter the program]\n";
+	cout << "[now enter the program]" << endl;
+
+
 
 	//============== timing starts ================
     struct timeval time_start;
@@ -125,8 +128,9 @@ int main()
 	//
 
 
+
 	//======================================= prepare the snp information ========================================
-	puts("preparing the snp info (index --> snp name and chromosome positions)...");
+	puts("[xxx] preparing the snp info (index --> snp name and chromosome positions)...");
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 
@@ -137,10 +141,13 @@ int main()
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
 	*/
-	//============================================================================================================
+
+
+
 
 
 	//===================================== prepare the expression matrix =======================================
+	puts("[xxx] loading the gene rpkm matrix...");
 	num_gene = gene_rpkm_load();  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
@@ -152,22 +159,25 @@ int main()
 		string etissue = it->first;
 		cout << etissue << ":" << (it->second).size() << endl;
 	}
+	puts("[xxx] loading the tss for genes...");
 	gene_tss_load();  // gene_tss
+	puts("[xxx] loading the X, Y, MT gene list...");
 	gene_xymt_load();  // gene_xymt_rep
-	//============================================================================================================
+
 
 
 
 
 
 	//===================================== gene cis index data preparation ======================================
-	puts("gene meta data (cis- index) preparation...");
+	puts("[xxx] gene meta data (cis- index) preparation...");
 	gene_cis_index_init();  // gene_cis_index
-	//============================================================================================================
 	//===================================== initialize all the parameters ========================================
-	puts("parameter space initialization...");
+	puts("[xxx] parameter space initialization...");
 	para_init();
+	puts("[xxx] beta prior values (from GTEx) loading...");
 	beta_prior_fill();  // must happen after the above procedure
+	puts("[xxx] batch variable values (for all individuals and samples) loading...");
 	batch_load();  // load the batch variables
 	// fill in the total number of batch variables
 	num_batch = 0;
@@ -183,7 +193,7 @@ int main()
 		num_batch += temp;
 		break;
 	}
-	//============================================================================================================
+
 
 
 
@@ -192,16 +202,29 @@ int main()
 
 	//======================================= main optimization routine ==========================================
 	//optimize();
-	//============================================================================================================
 
 
 
 
 
-	//============== save parameters and release memory ================
+
+	//======================================= testing with the test subset =======================================
+	puts("[xxx] testing the learned models...");
+	para_test();
+
+
+
+
+	//================================= save the parameters and release memory ===================================
+	puts("[xxx] saving the models...");
 	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene
-	cout << "Optimization done! Please find the results in 'result' folder.\n";
+	cout << "Optimization done! Please find the results in 'result' folder." << endl;
+	puts("[xxx] releasing the parameter space...");
 	para_release();
+
+
+
+
 
 	//============== timing ends ================
     gettimeofday(&time_end, NULL);

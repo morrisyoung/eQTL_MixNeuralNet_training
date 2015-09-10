@@ -21,7 +21,6 @@ using namespace std;
 
 long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 {
-	puts("load rpkm matrix...");
 	//===================================== eQTL_samples ===========================================
 	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
 	FILE * file_in = fopen(filename, "r");
@@ -213,8 +212,6 @@ long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 
 void gene_tss_load()
 {
-	puts("loading the tss for genes...");
-
 	int index = 0;
 
 	char filename[100] = "../gencode.v18.genes.patched_contigs.gtf_gene_tss";
@@ -278,11 +275,8 @@ void gene_tss_load()
 
 
 
-
 void gene_xymt_load()
 {
-	puts("loading the X, Y, MT gene list...");
-
 	char filename[100] = "../gencode.v18.genes.patched_contigs.gtf_gene_xymt";
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
