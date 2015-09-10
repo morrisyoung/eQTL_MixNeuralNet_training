@@ -26,4 +26,6 @@ using namespace std;
 void para_test()
 {
 	cout << "this is testing program..." << endl;
+
+	
 }

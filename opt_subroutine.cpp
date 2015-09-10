@@ -24,21 +24,6 @@ using namespace std;
 
 
 
-// transform the sample ID (like "GTEX-R55E-0826-SM-2TC5M") into individual ID (here is the first 9 digits)
-string sample_to_individual(string sample)
-{
-	string individual;
-	for(int i=0; i<9; i++)  // TODO: in next stage, the individual ID may be longer
-	{
-		individual.push_back(sample[i]);
-	}
-
-	return individual;
-}
-
-
-
-
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 {

@@ -25,6 +25,11 @@ void pair_split(char *, pair<string, float> *);
 void StrToCharSeq(char *, string);
 
 
+// transform the sample ID (like "GTEX-R55E-0826-SM-2TC5M") into individual ID (here is the first 9 digits)
+string sample_to_individual(string);
+
+
+
 
 #endif
 

@@ -25,6 +25,7 @@ using namespace std;
 void para_save()
 {
 	// saving the parameters we learned
+	cout << "saving the parameters into file..." << endl;
 
 
 
