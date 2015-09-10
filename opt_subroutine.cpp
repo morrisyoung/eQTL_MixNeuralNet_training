@@ -89,21 +89,22 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 	//****************************** enter the mini-batch ***********************************
+	cout << "we are entering a new mini-batch..." << endl;
 	for(int count=0; count<batch_size; count++)
 	{
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
+		cout << "current sample #" << pos << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
-		// to: 1. forward_backward propagation
-
+		// to: 1. forward_backward propagation;
 		// genotype dosage data
-		cout << "getting the dosage data for individual #" << individual << endl;
+		//cout << "getting the dosage data for individual #" << individual << endl;
 		snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
 		// expression rpkm data: eQTL_tissue_rep[etissue][esample]
-		cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
+		//cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
 		// and the batch variable for this individual and this sample
 		int num_batch_individual = batch_individual[individual].size();
 		int index = 0;
@@ -120,12 +121,15 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			batch_var[index] = value;
 			index++;
 		}
-		
+
 
 		//========================================================================
 		// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
 		//========================================================================
-		// step#1: ... (cis-; cell env)
+		//========================================================================
+		// step#1: ... (cis-; cell env; batch)
+		//========================================================================
+		//========================================================================
 		// ****************************** [part1] cis- *********************************
 		// for cis-, two issues:
 		// 1. if this is a XYMT gene, jump;
@@ -133,7 +137,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
-			int chr = gene_tss[gene].chr;
 			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
 			if ( got != gene_xymt_rep.end() )
 			{
@@ -142,6 +145,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			else
 			{
 				gene_rpkm_exp[i] = 0;
+				int chr = gene_tss[gene].chr;
 				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 				for(int k=0; k<num; k++)
 				{
@@ -169,13 +173,11 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				}
 			}
 		}
-
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		for(int i=0; i<num_cellenv; i++)
 		{
 			cellenv_hidden_var[i] = 1 / ( 1 + exp( - cellenv_hidden_var[i] ));
 		}
-
 		// from cell env variables to genes
 		for(int i=0; i<num_gene; i++)
 		{
@@ -196,13 +198,11 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
 			}
 		}
-
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		for(int i=0; i<num_batch_hidden; i++)
 		{
 			batch_hidden_var[i] = 1 / ( 1 + exp( - batch_hidden_var[i] ));
 		}
-
 		// from hidden batch to genes
 		for(int i=0; i<num_gene; i++)
 		{
@@ -215,13 +215,15 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 		//========================================================================
-		// step#2: ... (cis- parameters;  cell env relevant parameters)
+		//========================================================================
+		// step#2: ... (cis-;  cell env; batch)
+		//========================================================================
+		//========================================================================
 		// *********************** [part1] cis- ************************
 		// pseudo: (expected rpkm - real rpkm) * genotype
 		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
-			int chr = gene_tss[gene].chr;
 			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
 			if ( got != gene_xymt_rep.end() )
 			{
@@ -229,6 +231,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 			else
 			{
+				int chr = gene_tss[gene].chr;
 				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 				for(int k=0; k<num; k++)
 				{
@@ -250,11 +253,16 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				para_dev_cellenv_gene[etissue_index][i][j] += (gene_rpkm_exp[i] - eQTL_tissue_rep[etissue][esample][i]) * cellenv_hidden_var[j];
 			}
 		}
-
 		// from snp to cell env
 		// pseudo: [ \sum w3 * (expected rpkm - real rpkm) ] * g'(w2 * x1) * x1
 		for(int i=0; i<num_cellenv; i++)
 		{
+			float temp = 0;
+			for(int t=0; t<num_gene; t++)
+			{
+				temp += para_cellenv_gene[etissue_index][t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
+			}
+			temp *= cellenv_hidden_var[i] * ( 1 - cellenv_hidden_var[i] );
 			long count = 0;
 			for(int j=0; j<22; j++)  // across all the chromosomes
 			{
@@ -262,18 +270,11 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				for(long k=0; k<snp_dosage_list[j].size(); k++)
 				{
 					float dosage = snp_dosage_list[j][k];
-					float temp = 0;
-					for(int t=0; t<num_gene; t++)
-					{
-						temp += para_cellenv_gene[etissue_index][t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
-					}
-					temp *= cellenv_hidden_var[i] * ( 1 - cellenv_hidden_var[i] ) * dosage;
-					para_dev_snp_cellenv[i][count] += temp;
+					para_dev_snp_cellenv[i][count] += temp * dosage;
 					count ++;
 				}
 			}
 		}
-
 
 		// ********************* [part3] linear or non-linear batches *********************
 		// from hidden batch to genes
@@ -286,21 +287,20 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				para_dev_batch_hidden_gene[i][j] += (gene_rpkm_exp[i] - eQTL_tissue_rep[etissue][esample][i]) * batch_hidden_var[j];
 			}
 		}
-
 		// from original batch to hidden batch
 		// pseudo: [ \sum w5 * (expected rpkm - real rpkm) ] * g'(w4 * x2) * x2
 		for(int i=0; i<num_batch_hidden; i++)
 		{
+			float temp = 0;
+			for(int t=0; t<num_gene; t++)
+			{
+				temp += para_batch_hidden_gene[t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
+			}
+			temp *= batch_hidden_var[i] * ( 1 - batch_hidden_var[i] );
 			for(int j=0; j<num_batch; j++)
 			{
 				float batch_value = batch_var[j];
-				float temp = 0;
-				for(int t=0; t<num_gene; t++)
-				{
-					temp += para_batch_hidden_gene[t][i] * (gene_rpkm_exp[t] - eQTL_tissue_rep[etissue][esample][t]);
-				}
-				temp *= batch_hidden_var[i] * ( 1 - batch_hidden_var[i] ) * batch_value;
-				para_dev_batch_batch_hidden[i][j] += temp;
+				para_dev_batch_batch_hidden[i][j] += temp * batch_value;
 			}
 		}
 
@@ -308,11 +308,10 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-
-
 	//********************************* aggregation of this mini-batch *****************************************
 	// 1. average the derivatives calculated from previous steps
 	// 2. will add the derivatives due to regularization in the next part
+	cout << "aggregation of this mini-batch..." << endl;
 	// vector<vector<float *>> para_dev_cis_gene;
 	for(int i=0; i<num_gene; i++)
 	{
@@ -379,6 +378,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// 3.1.[TODO] hierarchical regularization tuned by the learned tissue hierarchy
 	// 3.2.[TODO] or we can simply use group LASSO to encourage the tissue consistency
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
+	cout << "adding the regularization items to the derivatives..." << endl;
 
 	//===================================== part#0 =====================================
 	// initialize some learning parameters
