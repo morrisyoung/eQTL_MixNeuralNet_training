@@ -53,11 +53,8 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 // learning control parameters:
 int iter_learn_out = 5;  // iteration across all tissues
 int iter_learn_in = 20;  // iteration across all samples from one tissue
-int batch_size = 15;
+int batch_size = 20;
 int rate_learner = 1;  // the learning rate
-//
-//
-//
 
 //======================================================================================================
 
@@ -363,21 +360,21 @@ void opt_para_release()
 		free(para_dev_batch_hidden_gene[i]);
 	}
 
-
 }
 
 
 
-
-// two (2) major parts for this routine:
-// 1. write the procedure to update these parameters in this program (mini-batches gradient; gradient descent)
-// 2. stop in some ways, and save the learned parameters to disk (interface; should be in a trivial way); use another routine to check the predictive precision
+//function: mini-batches gradient; gradient descent
 void optimize()
 {
 	puts("============== entering the optimization routine...");
+	puts("[xx] loading the tissue hierarchy...");
 	opt_tissue_hierarchy_load();
+	puts("[xx] initializing the parameter space in this optimization routine...");
 	opt_para_init();
+	puts("[xx] loading the prior information for cis- snps...");
 	opt_snp_prior_load();
+
 
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
 	{
@@ -390,16 +387,20 @@ void optimize()
 			{
 				int pos_start = (batch_size * count3) % (num_esample);
 
-				printf("now we are working on %d iter_out, %s tissue (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, etissue.c_str(), num_esample, count3+1, batch_size);
+				printf("[@@@] now we are working on %d iter_out, %s tissue (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, etissue.c_str(), num_esample, count3+1, batch_size);
 
+				/*
 				forward_backward_prop_batch(etissue, pos_start, num_esample);
 
 				gradient_descent();
+				*/
 
 			}
 		}
 	}
 
+
 	opt_para_release();
 	puts("============== leaving the optimization routine...");
 }
+

@@ -30,7 +30,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	int etissue_index = etissue_index_map[etissue];
 
 	//******************* initialize all the parameter derivatives (as 0) *******************
-	//***************************************************************************************
 	// vector<vector<float *>> para_dev_cis_gene;
 	for(int i=0; i<num_gene; i++)
 	{
@@ -87,8 +86,9 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
-	//******************* enter the mini-batch *******************
-	//************************************************************
+
+
+	//****************************** enter the mini-batch ***********************************
 	for(int count=0; count<batch_size; count++)
 	{
 		int pos = (pos_start + count) % (num_esample);
@@ -120,7 +120,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			batch_var[index] = value;
 			index++;
 		}
-
+		
 
 		//========================================================================
 		// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
@@ -307,10 +307,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
-	//******************* aggregation *******************
-	//***************************************************
-	// 1. average the derivatives calculated from previous steps;
-	// 2. add the derivatives due to regularization;
+
+
+
+	//********************************* aggregation of this mini-batch *****************************************
+	// 1. average the derivatives calculated from previous steps
+	// 2. will add the derivatives due to regularization in the next part
 	// vector<vector<float *>> para_dev_cis_gene;
 	for(int i=0; i<num_gene; i++)
 	{
@@ -368,13 +370,14 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+
+
 	//===================================== Regularization in Regression =====================================
-	//========================================================================================================
 	// there are several classes of prior knowledge that we need to consider
 	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
 	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
-	// 3.1. hierarchical regularization tuned by the learned tissue hierarchy
-	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
+	// 3.1.[TODO] hierarchical regularization tuned by the learned tissue hierarchy
+	// 3.2.[TODO] or we can simply use group LASSO to encourage the tissue consistency
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 
 	//===================================== part#0 =====================================
@@ -402,10 +405,10 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		int chr = gene_tss[gene].chr;
 		long int index_start = gene_cis_index[gene].first;
 		long int index_end = gene_cis_index[gene].second;
-		long int amount = index_end - index_start;
-		for(int j=0; j<=amount; j++)
+		long int amount = index_end - index_start + 1;
+		for(int j=0; j<amount; j++)
 		{
-			long int pos = j+index_start;  // the pos in snp list
+			long int pos = j + index_start;  // the pos in snp list
 
 			/// the value of current cis- beta:
 			float beta = para_cis_gene[etissue_index][i][j];
@@ -451,10 +454,14 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	//===================================== part#3 =====================================
 	// 3.2. or we can simply use group LASSO to encourage the tissue consistency
 	// TODO: as this part is too un-stable (group LASSO, or hierarchical regularization), we now don't use them
-
-
-
-
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
 
 
 	//===================================== part#4 =====================================
@@ -486,8 +493,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-	//===================================== end of Regularization ============================================
-	//========================================================================================================
 
 }
 
@@ -502,11 +507,15 @@ void gradient_descent()
 	//vector<vector<float *>> para_cis_gene;
 	//vector<float *> para_snp_cellenv;
 	//vector<vector<float *>> para_cellenv_gene;
+	//vector<float *> para_batch_batch_hidden;
+	//vector<float *> para_batch_hidden_gene;
 
 	// parameter derivative containers:
 	//vector<vector<float *>> para_dev_cis_gene;
 	//vector<float *> para_dev_snp_cellenv;
 	//vector<vector<float *>> para_dev_cellenv_gene;
+	//vector<float *> para_dev_batch_batch_hidden;
+	//vector<float *> para_dev_batch_hidden_gene;
 
 	//====================== para_cis_gene ==========================
 	for(int i=0; i<num_etissue; i++)
@@ -573,3 +582,4 @@ void gradient_descent()
 	}
 
 }
+
