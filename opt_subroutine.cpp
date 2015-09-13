@@ -27,6 +27,8 @@ using namespace std;
 // forward and backward propagation for one mini-batch
 void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 {
+	cout << "[@@] entering the forward-backward propagation..." << endl;
+
 	int etissue_index = etissue_index_map[etissue];
 
 	//******************* initialize all the parameter derivatives (as 0) *******************
@@ -95,7 +97,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
-		cout << "current sample #" << pos << endl;
+		cout << "current sample #" << pos << ":" << esample << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
@@ -369,8 +371,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-
-
 	//===================================== Regularization in Regression =====================================
 	// there are several classes of prior knowledge that we need to consider
 	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
@@ -402,66 +402,53 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	for(int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
-
-
-		cout << gene << endl;
-
-
-		int chr = gene_tss[gene].chr;
-		long index_start = gene_cis_index[gene].first;
-		long index_end = gene_cis_index[gene].second;
-		long amount = index_end - index_start + 1;
-		for(int j=0; j<amount; j++)
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
 		{
-			long pos = j + index_start;  // the pos in snp list
-
-			/// the value of current cis- beta:
-			float beta = para_cis_gene[etissue_index][i][j];
-
-			/// the prior that we need (if there is) for tuning the relative strength of L1 and L2 regularization:
-			float prior = 0;
-			unordered_map<string, vector<vector<float>>>::const_iterator got = prior_tissue_rep.find(etissue);
-			if( got != prior_tissue_rep.end() )
+			continue;
+		}
+		else
+		{
+			int chr = gene_tss[gene].chr;
+			long index_start = gene_cis_index[gene].first;
+			long index_end = gene_cis_index[gene].second;
+			long amount = index_end - index_start + 1;
+			for(int j=0; j<amount; j++)
 			{
-				prior = prior_tissue_rep[etissue][chr-1][pos];
+				long pos = j + index_start;  // the pos in snp list
+
+				/// the value of current cis- beta:
+				float beta = para_cis_gene[etissue_index][i][j];
+
+				/// the prior that we need (if there is) for tuning the relative strength of L1 and L2 regularization:
+				float prior = 0;
+				unordered_map<string, vector<vector<float>>>::const_iterator got = prior_tissue_rep.find(etissue);
+				if( got != prior_tissue_rep.end() )
+				{
+					prior = prior_tissue_rep[etissue][chr-1][pos];
+				}
+				else
+				{
+					prior = 1.0;
+				}
+				float alpha = 1 / ( 1 + exp(-(prior-1)) );
+
+				/// the derivative of the beta:
+				float derivative1 = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
+				float derivative2 = 2 * beta;  // L2 regularization item is differentiable
+
+				/// and the value of its derivative should be added with that derivative item from regularization:
+				para_dev_cis_gene[etissue_index][i][j] += lambda_lasso * (1 - alpha) * derivative1 + lambda_ridge * alpha * derivative2;
 			}
-			else
-			{
-				prior = 1;
-			}
-
-			// debug
-			//cout << "###" << endl;
-
-			float alpha = 1 / ( 1 + exp(-(prior-1)) );
-
-			// debug
-			//cout << "###" << endl;
-
-			/// the derivative of the beta:
-			float derivative1 = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
-			float derivative2 = 2 * beta;  // L2 regularization item is differentiable
-
-			// debug
-			//cout << "###" << endl;
-
-
-			/// and the value of its derivative should be added with that derivative item from regularization:
-			para_dev_cis_gene[etissue_index][i][j] += lambda_lasso * (1-alpha) * derivative1 + lambda_ridge * alpha * derivative2;
-
-
-			// debug
-			//cout << "###" << endl;
-
+		// leaving the non-xymt gene section
 		}
 	}
 
 
 
-
-
 	// debug
 	cout << "***" << endl;
+
 
 
 	//===================================== part#2 =====================================
@@ -492,12 +479,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	//
 	//
 
-
-	// debug
-	cout << "***" << endl;
-
-
-
 	//===================================== part#4 =====================================
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 	// from batch to batch_hidden:
@@ -513,14 +494,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			para_dev_batch_batch_hidden[i][j] += lambda_batch_batch_hidden * derivative;
 		}
 	}
-
-
-	// debug
-	cout << "***" << endl;
-
-
-
-
 	// from batch_hidden to gene:
 	for(int i=0; i<num_gene; i++)
 	{
@@ -536,13 +509,15 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
+	cout << "[@@] leaving the forward-backward propagation..." << endl;
 }
-
 
 
 
 void gradient_descent()
 {
+	cout << "[@@] entering the gradient descent..." << endl;
+
 	// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand, as followed)
 
 	// parameter containers:
@@ -623,5 +598,6 @@ void gradient_descent()
 		}
 	}
 
+	cout << "[@@] leaving the gradient descent..." << endl;
 }
 

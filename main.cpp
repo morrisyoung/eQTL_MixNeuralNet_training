@@ -13,6 +13,13 @@ what we should have at hand by now:
 */
 
 
+// something TODO in the main frame:
+// 1. write the file interaction module
+// 2. write the testing sub-routine
+
+
+
+
 #include <iostream>
 #include <sys/types.h>
 #include <dirent.h>
@@ -134,10 +141,9 @@ int main()
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 
-
 	/* temporarily (as there are no enough space locally in VM)
 	// load the genotype for all individuals on all chromosomes
-	puts("loading all dosage data for these snps for all individuals.");
+	puts("[xxx] loading all dosage data for these snps for all individuals.");
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
 	*/
