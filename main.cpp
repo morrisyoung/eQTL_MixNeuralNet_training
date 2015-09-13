@@ -13,9 +13,9 @@ what we should have at hand by now:
 */
 
 
-// something TODO in the main frame:
-// 1. write the file interaction module
-// 2. write the testing sub-routine
+// something TODO in the main frame, e.g., some re-usable modules:
+// 1. file operation module;
+// 2. hashtable-in judgement module
 
 
 

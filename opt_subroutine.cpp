@@ -97,7 +97,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
-		cout << "current sample #" << pos << ":" << esample << endl;
+		cout << "current sample #" << pos << ": " << esample << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
@@ -514,7 +514,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-void gradient_descent()
+void gradient_descent(string etissue)
 {
 	cout << "[@@] entering the gradient descent..." << endl;
 
@@ -534,25 +534,23 @@ void gradient_descent()
 	//vector<float *> para_dev_batch_batch_hidden;
 	//vector<float *> para_dev_batch_hidden_gene;
 
+	int etissue_index = etissue_index_map[etissue];
+
 	//====================== para_cis_gene ==========================
-	for(int i=0; i<num_etissue; i++)
+	for(int i=0; i<num_gene; i++)
 	{
-		string etissue = etissue_list[i];
-		for(int j=0; j<num_gene; j++)
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
 		{
-			string gene = gene_list[j];
-			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-			if ( got != gene_xymt_rep.end() )
+			continue;
+		}
+		else
+		{
+			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+			for(int k=0; k<num; k++)
 			{
-				continue;
-			}
-			else
-			{
-				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-				for(int k=0; k<num; k++)
-				{
-					para_cis_gene[i][j][k] = para_cis_gene[i][j][k] - rate_learner * para_dev_cis_gene[i][j][k];
-				}
+				para_cis_gene[etissue_index][i][k] = para_cis_gene[etissue_index][i][k] - rate_learner * para_dev_cis_gene[etissue_index][i][k];
 			}
 		}
 	}
@@ -567,16 +565,12 @@ void gradient_descent()
 	}
 
 	//====================== para_cellenv_gene ==========================
-	for(int i=0; i<num_etissue; i++)
+	for(int i=0; i<num_gene; i++)
 	{
-		string etissue = etissue_list[i];
-		for(int j=0; j<num_gene; j++)
+		string gene = gene_list[i];
+		for(int k=0; k<num_cellenv; k++)
 		{
-			string gene = gene_list[j];
-			for(int k=0; k<num_cellenv; k++)
-			{
-				para_cellenv_gene[i][j][k] = para_cellenv_gene[i][j][k] - rate_learner * para_dev_cellenv_gene[i][j][k];
-			}
+			para_cellenv_gene[etissue_index][i][k] = para_cellenv_gene[etissue_index][i][k] - rate_learner * para_dev_cellenv_gene[etissue_index][i][k];
 		}
 	}
 
