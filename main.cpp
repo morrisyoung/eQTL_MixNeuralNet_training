@@ -191,10 +191,8 @@ int main()
 	puts("[xxx] gene meta data (cis- index) preparation...");
 	gene_cis_index_init();  // gene_cis_index
 	//==================================== initialize all other parameters =======================================
-	// what they are:
-	// para_snp_cellenv; para_cellenv_gene; para_cis_gene
 	puts("[xxx] parameter space initialization...");
-	para_init();
+	para_init();  // para_snp_cellenv; para_cellenv_gene; para_cis_gene
 	//=========================================== set the beta prior =============================================
 	puts("[xxx] beta prior values (from GTEx) loading...");
 	beta_prior_fill();  // must happen after the above procedure

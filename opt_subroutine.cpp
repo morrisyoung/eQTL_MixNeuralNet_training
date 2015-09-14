@@ -89,7 +89,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-
 	//****************************** enter the mini-batch ***********************************
 	cout << "we are entering a new mini-batch..." << endl;
 	for(int count=0; count<batch_size; count++)
@@ -125,9 +124,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 
 
-		// debug
-		cout << "***" << endl;
-
 		//========================================================================
 		// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
 		//========================================================================
@@ -161,11 +157,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 		}
 
-
-		// debug
-		cout << "***" << endl;
-
-
 		// ********************* [part2] cell env relevant parameters *********************
 		// from snp to cell env variables
 		for(int i=0; i<num_cellenv; i++)
@@ -198,51 +189,27 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 		}
 
-
-
-		// debug
-		cout << "***" << endl;
-
-
 		// ********************* [part3] linear or non-linear batches *********************
 		// from original batch to hidden batch
-
 		for(int i=0; i<num_batch_hidden; i++)
 		{
-			// DEBUG
-			cout << i << endl;
-
 			batch_hidden_var[i] = 0;
 			for(int j=0; j<num_batch; j++)
 			{
 				// DEBUG
-				cout << j << endl;
 				// print out the item
-				//
-				//
-				//
-				cout << batch_hidden_var[i] << endl;
-				cout << batch_var[j] << endl;
-				cout << para_batch_batch_hidden[i][j] << endl;
+				//cout << batch_hidden_var[i] << endl;
+				//cout << batch_var[j] << endl;
+				//cout << para_batch_batch_hidden[i][j] << endl;
 
 				batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
 			}
 		}
-
-
-		cout << "*" << endl;
-
-
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		for(int i=0; i<num_batch_hidden; i++)
 		{
 			batch_hidden_var[i] = 1 / ( 1 + exp( - batch_hidden_var[i] ));
 		}
-
-
-		cout << "*" << endl;
-
-
 		// from hidden batch to genes
 		for(int i=0; i<num_gene; i++)
 		{
@@ -252,12 +219,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * batch_hidden_var[j];
 			}
 		}
-
-
-		// debug
-		cout << "***" << endl;
-
-
 
 
 
@@ -288,12 +249,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 				}
 			}
 		}
-
-
-		// debug
-		cout << "***" << endl;
-
-
 
 		// ***************** [part2] cell env relevant parameters *****************
 		// from cell env to genes
@@ -329,13 +284,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			}
 		}
 
-
-		// debug
-		cout << "***" << endl;
-
-
-
-
 		// ********************* [part3] linear or non-linear batches *********************
 		// from hidden batch to genes
 		// pseudo: (expected rpkm - real rpkm) * hidden batch var
@@ -367,10 +315,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 		// leaving the mini-batch
 	}
-
-
-	// debug
-	cout << "***" << endl;
 
 
 	//********************************* aggregation of this mini-batch *****************************************
@@ -432,10 +376,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			para_dev_batch_hidden_gene[i][j] = para_dev_batch_hidden_gene[i][j] / batch_size;
 		}
 	}
-
-
-	// debug
-	cout << "***" << endl;
 
 
 	//===================================== Regularization in Regression =====================================
@@ -511,13 +451,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-
-
-	// debug
-	cout << "***" << endl;
-
-
-
 	//===================================== part#2 =====================================
 	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
 	for(int i=0; i<num_gene; i++)
@@ -545,7 +478,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	//
 	//
 	//
-
 
 
 	//===================================== part#4 =====================================
@@ -576,7 +508,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			para_dev_batch_hidden_gene[i][j] += lambda_batch_hidden_gene * derivative;
 		}
 	}
-
 
 
 	cout << "[@@] leaving the forward-backward propagation..." << endl;
