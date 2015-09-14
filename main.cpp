@@ -2,8 +2,9 @@
 the outline of the entire program:
 
 what we should have at hand by now:
-1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion;
+1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion, or directly from memory;
 2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
+3. batch variables
 
 
 1. pipeline for processing the genotype data and the expression date (querying and iterating, in a mini-batch manner);
@@ -13,10 +14,14 @@ what we should have at hand by now:
 */
 
 
+// the information page of the data and the project is here:
+// https://github.com/morrisyoung/eQTL_script
+
+
+
 // something TODO in the main frame, e.g., some re-usable modules:
 // 1. file operation module;
 // 2. hashtable-in judgement module
-
 
 
 
@@ -53,16 +58,16 @@ using namespace std;
 
 // global variables definition and initialization
 //===========================================================
-long int num_snp = 0;
-int num_cellenv = 400;
-long int num_gene = 0;
-int num_etissue = 0;
+long int num_snp = 0;		// TBD
+int num_cellenv = 400;		// Specified
+long int num_gene = 0;		// TBD
+int num_etissue = 0;		// TBD
 // TODO: for the following two, we should later on prepared read data from file and automatically get their values
-int num_batch = 100;
+int num_batch = 0;			// TBD
 //int num_batch_individual = 0;
 //int num_batch_sample = 0;
-int num_batch_hidden = 100;
-int num_individual = 0;
+int num_batch_hidden = 100;	// Specified
+int num_individual = 0;		// TBD
 
 
 //// genotype relevant:
@@ -202,10 +207,12 @@ int main()
 
 
 
+	/*
 
 	//======================================= main optimization routine ==========================================
 	optimize();
 
+	*/
 
 
 
@@ -213,7 +220,7 @@ int main()
 
 	//======================================= testing with the test subset =======================================
 	puts("[xxx] testing the learned models...");
-	para_test();
+	para_test();  // currently this is empty
 
 
 

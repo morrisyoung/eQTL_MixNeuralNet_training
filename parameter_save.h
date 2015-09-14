@@ -1,5 +1,5 @@
 // parameter_save.h
-// function:
+// function: save all the parameters into file, and test them or interpret them later on
 
 #ifndef PARAMETER_SAVE_H
 #define PARAMETER_SAVE_H
