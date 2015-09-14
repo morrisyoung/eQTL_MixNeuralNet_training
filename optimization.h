@@ -11,12 +11,11 @@
 using namespace std;
 
 
-
-extern array<vector<float>, 22> snp_dosage_list;
-extern vector<float> gene_rpkm_exp;  // with length "num_gene"
-extern vector<float> cellenv_hidden_var;  // with length "num_cellenv"
-extern vector<float> batch_var;  // with length "num_batch"
-extern vector<float> batch_hidden_var;  // with length "num_batch_hidden"
+extern array<float *, 22> snp_dosage_list;
+extern float * gene_rpkm_exp;  // with length "num_gene"
+extern float * cellenv_hidden_var;  // with length "num_cellenv"
+extern float * batch_var;  // with length "num_batch"
+extern float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
 // parameter derivative containers:

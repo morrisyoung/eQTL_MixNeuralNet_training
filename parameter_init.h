@@ -25,11 +25,6 @@ void gene_cis_index_init();
 void beta_prior_fill();
 
 
-// load the prepared batch variables into reps
-void batch_load();
-
-
-
 
 #endif
 

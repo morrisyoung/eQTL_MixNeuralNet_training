@@ -74,8 +74,9 @@ long int snp_info_read()
 
 
 
-void snp_dosage_load(array<vector<float>, 22> * array_pointer, string individual)
+void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
 {
+	/*
 	int i;
 	for(i=0; i<22; i++)
 	{
@@ -115,10 +116,11 @@ void snp_dosage_load(array<vector<float>, 22> * array_pointer, string individual
 		fclose(file_in);
 		//======================================
 	}
+	*/
 
 
 
-	/*
+
 	// we need another routine to load the snps from rep in memory
 	// fill in this: unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	// with these: array<vector<float>, 22> * array_pointer, string individual
@@ -131,7 +133,6 @@ void snp_dosage_load(array<vector<float>, 22> * array_pointer, string individual
 			(* array_pointer)[i][j] = dosage;
 		}
 	}
-	*/
 
 
 

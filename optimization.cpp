@@ -27,11 +27,11 @@ using namespace std;
 //====================================== local global variables ========================================
 // these variables are specially designed for this routine -- optimization
 // need to initialize some local containers:
-array<vector<float>, 22> snp_dosage_list;
-vector<float> gene_rpkm_exp;  // with length "num_gene"
-vector<float> cellenv_hidden_var;  // with length "num_cellenv"
-vector<float> batch_var;  // with length "num_batch"
-vector<float> batch_hidden_var;  // with length "num_batch_hidden"
+array<float *, 22> snp_dosage_list;
+float * gene_rpkm_exp;  // with length "num_gene"
+float * cellenv_hidden_var;  // with length "num_cellenv"
+float * batch_var;  // with length "num_batch"
+float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
 // parameter derivative containers:
@@ -229,35 +229,23 @@ void opt_para_init()
 	//=============== snp_dosage_list ===============
 	for(int i=0; i<22; i++)
 	{
-		for(int j=0; j<snp_name_list[i].size(); j++)
-		{
-			snp_dosage_list[i].push_back(0);
-		}
+		long num_temp = snp_name_list[i].size();
+		float * p = (float *)calloc( num_temp, sizeof(float) );
+		snp_dosage_list[i] = p;
 	}
 
 	//=============== gene_rpkm_exp ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		gene_rpkm_exp.push_back(0);
-	}
+	gene_rpkm_exp = (float *)calloc( num_gene, sizeof(float) );
 
 	//=============== cellenv_hidden_var ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		cellenv_hidden_var.push_back(0);
-	}
+	cellenv_hidden_var = (float *)calloc( num_cellenv, sizeof(float) );
 
 	//=============== batch_var ===============
-	for(int i=0; i<num_batch; i++)
-	{
-		batch_var.push_back(0);
-	}
+	batch_var = (float *)calloc( num_batch, sizeof(float) );
 
 	//=============== batch_hidden_var ===============
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		batch_hidden_var.push_back(0);
-	}
+	batch_hidden_var = (float *)calloc( num_batch_hidden, sizeof(float) );
+
 
 	//=============== para_dev_snp_cellenv ===============
 	for(int i=0; i<num_cellenv; i++)
@@ -324,6 +312,25 @@ void opt_para_init()
 
 void opt_para_release()
 {
+	//=============== snp_dosage_list ===============
+	for(int i=0; i<22; i++)
+	{
+		free(snp_dosage_list[i]);
+	}
+
+	//=============== gene_rpkm_exp ===============
+	free(gene_rpkm_exp);
+
+	//=============== cellenv_hidden_var ===============
+	free(cellenv_hidden_var);
+
+	//=============== batch_var ===============
+	free(batch_var);
+
+	//=============== batch_hidden_var ===============
+	free(batch_hidden_var);
+
+
 	//=============== para_dev_snp_cellenv ===============
 	for(int i=0; i<num_cellenv; i++)
 	{
@@ -391,7 +398,7 @@ void optimize()
 
 				forward_backward_prop_batch(etissue, pos_start, num_esample);
 
-				gradient_descent();
+				gradient_descent(etissue);
 
 			}
 		}

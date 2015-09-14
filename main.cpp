@@ -43,6 +43,7 @@ what we should have at hand by now:
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "parameter_test.h"
+#include "batch.h"
 
 
 
@@ -141,12 +142,12 @@ int main()
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 
-	/* temporarily (as there are no enough space locally in VM)
+	///* temporarily (as there are no enough space locally in VM)
 	// load the genotype for all individuals on all chromosomes
 	puts("[xxx] loading all dosage data for these snps for all individuals.");
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
-	*/
+	//*/
 
 
 
@@ -174,31 +175,29 @@ int main()
 
 
 
+	//========================================== prepare the batch ==============================================
+	// we know the num_batch and num_batch_hidden only after we read the batch source file
+	puts("[xxx] batch variable values (for all individuals and samples) loading...");
+	batch_load();  // load the batch variables
+	cout << "there are totally " << num_batch << " batch variables (individuals and samples)..." << endl;
 
+
+
+
+
+
+	// the following three must be in order
 	//===================================== gene cis index data preparation ======================================
 	puts("[xxx] gene meta data (cis- index) preparation...");
 	gene_cis_index_init();  // gene_cis_index
-	//===================================== initialize all the parameters ========================================
+	//==================================== initialize all other parameters =======================================
+	// what they are:
+	// para_snp_cellenv; para_cellenv_gene; para_cis_gene
 	puts("[xxx] parameter space initialization...");
 	para_init();
+	//=========================================== set the beta prior =============================================
 	puts("[xxx] beta prior values (from GTEx) loading...");
 	beta_prior_fill();  // must happen after the above procedure
-	puts("[xxx] batch variable values (for all individuals and samples) loading...");
-	batch_load();  // load the batch variables
-	// fill in the total number of batch variables
-	num_batch = 0;
-	for( auto it = batch_individual.begin(); it != batch_individual.end(); ++it )
-	{
-		int temp = it->second.size();
-		num_batch += temp;
-		break;
-	}
-	for( auto it = batch_sample.begin(); it != batch_sample.end(); ++it )
-	{
-		int temp = it->second.size();
-		num_batch += temp;
-		break;
-	}
 
 
 
