@@ -398,7 +398,6 @@ void optimize()
 				if(MULTI_THREAD == 0)  // normal sequential program
 				{
 					forward_backward_prop_batch(etissue, pos_start, num_esample);
-					gradient_descent(etissue);
 				}
 				else  // multi-threading program
 				{

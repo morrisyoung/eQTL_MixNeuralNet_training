@@ -378,7 +378,26 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
+
 	//===================================== Regularization in Regression =====================================
+	regularization(etissue);
+
+
+
+	//=========================================== Gradient Descent ===========================================
+	gradient_descent(etissue);
+
+
+
+	cout << "[@@] leaving the forward-backward propagation..." << endl;
+}
+
+
+
+void regularization(string etissue)
+{
+	cout << "[@@] entering the regularization routine..." << endl;
+
 	// there are several classes of prior knowledge that we need to consider
 	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
 	// 2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
@@ -386,6 +405,8 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// 3.2.[TODO] or we can simply use group LASSO to encourage the tissue consistency
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 	cout << "adding the regularization items to the derivatives..." << endl;
+
+	int etissue_index = etissue_index_map[etissue];
 
 	//===================================== part#0 =====================================
 	// initialize some learning parameters
@@ -509,8 +530,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-
-	cout << "[@@] leaving the forward-backward propagation..." << endl;
+	cout << "[@@] leaving the regularization routine..." << endl;
 }
 
 

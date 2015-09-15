@@ -18,6 +18,7 @@ string sample_to_individual(string);
 
 // the main optimization routine: the forward_backward propagation, and the gradient descent
 void forward_backward_prop_batch(string, int, int);
+void regularization(string);
 void gradient_descent(string);
 
 
