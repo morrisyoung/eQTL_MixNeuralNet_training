@@ -78,6 +78,12 @@ extern unordered_map<string, tuple_long> gene_cis_index;
 
 
 
+// system control
+extern int MULTI_THREAD;
+
+
+
+
 
 #endif
 

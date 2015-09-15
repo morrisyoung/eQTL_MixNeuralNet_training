@@ -17,6 +17,7 @@
 #include "main.h"  // typedef struct tuple_long
 #include <math.h>       /* exp */
 #include "opt_subroutine.h"
+#include "opt_multi_thread.h"
 
 
 
@@ -51,7 +52,7 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 
 // learning control parameters:
-int iter_learn_out = 5;  // iteration across all tissues
+int iter_learn_out = 1;  // iteration across all tissues
 int iter_learn_in = 10;  // iteration across all samples from one tissue
 int batch_size = 20;  // better be 20
 int rate_learner = 1;  // the learning rate
@@ -390,18 +391,24 @@ void optimize()
 			string etissue = etissue_list[count2];
 			int num_esample = eQTL_tissue_rep[etissue].size();
 
-			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a 15-sized mini-batch in current tissue
+			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a batch_size mini-batch in current tissue
 			{
 				int pos_start = (batch_size * count3) % (num_esample);
-
-				printf("[@@@] now we are working on %d iter_out (%d total), eTissue #%d -- %s (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, iter_learn_out, count2+1, etissue.c_str(), num_esample, count3+1, batch_size);
-
-				forward_backward_prop_batch(etissue, pos_start, num_esample);
-
-				gradient_descent(etissue);
-
+				printf("[@@@] now we are working on %d iter_out (%d total), eTissue #%d (%d total) -- %s (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, iter_learn_out, count2+1, num_etissue, etissue.c_str(), num_esample, count3+1, batch_size);
+				if(MULTI_THREAD == 0)  // normal sequential program
+				{
+					forward_backward_prop_batch(etissue, pos_start, num_esample);
+					gradient_descent(etissue);
+				}
+				else  // multi-threading program
+				{
+					opt_mt_control(etissue, pos_start, num_esample);
+				}
+				// leaving this mini-batch
 			}
+			// leaving this etissue
 		}
+		//
 	}
 
 

@@ -110,6 +110,12 @@ vector<float *> para_batch_hidden_gene;
 // information table:
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
 
+
+
+//// system control
+// multi-threading mark
+int MULTI_THREAD = 0;
+
 //===========================================================
 
 
@@ -207,12 +213,10 @@ int main()
 
 
 
-	/*
 
 	//======================================= main optimization routine ==========================================
 	optimize();
 
-	*/
 
 
 

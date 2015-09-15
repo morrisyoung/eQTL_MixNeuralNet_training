@@ -96,7 +96,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
-		cout << "current sample #" << pos << ": " << esample << endl;
+		cout << "current sample #" << pos+1 << ": " << esample << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
