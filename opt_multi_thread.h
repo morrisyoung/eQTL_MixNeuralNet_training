@@ -32,9 +32,9 @@ typedef struct package_thread
 	float * batch_hidden_var;	// with length "num_batch_hidden"
 
 	// parameter containers
-	vector<vector<float *>> para_dev_cis_gene;
+	vector<float *> para_dev_cis_gene;
 	vector<float *> para_dev_snp_cellenv;
-	vector<vector<float *>> para_dev_cellenv_gene;
+	vector<float *> para_dev_cellenv_gene;
 	vector<float *> para_dev_batch_batch_hidden;
 	vector<float *> para_dev_batch_hidden_gene;
 
@@ -54,7 +54,11 @@ void * WorkPerThread(void *);
 void opt_mt_control(string, int, int);
 
 
-void aggregation(package_dev *, string);
+
+// aggregation
+void aggregation_init(string);
+void aggregation_add(package_dev *, string);
+void aggregation_ave(string);
 
 
 

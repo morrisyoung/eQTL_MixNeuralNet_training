@@ -131,8 +131,8 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 						cellenv_hidden_var,
 						batch_var,
 						batch_hidden_var,
-						&para_dev_cis_gene,
-						&para_dev_cellenv_gene,
+						&(para_dev_cis_gene[etissue_index]),
+						&(para_dev_cellenv_gene[etissue_index]),
 						&para_dev_snp_cellenv,
 						&para_dev_batch_hidden_gene,
 						&para_dev_batch_batch_hidden);
@@ -218,9 +218,8 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-
 // what we need for the following routine:
-// etissue; dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
+// dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
 // property of this function: additive to the total derivative after this round
 void forward_backward(string etissue,
 	array<float *, 22> * dosage_list_pointer,
@@ -229,8 +228,8 @@ void forward_backward(string etissue,
 	float * cellenv_con_pointer,
 	float * batch_list_pointer,
 	float * batch_hidden_con_pointer,
-	vector<vector<float *>> * para_dev_cis_gene_pointer,
-	vector<vector<float *>> * para_dev_cellenv_gene_pointer,
+	vector<float *> * para_dev_cis_gene_pointer,
+	vector<float *> * para_dev_cellenv_gene_pointer,
 	vector<float *> * para_dev_snp_cellenv_pointer,
 	vector<float *> * para_dev_batch_hidden_gene_pointer,
 	vector<float *> * para_dev_batch_batch_hidden_pointer)
@@ -244,8 +243,8 @@ void forward_backward(string etissue,
 	cellenv_con_pointer --> cellenv_hidden_var
 	batch_hidden_con_pointer --> batch_hidden_var
 
-	para_dev_cis_gene_pointer --> &para_dev_cis_gene
-	para_dev_cellenv_gene_pointer --> &para_dev_cellenv_gene
+	para_dev_cis_gene_pointer --> &para_dev_cis_gene[etissue_index]
+	para_dev_cellenv_gene_pointer --> &para_dev_cellenv_gene[etissue_index]
 	para_dev_snp_cellenv_pointer --> &para_dev_snp_cellenv
 	para_dev_batch_hidden_gene_pointer --> &para_dev_batch_hidden_gene
 	para_dev_batch_batch_hidden_pointer --> &para_dev_batch_batch_hidden
@@ -374,7 +373,7 @@ void forward_backward(string etissue,
 			{
 				int pos = gene_cis_index[gene].first + k;
 				float dosage = (*dosage_list_pointer)[chr-1][pos];  // dosage at k position
-				(*para_dev_cis_gene_pointer)[etissue_index][i][k] += (expr_con_pointer[i] - (*expr_list_pointer)[i]) * dosage;
+				(*para_dev_cis_gene_pointer)[i][k] += (expr_con_pointer[i] - (*expr_list_pointer)[i]) * dosage;
 			}
 		}
 	}
@@ -387,7 +386,7 @@ void forward_backward(string etissue,
 		string gene = gene_list[i];
 		for(int j=0; j<num_cellenv; j++)
 		{
-			(*para_dev_cellenv_gene_pointer)[etissue_index][i][j] += (expr_con_pointer[i] - (*expr_list_pointer)[i]) * cellenv_con_pointer[j];
+			(*para_dev_cellenv_gene_pointer)[i][j] += (expr_con_pointer[i] - (*expr_list_pointer)[i]) * cellenv_con_pointer[j];
 		}
 	}
 	// from snp to cell env
@@ -443,7 +442,6 @@ void forward_backward(string etissue,
 
 
 }
-
 
 
 

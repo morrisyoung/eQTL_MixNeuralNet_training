@@ -54,29 +54,24 @@ void package_alloc(package_thread * package_pointer)
 	//=============== (package_pointer->batch_hidden_var) ===============
 	(package_pointer->batch_hidden_var) = (float *)calloc( num_batch_hidden, sizeof(float) );
 
-	//=============== (package_pointer->para_dev_cis_gene) =============== TODO: we don't need all the tissues actually
-	for(int j=0; j<num_etissue; j++)
+	//=============== (package_pointer->para_dev_cis_gene) ===============
+	for(int i=0; i<num_gene; i++)
 	{
-		vector<float *> vec;
-		(package_pointer->para_dev_cis_gene).push_back(vec);
-		for(int i=0; i<num_gene; i++)
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
 		{
-			string gene = gene_list[i];
-			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-			if ( got != gene_xymt_rep.end() )
-			{
-				float * p = NULL;  // null pointer
-				(package_pointer->para_dev_cis_gene)[j].push_back(p);
-				continue;
-			}
-			else
-			{
-				long first = gene_cis_index[gene].first;  // index
-				long second = gene_cis_index[gene].second;  // index
-				long amount = second - first + 1;
-				float * p = (float *)calloc( amount, sizeof(float) );
-				(package_pointer->para_dev_cis_gene)[j].push_back(p);
-			}
+			float * p = NULL;  // null pointer
+			(package_pointer->para_dev_cis_gene).push_back(p);
+			continue;
+		}
+		else
+		{
+			long first = gene_cis_index[gene].first;  // index
+			long second = gene_cis_index[gene].second;  // index
+			long amount = second - first + 1;
+			float * p = (float *)calloc( amount, sizeof(float) );
+			(package_pointer->para_dev_cis_gene).push_back(p);
 		}
 	}
 
@@ -87,16 +82,11 @@ void package_alloc(package_thread * package_pointer)
 		(package_pointer->para_dev_snp_cellenv).push_back(p);
 	}
 
-	//=============== (package_pointer->para_dev_cellenv_gene) =============== TODO: we don't need all the tissues actually
-	for(int j=0; j<num_etissue; j++)
+	//=============== (package_pointer->para_dev_cellenv_gene) ===============
+	for(int i=0; i<num_gene; i++)
 	{
-		vector<float *> vec;
-		(package_pointer->para_dev_cellenv_gene).push_back(vec);
-		for(int i=0; i<num_gene; i++)
-		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
-			(package_pointer->para_dev_cellenv_gene)[j].push_back(p);
-		}
+		float * p = (float *)calloc( num_cellenv, sizeof(float) );
+		(package_pointer->para_dev_cellenv_gene).push_back(p);
 	}
 
 	//=============== (package_pointer->para_dev_batch_batch_hidden) ===============
@@ -139,12 +129,9 @@ void package_free(package_thread * package_pointer)
 	free(package_pointer->batch_hidden_var);
 
 	//=============== (package_pointer->para_dev_cis_gene) ===============
-	for(int j=0; j<num_etissue; j++)
+	for(int i=0; i<num_gene; i++)
 	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free((package_pointer->para_dev_cis_gene)[j][i]);
-		}
+		free((package_pointer->para_dev_cis_gene)[i]);
 	}
 
 	//=============== (package_pointer->para_dev_snp_cellenv) ===============
@@ -154,12 +141,9 @@ void package_free(package_thread * package_pointer)
 	}
 
 	//=============== (package_pointer->para_dev_cellenv_gene) ===============
-	for(int j=0; j<num_etissue; j++)
+	for(int i=0; i<num_gene; i++)
 	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free((package_pointer->para_dev_cellenv_gene)[j][i]);
-		}
+		free((package_pointer->para_dev_cellenv_gene)[i]);
 	}
 
 	//=============== (package_pointer->para_dev_batch_batch_hidden) ===============
@@ -259,7 +243,6 @@ void * WorkPerThread(void * pointer)
 						&(package_pointer->para_dev_snp_cellenv),
 						&(package_pointer->para_dev_batch_hidden_gene),
 						&(package_pointer->para_dev_batch_batch_hidden));
-
 	}
 
 	pthread_exit(NULL);
@@ -314,8 +297,9 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	}
 
 
-	//===================== waiting for all the threads to terminate =====================
+	//===================== waiting for all the threads to terminate, and aggregate =====================
 	// free attribute and wait for the other threads
+	aggregation_init(etissue);
 	pthread_attr_destroy(&attr);
 	for(int i=0; i<num_thread; i++)
 	{
@@ -326,13 +310,16 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 			exit(-1);
 		}
 		cout << "Main: completed thread#" << i+1;
-		cout << " exiting with status: " << status << endl;
+		cout << " exiting with status: " << status;
+		cout << ", aggregate it's results..." << endl;
+
+		// aggregate the results from this current thread
+		aggregation_add(&para_array[i], etissue);
 	}
+	aggregation_ave(etissue);
 
 
-	//===================== merge results, and release space =====================
-	//// fill in the real para_dev_xxx space (aggregation)
-	aggregation(para_array, etissue);
+	//===================== regularize, gradient descent, and release space =====================
 	//// add the regularization terms into the derivatives
 	regularization(etissue);
 	/// gradient descent
@@ -352,10 +339,9 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 
 
-void aggregation(package_thread * para_array_pointer, string etissue)
+// set the deravetives to 0
+void aggregation_init(string etissue)
 {
-	cout << "[@@] entering the aggregation routine..." << endl;
-
 	int etissue_index = etissue_index_map[etissue];
 
 	//********************************* aggregation of this mini-batch *****************************************
@@ -373,12 +359,7 @@ void aggregation(package_thread * para_array_pointer, string etissue)
 			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 			for(int k=0; k<num; k++)
 			{
-				float temp = 0;
-				for(int t=0; t<num_thread; t++)
-				{
-					temp += ((para_array_pointer+t)->para_dev_cis_gene)[etissue_index][i][k];
-				}
-				para_dev_cis_gene[etissue_index][i][k] = temp / batch_size;
+				para_dev_cis_gene[etissue_index][i][k] = 0;
 			}
 		}
 	}
@@ -388,12 +369,7 @@ void aggregation(package_thread * para_array_pointer, string etissue)
 	{
 		for(long j=0; j<num_snp; j++)
 		{
-			float temp = 0;
-			for(int t=0; t<num_thread; t++)
-			{
-				temp += ((para_array_pointer+t)->para_dev_snp_cellenv)[i][j];
-			}
-			para_dev_snp_cellenv[i][j] = temp / batch_size;
+			para_dev_snp_cellenv[i][j] = 0;
 		}
 	}
 
@@ -402,12 +378,7 @@ void aggregation(package_thread * para_array_pointer, string etissue)
 	{
 		for(int j=0; j<num_cellenv; j++)
 		{
-			float temp = 0;
-			for(int t=0; t<num_thread; t++)
-			{
-				temp += ((para_array_pointer+t)->para_dev_cellenv_gene)[etissue_index][i][j];
-			}
-			para_dev_cellenv_gene[etissue_index][i][j] = temp / batch_size;
+			para_dev_cellenv_gene[etissue_index][i][j] = 0;
 		}
 	}
 
@@ -416,12 +387,7 @@ void aggregation(package_thread * para_array_pointer, string etissue)
 	{
 		for(int j=0; j<num_batch; j++)
 		{
-			float temp = 0;
-			for(int t=0; t<num_thread; t++)
-			{
-				temp += ((para_array_pointer+t)->para_dev_batch_batch_hidden)[i][j];
-			}
-			para_dev_batch_batch_hidden[i][j] = temp / batch_size;
+			para_dev_batch_batch_hidden[i][j] = 0;
 		}
 	}
 
@@ -430,15 +396,139 @@ void aggregation(package_thread * para_array_pointer, string etissue)
 	{
 		for(int j=0; j<num_batch_hidden; j++)
 		{
-			float temp = 0;
-			for(int t=0; t<num_thread; t++)
-			{
-				temp += ((para_array_pointer+t)->para_dev_batch_hidden_gene)[i][j];
-			}
-			para_dev_batch_hidden_gene[i][j] = temp / batch_size;
+			para_dev_batch_hidden_gene[i][j] = 0;
 		}
 	}
 
-	cout << "[@@] leaving the aggregation routine..." << endl;
+}
+
+
+
+// add the results from one thread into the final repo
+void aggregation_add(package_thread * para_array_pointer, string etissue)
+{
+	int etissue_index = etissue_index_map[etissue];
+
+	//********************************* aggregation of this mini-batch *****************************************
+	// vector<vector<float *>> para_dev_cis_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
+		{
+			continue;
+		}
+		else
+		{
+			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+			for(int k=0; k<num; k++)
+			{
+				para_dev_cis_gene[etissue_index][i][k] += (para_array_pointer->para_dev_cis_gene)[i][k];
+			}
+		}
+	}
+
+	// vector<float *> para_dev_snp_cellenv;
+	for(int i=0; i<num_cellenv; i++)
+	{
+		for(long j=0; j<num_snp; j++)
+		{
+			para_dev_snp_cellenv[i][j] += (para_array_pointer->para_dev_snp_cellenv)[i][j];
+		}
+	}
+
+	// vector<vector<float *>> para_dev_cellenv_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_cellenv; j++)
+		{
+			para_dev_cellenv_gene[etissue_index][i][j] += (para_array_pointer->para_dev_cellenv_gene)[i][j];
+		}
+	}
+
+	// vector<float *> para_dev_batch_batch_hidden;
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			para_dev_batch_batch_hidden[i][j] += (para_array_pointer->para_dev_batch_batch_hidden)[i][j];
+		}
+	}
+
+	// vector<float *> para_dev_batch_hidden_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			para_dev_batch_hidden_gene[i][j] += (para_array_pointer->para_dev_batch_hidden_gene)[i][j];
+		}
+	}
+
+}
+
+
+
+// average the summed results from all threads
+void aggregation_ave(string etissue)
+{
+	int etissue_index = etissue_index_map[etissue];
+
+	//********************************* aggregation of this mini-batch *****************************************
+	// vector<vector<float *>> para_dev_cis_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
+		{
+			continue;
+		}
+		else
+		{
+			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+			for(int k=0; k<num; k++)
+			{
+				para_dev_cis_gene[etissue_index][i][k] = para_dev_cis_gene[etissue_index][i][k] / batch_size;
+			}
+		}
+	}
+
+	// vector<float *> para_dev_snp_cellenv;
+	for(int i=0; i<num_cellenv; i++)
+	{
+		for(long j=0; j<num_snp; j++)
+		{
+			para_dev_snp_cellenv[i][j] = para_dev_snp_cellenv[i][j] / batch_size;
+		}
+	}
+
+	// vector<vector<float *>> para_dev_cellenv_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_cellenv; j++)
+		{
+			para_dev_cellenv_gene[etissue_index][i][j] = para_dev_cellenv_gene[etissue_index][i][j] / batch_size;
+		}
+	}
+
+	// vector<float *> para_dev_batch_batch_hidden;
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			para_dev_batch_batch_hidden[i][j] = para_dev_batch_batch_hidden[i][j] / batch_size;
+		}
+	}
+
+	// vector<float *> para_dev_batch_hidden_gene;
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			para_dev_batch_hidden_gene[i][j] = para_dev_batch_hidden_gene[i][j] / batch_size;
+		}
+	}
+
 }
 
