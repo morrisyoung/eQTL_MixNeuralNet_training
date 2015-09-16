@@ -23,7 +23,7 @@
 using namespace std;
 
 
-
+// local global variables
 int num_thread = 8;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
 pthread_mutex_t mut;			// mutex used by all the threads
 int * finish_table;				// finish table for all the samples in this batch ()
@@ -271,10 +271,6 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 {
 	cout << "[@@@] entering the current mini-batch (in multi-treading mode)..." << endl;
 
-	etissue = etissue;
-	pos_start = pos_start;
-	num_esample = num_esample;
-
 	//=============================== multi-threading parameter initialization ===============================
 	// allocating all the other threads from here
 	pthread_t threads[num_thread];
@@ -317,6 +313,8 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 
 	//===================== waiting for all the threads to terminate =====================
+	// free attribute and wait for the other threads
+	pthread_attr_destroy(&attr);
 	for(int i=0; i<num_thread; i++)
 	{
 		int rc = pthread_join(threads[i], &status);
@@ -331,7 +329,7 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 
 	//===================== merge results, and release space =====================
-	//// fill in the true para_dev_xxx space (aggregation)
+	//// fill in the real para_dev_xxx space (aggregation)
 	aggregation(para_array, etissue);
 	//// add the regularization terms into the derivatives
 	regularization(etissue);
