@@ -24,16 +24,9 @@ using namespace std;
 
 
 
-// TODO: fill them into the .h file
 int num_thread = 8;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
 pthread_mutex_t mut;			// mutex used by all the threads
 int * finish_table;				// finish table for all the samples in this batch ()
-
-
-// TODO: to find a better way to get these values
-string etissue;
-int pos_start;
-int num_esample;
 
 
 
@@ -214,17 +207,19 @@ void * WorkPerThread(void * pointer)
 			break;
 		}
 
-		// TODO
-		// thread#X is working on sample#Y
-
 		//================ work on the current sample ================
 		// count will determine the sample in this etissue
 		// 1. get all the containers, and forward and backward propagation
 		// 2. get the calculated parameters (derivatives) from this round, and fill that into something
+		string etissue = package_pointer->etissue;
+		int pos_start = package_pointer->pos_start;
+		int num_esample = package_pointer->num_esample;
+		int id = package_pointer->id;
+
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
-		cout << "current sample is " << esample << endl;
+		cout << "thread #" << id+1 << " is working on eSample " << esample << " (#" << count+1 << " out of " << batch_size << ")" << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
@@ -299,6 +294,10 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	for(int i=0; i<num_thread; i++)
 	{
 		package_dev package;
+		package.id = i;
+		package.etissue = etissue;
+		package.pos_start = pos_start;
+		package.num_esample = num_esample;
 		package_alloc(&package);
 		para_array[i] = package;
 	}
@@ -333,7 +332,7 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 	//===================== merge results, and release space =====================
 	//// fill in the true para_dev_xxx space (aggregation)
-	aggregation(para_array);
+	aggregation(para_array, etissue);
 	//// add the regularization terms into the derivatives
 	regularization(etissue);
 	/// gradient descent
@@ -352,7 +351,8 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 }
 
 
-void aggregation(package_dev * para_array_pointer)
+
+void aggregation(package_dev * para_array_pointer, string etissue)
 {
 
 	int etissue_index = etissue_index_map[etissue];

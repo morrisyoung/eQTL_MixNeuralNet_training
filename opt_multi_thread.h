@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <array>
+#include <string>
+
 
 
 using namespace std;
@@ -16,12 +18,20 @@ using namespace std;
 // each thread should have such a local parameter space
 typedef struct package_dev
 {
+	// meta data
+	int id;
+	string etissue;
+	int pos_start;
+	int num_esample;
+
+	// variable containers
 	array<float *, 22> snp_dosage_list;
 	float * gene_rpkm_exp;  	// with length "num_gene"
 	float * cellenv_hidden_var; // with length "num_cellenv"
 	float * batch_var;			// with length "num_batch"
 	float * batch_hidden_var;	// with length "num_batch_hidden"
 
+	// parameter containers
 	vector<vector<float *>> para_dev_cis_gene;
 	vector<float *> para_dev_snp_cellenv;
 	vector<vector<float *>> para_dev_cellenv_gene;
@@ -44,7 +54,7 @@ void * WorkPerThread(void *);
 void opt_mt_control(string, int, int);
 
 
-void aggregation(package_dev *);
+void aggregation(package_dev *, string);
 
 
 

@@ -15,14 +15,14 @@ what we should have at hand by now:
 
 
 // the information page of the data and the project is here:
-// https://github.com/morrisyoung/eQTL_script
-
+//	https://github.com/morrisyoung/eQTL_script
+// the project is here:
+//	https://github.com/morrisyoung/eQTL_cplusplus
 
 
 // something TODO in the main frame, e.g., some re-usable modules:
 // 1. file operation module;
 // 2. hashtable-in judgement module
-
 
 
 #include <iostream>
@@ -62,10 +62,7 @@ long int num_snp = 0;		// TBD
 int num_cellenv = 400;		// Specified
 long int num_gene = 0;		// TBD
 int num_etissue = 0;		// TBD
-// TODO: for the following two, we should later on prepared read data from file and automatically get their values
 int num_batch = 0;			// TBD
-//int num_batch_individual = 0;
-//int num_batch_sample = 0;
 int num_batch_hidden = 100;	// Specified
 int num_individual = 0;		// TBD
 
@@ -81,17 +78,17 @@ unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 // 1. list of eQTL tissues, hashing all samples with their rpkm value;
 // 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
 // 3. array of all genes (assuming all genes in the source file are those to be used)
-unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;  // hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
-unordered_map<string, string> eQTL_samples;  // hashing all eQTL samples to their tissues
-vector<string> gene_list;  // all genes from the source file
-unordered_map<string, int> gene_index_map;  // re-map those genes into their order (reversed hashing of above)
-vector<string> etissue_list;  // eTissues in order
-unordered_map<string, int> etissue_index_map;  // re-map those etissues into their order (reversed hashing of above)
-unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+unordered_map<string, string> eQTL_samples;										// hashing all eQTL samples to their tissues
+vector<string> gene_list;														// all genes from the source file
+unordered_map<string, int> gene_index_map;										// re-map those genes into their order (reversed hashing of above)
+vector<string> etissue_list;													// eTissues in order
+unordered_map<string, int> etissue_index_map;									// re-map those etissues into their order (reversed hashing of above)
+unordered_map<string, vector<string>> esample_tissue_rep;						// esample lists of all etissues
 
 // information table:
-unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
-unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
+unordered_map<string, gene_pos> gene_tss;										// TSS for all genes (including those pruned genes)
+unordered_map<string, int> gene_xymt_rep;										// map all the X, Y, MT genes
 
 
 //// batch variables:
