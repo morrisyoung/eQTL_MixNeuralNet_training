@@ -16,7 +16,7 @@ using namespace std;
 
 
 // each thread should have such a local parameter space
-typedef struct package_dev
+typedef struct package_thread
 {
 	// meta data
 	int id;
@@ -62,3 +62,4 @@ void aggregation(package_dev *, string);
 #endif
 
 // end of opt_multi_thread.h
+

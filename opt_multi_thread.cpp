@@ -23,6 +23,7 @@
 using namespace std;
 
 
+
 // local global variables
 int num_thread = 8;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
 pthread_mutex_t mut;			// mutex used by all the threads
@@ -31,7 +32,7 @@ int * finish_table;				// finish table for all the samples in this batch ()
 
 
 // initialize all the parameter space
-void package_alloc(package_dev * package_pointer)
+void package_alloc(package_thread * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
 	for(int i=0; i<22; i++)
@@ -52,26 +53,6 @@ void package_alloc(package_dev * package_pointer)
 
 	//=============== (package_pointer->batch_hidden_var) ===============
 	(package_pointer->batch_hidden_var) = (float *)calloc( num_batch_hidden, sizeof(float) );
-
-
-	//=============== (package_pointer->para_dev_snp_cellenv) ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
-		(package_pointer->para_dev_snp_cellenv).push_back(p);
-	}
-
-	//=============== (package_pointer->para_dev_cellenv_gene) ===============
-	for(int j=0; j<num_etissue; j++)
-	{
-		vector<float *> vec;
-		(package_pointer->para_dev_cellenv_gene).push_back(vec);
-		for(int i=0; i<num_gene; i++)
-		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
-			(package_pointer->para_dev_cellenv_gene)[j].push_back(p);
-		}
-	}
 
 	//=============== (package_pointer->para_dev_cis_gene) =============== TODO: we don't need all the tissues actually
 	for(int j=0; j<num_etissue; j++)
@@ -99,6 +80,25 @@ void package_alloc(package_dev * package_pointer)
 		}
 	}
 
+	//=============== (package_pointer->para_dev_snp_cellenv) ===============
+	for(int i=0; i<num_cellenv; i++)
+	{
+		float * p = (float *)calloc( num_snp, sizeof(float) );
+		(package_pointer->para_dev_snp_cellenv).push_back(p);
+	}
+
+	//=============== (package_pointer->para_dev_cellenv_gene) =============== TODO: we don't need all the tissues actually
+	for(int j=0; j<num_etissue; j++)
+	{
+		vector<float *> vec;
+		(package_pointer->para_dev_cellenv_gene).push_back(vec);
+		for(int i=0; i<num_gene; i++)
+		{
+			float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			(package_pointer->para_dev_cellenv_gene)[j].push_back(p);
+		}
+	}
+
 	//=============== (package_pointer->para_dev_batch_batch_hidden) ===============
 	for(int i=0; i<num_batch_hidden; i++)
 	{
@@ -118,7 +118,7 @@ void package_alloc(package_dev * package_pointer)
 
 
 // to release the above space
-void package_free(package_dev * package_pointer)
+void package_free(package_thread * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
 	for(int i=0; i<22; i++)
@@ -138,6 +138,14 @@ void package_free(package_dev * package_pointer)
 	//=============== (package_pointer->batch_hidden_var) ===============
 	free(package_pointer->batch_hidden_var);
 
+	//=============== (package_pointer->para_dev_cis_gene) ===============
+	for(int j=0; j<num_etissue; j++)
+	{
+		for(int i=0; i<num_gene; i++)
+		{
+			free((package_pointer->para_dev_cis_gene)[j][i]);
+		}
+	}
 
 	//=============== (package_pointer->para_dev_snp_cellenv) ===============
 	for(int i=0; i<num_cellenv; i++)
@@ -151,15 +159,6 @@ void package_free(package_dev * package_pointer)
 		for(int i=0; i<num_gene; i++)
 		{
 			free((package_pointer->para_dev_cellenv_gene)[j][i]);
-		}
-	}
-
-	//=============== (package_pointer->para_dev_cis_gene) ===============
-	for(int j=0; j<num_etissue; j++)
-	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free((package_pointer->para_dev_cis_gene)[j][i]);
 		}
 	}
 
@@ -179,17 +178,18 @@ void package_free(package_dev * package_pointer)
 
 
 
-
 // this is the working program for each thread
 void * WorkPerThread(void * pointer)
 {
-   package_dev * package_pointer = (package_dev *)pointer;
+	package_thread * package_pointer = (package_thread *)pointer;
+	// allocate the memory for this thread (this is independent with other threads, but this should be visiable to the main thread -- aggregation)
+	package_alloc(package_pointer);
 
-   while(1)
-   {
-   		int count = -1;
-	   //================ check whether there are still left samples to be processed ================
-	   // if there are, take into this thread; otherwise, terminate this thread
+	while(1)
+	{
+		int count = -1;
+		//================ check whether there are still left samples to be processed ================
+		// if there are, take into this thread; otherwise, terminate this thread
 		pthread_mutex_lock(&mut);
 		for(int i=0; i<batch_size; i++)
 		{
@@ -219,7 +219,7 @@ void * WorkPerThread(void * pointer)
 		int pos = (pos_start + count) % (num_esample);
 		string esample = esample_tissue_rep[etissue][pos];
 		string individual = sample_to_individual(esample);
-		cout << "thread #" << id+1 << " is working on eSample " << esample << " (#" << count+1 << " out of " << batch_size << ")" << endl;
+		cout << "[$$] thread #" << id+1 << " is working on eSample " << esample << " (#" << count+1 << " out of " << batch_size << ")" << endl;
 
 		//=================================================== init ============================================================
 		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
@@ -267,6 +267,7 @@ void * WorkPerThread(void * pointer)
 
 
 
+
 void opt_mt_control(string etissue, int pos_start, int num_esample)
 {
 	cout << "[@@@] entering the current mini-batch (in multi-treading mode)..." << endl;
@@ -279,22 +280,23 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	// Initialize and set thread joinable
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	//
 	finish_table = (int *)calloc(batch_size, sizeof(int));
-
+	//
 	pthread_mutex_init(&mut, NULL);
 	memset(&threads, 0, sizeof(threads));
 
 
 	//=============================== thread local memory allocation ===============================
-	package_dev para_array[num_thread];
+	package_thread para_array[num_thread];
 	for(int i=0; i<num_thread; i++)
 	{
-		package_dev package;
+		package_thread package;
 		package.id = i;
 		package.etissue = etissue;
 		package.pos_start = pos_start;
 		package.num_esample = num_esample;
-		package_alloc(&package);
+		//package_alloc(&package);
 		para_array[i] = package;
 	}
 
@@ -323,7 +325,7 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 			cout << "Error:unable to join " << rc << endl;
 			exit(-1);
 		}
-		cout << "Main: completed thread id " << i+1;
+		cout << "Main: completed thread#" << i+1;
 		cout << " exiting with status: " << status << endl;
 	}
 
@@ -350,14 +352,13 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 
 
-void aggregation(package_dev * para_array_pointer, string etissue)
+void aggregation(package_thread * para_array_pointer, string etissue)
 {
+	cout << "[@@] entering the aggregation routine..." << endl;
 
 	int etissue_index = etissue_index_map[etissue];
 
 	//********************************* aggregation of this mini-batch *****************************************
-	// average the derivatives calculated from previous steps
-	cout << "aggregation of this mini-batch..." << endl;
 	// vector<vector<float *>> para_dev_cis_gene;
 	for(int i=0; i<num_gene; i++)
 	{
@@ -410,7 +411,6 @@ void aggregation(package_dev * para_array_pointer, string etissue)
 		}
 	}
 
-
 	// vector<float *> para_dev_batch_batch_hidden;
 	for(int i=0; i<num_batch_hidden; i++)
 	{
@@ -439,5 +439,6 @@ void aggregation(package_dev * para_array_pointer, string etissue)
 		}
 	}
 
+	cout << "[@@] leaving the aggregation routine..." << endl;
 }
 
