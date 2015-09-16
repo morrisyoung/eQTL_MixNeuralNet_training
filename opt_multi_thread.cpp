@@ -22,6 +22,8 @@ using namespace std;
 
 
 
+/*
+
 // TODO: fill them into the .h file
 int num_thread = 8;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
 pthread_mutex_t mut;			// mutex used by all the threads
@@ -62,43 +64,54 @@ void package_free(package_dev * package_pointer)
 
 
 
-
+// this is the working program for each thread
 void * WorkPerThread(void * threadid)
 {
    long tid;
    tid = (long)threadid;
    cout << "Thread ID " << tid << " is working..." << endl;
 
-   int mark = 1;
-
-   while(mark)
+   while(1)
    {
-   	//
-   	
+   		int count = -1;
+	   //================ check whether there are still left samples to be processed ================
+	   // if there are, take into this thread; otherwise, terminate this thread
+		pthread_mutex_lock(&mut);
+		for(int i=0; i<batch_size; i++)
+		{
+			if(finish_table[i] == 0)
+			{
+				count = i;
+				break
+			}
+		}
+		pthread_mutex_unlock(&mut);
+
+		if(count == -1)
+		{
+			break;
+		}
+
+		//================ work on the current sample ================
+		// count will determine the sample in this etissue
+		// 1. get all the containers, and forward and backward propagation
+		// 2. get the calculated parameters (derivatives) from this round, and fill that into something
+
+
+
+
+
+
+
+
+
    }
 
 
-   //================ check whether there are still left samples to be processed ================
-   // if there are, take into this thread; otherwise, terminate this thread
-	pthread_mutex_lock(&mut);
-	// add the present segment to the reporting list
-	if(report_start == NULL && entrance == NULL)
-	{
-		report_start = ibd_seg;
-		entrance = ibd_seg;
-	}
-	else
-	{
-		entrance->next = ibd_seg;
-		entrance = ibd_seg;
-	}
-	pthread_mutex_unlock(&mut);
-
-
-
 	pthread_exit(NULL);
-
 }
+
+
 
 
 void opt_mt_control(string etissue, int pos_start, int num_esample)
@@ -127,7 +140,6 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	}
 
 
-
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
 	{
@@ -141,12 +153,11 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	}
 
 
-
 	//===================== waiting for all the threads to terminate =====================
 	for(int i=0; i<num_thread; i++)
 	{
 		int rc = pthread_join(threads[i], &status);
-		if (rc)
+		if(rc)
 		{
 			cout << "Error:unable to join," << rc << endl;
 			exit(-1);
@@ -184,3 +195,11 @@ void aggregation(package_dev * para_array_pointer)
 
 }
 
+*/
+
+
+void opt_mt_control(string etissue, int pos_start, int num_esample)
+{
+	//
+	
+}
