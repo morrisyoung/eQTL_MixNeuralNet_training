@@ -111,7 +111,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 1;
+int MULTI_THREAD = 0;
 
 //===========================================================
 
@@ -150,12 +150,14 @@ int main()
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
 
-	///* temporarily (as there are no enough space locally in VM)
+
+	/* temporarily (as there are no enough space locally in VM)
 	// load the genotype for all individuals on all chromosomes
 	puts("[xxx] loading all dosage data for these snps for all individuals.");
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
-	//*/
+	*/
+
 
 
 
