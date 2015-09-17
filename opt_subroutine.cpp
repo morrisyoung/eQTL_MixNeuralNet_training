@@ -218,9 +218,9 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+// property of this function: additive to the total derivative after this round (additive)
 // what we need for the following routine:
 // dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
-// property of this function: additive to the total derivative after this round
 void forward_backward(string etissue,
 	array<float *, 22> * dosage_list_pointer,
 	vector<float> * expr_list_pointer,
