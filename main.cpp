@@ -97,7 +97,7 @@ unordered_map<string, vector<float>> batch_individual;
 unordered_map<string, vector<float>> batch_sample;
 
 
-//// parameter containers:
+//// parameter containers: (we need to initialize all of them in an appropriate way)
 vector<vector<float *>> para_cis_gene;
 vector<float *> para_snp_cellenv;
 vector<vector<float *>> para_cellenv_gene;
@@ -151,12 +151,12 @@ int main()
 	cout << "there are " << num_snp << " snps totally." << endl;
 
 
-	/* temporarily (as there are no enough space locally in VM)
+	///* temporarily (as there are no enough space locally in VM)
 	// load the genotype for all individuals on all chromosomes
 	puts("[xxx] loading all dosage data for these snps for all individuals.");
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
-	*/
+	//*/
 
 
 
@@ -204,9 +204,12 @@ int main()
 	puts("[xxx] parameter space initialization...");
 	para_init();  // para_snp_cellenv; para_cellenv_gene; para_cis_gene
 	//=========================================== set the beta prior =============================================
-	puts("[xxx] beta prior values (from GTEx) loading...");
-	beta_prior_fill();  // must happen after the above procedure
-
+	//
+	// if we initialize all the parameters with pre-prepared data, we don't need the results from GTEx project
+	//
+	//puts("[xxx] beta prior values (from GTEx) loading...");
+	//beta_prior_fill();  // must happen after the above procedure
+	//
 
 
 
@@ -230,7 +233,7 @@ int main()
 
 	//================================= save the parameters and release memory ===================================
 	puts("[xxx] saving the models...");
-	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene
+	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene; para_batch_batch_hidden; para_batch_hidden_gene
 	cout << "Optimization done! Please find the results in 'result' folder." << endl;
 	puts("[xxx] releasing the parameter space...");
 	para_release();
