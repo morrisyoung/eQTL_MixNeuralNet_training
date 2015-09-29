@@ -19,11 +19,10 @@
 using namespace std;
 
 
-long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
+long int gene_rpkm_load(char * filename1, char * filename2)  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 {
 	//===================================== eQTL_samples ===========================================
-	char filename[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
-	FILE * file_in = fopen(filename, "r");
+	FILE * file_in = fopen(filename1, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
@@ -66,10 +65,7 @@ long int gene_rpkm_load()  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 
 	//===================================== gene_list; eQTL_tissue_rep ===========================================
 	unordered_map<int, string> index_rep;
-
-	filename[0] = '\0';
-	strcpy(filename, "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized");
-	file_in = fopen(filename, "r");
+	file_in = fopen(filename2, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
@@ -269,9 +265,8 @@ void gene_tss_load()
 	}
 	fclose (file_in);
 
-
-
 }
+
 
 
 

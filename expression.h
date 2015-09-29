@@ -17,7 +17,7 @@ typedef struct gene_pos
 
 
 // load the expression matrix into memory
-long int gene_rpkm_load();
+long int gene_rpkm_load(char *, char *);  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 
 
 // load tss for all genes, from the annotation file

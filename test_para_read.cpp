@@ -1,4 +1,4 @@
-// initializing all the parameters
+// initializing all the parameters from the learned results
 
 #include <iostream>
 #include <stdio.h>
@@ -14,6 +14,13 @@
 #include "main.h"
 #include "expression.h"
 #include "basic.h"
+
+
+
+//
+// this file is to be finished
+//
+
 
 
 using namespace std;
@@ -87,12 +94,6 @@ void para_init()
 
 
 
-	//
-	// initializing their value of those parameters
-	//
-	// TODO: Don't forget to divide the signal from each pathway into their share
-	//		temporarily don't, cause there are some non-linearality in the hidden layer (maybe the initialization is also not so good)
-	//
 	//==================================== cellular factor pathway =====================================
 	//=============== from snp to cell env variables ===============
 	// vector<float *> para_snp_cellenv
@@ -398,170 +399,3 @@ void gene_cis_index_init()
 	}
 
 }
-
-
-void beta_prior_fill()
-{
-	//===================================== part#2: get the beta table from files =====================================
-	// we can simply build a double hashing table to map the genes to snps to beta's, the later on waling through them and fill in those prior beta's
-	// see below:
-	unordered_map<string, unordered_map<string, unordered_map<string, float>>> beta_rep;  // we have tissue specificity for this
-	//========= get the index map
-	unordered_map<string, string> index_map;  // for temporary usage
-	char filename[100] = "../GTEx_Analysis_V4_eQTLs/etissue_list.txt";
-	FILE * file_in = fopen(filename, "r");
-	if(file_in == NULL)
-	{
-		fputs("File error\n", stderr); exit (1);
-	}
-	int input_length = 1000;
-	char input[input_length];
-	while(fgets(input, input_length, file_in) != NULL)
-	{
-		trim(input);
-
-		const char * sep = "\t";
-		char * p;
-		p = strtok(input, sep);
-		string eTissue = p;
-
-		int count = 0;
-		while(p)
-		{
-			count++;
-			if(count == 1)  // this is the eTissue
-			{
-				p = strtok(NULL, sep);
-				continue;
-			}
-			if(count == 2)  // this is the index
-			{
-				string index = p;
-				index_map[eTissue] = index;
-				break;
-			}
-		}
-	}
-	fclose (file_in);
-
-	//========= get the index map
-	// get the prior beta for each eTissue (if there is), for all gene cis- snps
-	for( auto it = index_map.begin(); it != index_map.end(); ++it )
-	{
-		string eTissue = it->first;
-		string index = it->second;
-
-		unordered_map<string, unordered_map<string, float>> map;
-		beta_rep[eTissue] = map;
-
-		char filename[100] = "../GTEx_Analysis_V4_eQTLs/etissue";
-		char temp[10];
-		StrToCharSeq(temp, index);
-		strcat(filename, temp);
-		strcat(filename, ".beta");
-		//puts("the current file worked on is: ");
-		//puts(filename);
-
-		FILE * file_in = fopen(filename, "r");
-		if(file_in == NULL)
-		{
-			fputs("File error\n", stderr); exit (1);
-		}
-
-		int input_length = 1000;
-		char input[input_length];
-		while(fgets(input, input_length, file_in) != NULL)
-		{
-			trim(input);
-
-			const char * sep = "\t";
-			char * p;
-			p = strtok(input, sep);
-			string gene = p;
-			// check whether to add this gene to the rep
-			unordered_map<string, unordered_map<string, float>>::const_iterator got = beta_rep[eTissue].find(gene);
-			if( got == beta_rep[eTissue].end() )
-			{
-				unordered_map<string, float> map;
-				beta_rep[eTissue][gene] = map;
-			}
-			string snp;
-
-			int count = 0;
-			while(p)
-			{
-				count++;
-				if(count == 1)  // this is the gene
-				{
-					p = strtok(NULL, sep);
-					continue;
-				}
-				if(count == 2)  // this is the snp
-				{
-					snp = p;
-					p = strtok(NULL, sep);
-					continue;
-				}
-				if(count == 3)  // this is the beta
-				{
-					char temp[100];
-					strcpy(temp, p);
-					float beta = stof(temp);
-					beta_rep[eTissue][gene][snp] = beta;
-					break;
-				}
-			}
-		}
-		fclose(file_in);
-	}
-
-
-	//===================================== part#2: filling the beta's =====================================
-	//unordered_map<string, unordered_map<string, unordered_map<string, float>>> beta_rep;
-	for( auto it = beta_rep.begin(); it != beta_rep.end(); ++it )
-	{
-		string eTissue = it->first;
-		int eTissue_index = etissue_index_map[eTissue];  // re-map those etissues into their order (reversed hashing above)
-
-		for(int i=0; i<num_gene; i++)
-		{
-			string gene = gene_list[i];
-
-			// check whether this is a xymt gene
-			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-			if( got != gene_xymt_rep.end() )
-			{
-				continue;
-			}
-
-			// otherwise, we should fill in the prior cis- coefficients
-			int chr = gene_tss[gene].chr;
-			long start = gene_cis_index[gene].first;
-			long end = gene_cis_index[gene].second;
-			long amount = end - start + 1;
-			for(long j=0; j<amount; j++)
-			{
-				long pos = j + start;
-				string snp = snp_name_list[chr-1][pos];
-				// check whether snp has prior beta
-				unordered_map<string, float>::const_iterator got = beta_rep[eTissue][gene].find(snp);
-				if( got != beta_rep[eTissue][gene].end() )
-				{
-					float beta = beta_rep[eTissue][gene][snp];
-					para_cis_gene[eTissue_index][i][j] = beta;
-				}
-				else
-				{
-					continue;
-				}
-
-			}
-
-			// end filling this gene
-		}
-
-		// end filling this tissue
-	}
-
-}
-

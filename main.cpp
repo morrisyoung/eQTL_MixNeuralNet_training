@@ -25,6 +25,7 @@ what we should have at hand by now:
 // 2. hashtable-in judgement module
 
 
+
 #include <iostream>
 #include <sys/types.h>
 #include <dirent.h>
@@ -49,6 +50,7 @@ what we should have at hand by now:
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "parameter_test.h"
 #include "batch.h"
+
 
 
 
@@ -111,7 +113,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 0;
+int MULTI_THREAD = 1;
 
 //===========================================================
 
@@ -165,7 +167,9 @@ int main()
 
 	//===================================== prepare the expression matrix =======================================
 	puts("[xxx] loading the gene rpkm matrix...");
-	num_gene = gene_rpkm_load();  // eQTL_samples; gene_list; eQTL_tissue_rep
+	char filename1[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
+	char filename2[100] = "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized";
+	num_gene = gene_rpkm_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
@@ -225,6 +229,7 @@ int main()
 
 
 	//======================================= testing with the test subset =======================================
+	// TODO: maybe we don't do this in this learning program
 	puts("[xxx] testing the learned models...");
 	para_test();  // currently this is empty
 
