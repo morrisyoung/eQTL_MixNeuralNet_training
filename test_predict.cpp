@@ -220,7 +220,6 @@ void predict()
 		}
 
 
-		// test
 
 
 		// fill in the eQTL_tissue_rep_predict[etissue][esample] for this esample
