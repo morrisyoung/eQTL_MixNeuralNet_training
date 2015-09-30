@@ -17,6 +17,7 @@
 #include "opt_subroutine.h"		// regularization and gradient descent
 #include "genotype.h"
 #include <string.h>
+#include "expression.h"
 
 
 

@@ -1,55 +1,39 @@
 /*
-the outline of the entire program:
+the testing routine:
 
-what we should have at hand by now:
-1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion, or directly from memory;
-2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
-3. batch variables
+1. read the saved parameters from the source file;
+2. read the genotype data of testing dataset, to perform the prediction;
+3. save the expected expression array for all the testing samples (from different tissue types) -- etissue list, and seperate files for each tissue;
+4. [outside this program] calculate and plot the Pearson correlation plot for the testing dataset, for each tissue type;
 
-
-1. pipeline for processing the genotype data and the expression date (querying and iterating, in a mini-batch manner);
-2. after getting the data, do the stochastic gradient descent algorithm;
-3. pay attention to the data structure used for storing all the parameters (coefficients);
-4. find a way to terminate the optimization process;
 */
 
 
-// the information page of the data and the project is here:
-//	https://github.com/morrisyoung/eQTL_script
-// the project is here:
-//	https://github.com/morrisyoung/eQTL_cplusplus
-
-
-// something TODO in the main frame, e.g., some re-usable modules:
-// 1. file operation module;
-// 2. hashtable-in judgement module
-
-
-
+// standard libraries:
 #include <iostream>
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "genotype.h"
 #include <unordered_map>
 #include <string.h>
 #include <string>
 #include <array>
 #include <forward_list>
 #include <utility>
-#include "basic.h"
-#include "expression.h"
-#include "optimization.h"
-#include "global.h"
-#include "parameter_init.h"
-#include "main.h"
 #include <vector>
-#include "parameter_save.h"
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
+// sub-routines:
+#include "global.h"
+#include "genotype.h"
+#include "expression.h"
 #include "batch.h"
-
+#include "basic.h"
+#include "test_para_read.h"
+#include "test_predict.h"
+#include "test_save.h"
+#include "test_main.h"
 
 
 
@@ -75,11 +59,8 @@ unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
 //// expression relevant:
-// what we need:
-// 1. list of eQTL tissues, hashing all samples with their rpkm value;
-// 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
-// 3. array of all genes (assuming all genes in the source file are those to be used)
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;	// the predicted version of above one
 unordered_map<string, string> eQTL_samples;										// hashing all eQTL samples to their tissues
 vector<string> gene_list;														// all genes from the source file
 unordered_map<string, int> gene_index_map;										// re-map those genes into their order (reversed hashing of above)
@@ -109,11 +90,6 @@ vector<float *> para_batch_hidden_gene;
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
 
 
-
-//// system control
-// multi-threading mark
-int MULTI_THREAD = 1;
-
 //===========================================================
 
 
@@ -122,7 +98,7 @@ int MULTI_THREAD = 1;
 
 int main()
 {
-	cout << "[now enter the program]" << endl;
+	cout << "[now enter the testing program]" << endl;
 
 
 
@@ -166,14 +142,14 @@ int main()
 
 	//===================================== prepare the expression matrix =======================================
 	puts("[xxx] loading the gene rpkm matrix...");
-	char filename1[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
+	char filename1[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_test";
 	char filename2[100] = "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized";
 	num_gene = gene_rpkm_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
 	cout << "there are " << num_etissue << " eTissues in the current framework." << endl;
-	puts("number of training samples in each eTissue are as followed:");
+	puts("number of testing samples in each eTissue are as followed:");
 	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
 	{
 		string etissue = it->first;
@@ -183,6 +159,53 @@ int main()
 	gene_tss_load();  // gene_tss
 	puts("[xxx] loading the X, Y, MT gene list...");
 	gene_xymt_load();  // gene_xymt_rep
+
+
+	// refine the following, as the reference are all built on the training dataset
+	//vector<string> etissue_list;
+	//unordered_map<string, int> etissue_index_map;
+	char filename[100] = "../result/etissue_list.txt";
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100;
+	char input[input_length];
+	int count = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string etissue = p;
+		etissue_list[count] = etissue;
+		etissue_index_map[etissue] = count;
+		count++;
+	}
+	fclose (file_in);
+
+
+	// need to initialize the following (with eQTL_tissue_rep_predict):
+	//unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		string etissue = etissue_list[i];
+		unordered_map<string, vector<float>> map;
+		eQTL_tissue_rep_predict.emplace(etissue, map);
+		for(auto it = eQTL_tissue_rep[etissue].begin(); it != eQTL_tissue_rep[etissue].end(); ++it)
+		{
+			string esample = it->first;
+			vector<float> vec;
+			eQTL_tissue_rep_predict[etissue].emplace(esample, vec);
+			for(int j=0; j<num_gene; j++)
+			{
+				eQTL_tissue_rep_predict[etissue][esample].push_back(0);
+			}
+		}
+	}
 
 
 
@@ -203,24 +226,23 @@ int main()
 	//===================================== gene cis index data preparation ======================================
 	puts("[xxx] gene meta data (cis- index) preparation...");
 	gene_cis_index_init();  // gene_cis_index
-	//==================================== initialize all other parameters =======================================
-	puts("[xxx] parameter space initialization...");
-	para_init();  // para_snp_cellenv; para_cellenv_gene; para_cis_gene
-	//=========================================== set the beta prior =============================================
-	//
-	// if we initialize all the parameters with pre-prepared data, we don't need the results from GTEx project
-	//
-	//puts("[xxx] beta prior values (from GTEx) loading...");
-	//beta_prior_fill();  // must happen after the above procedure
-	//
+	//==================================== initialize all parameters from learned results =======================================
+	puts("[xxx] parameter space initialization and loading...");
+	para_init();
 
 
 
 
 
 
-	//======================================= main optimization routine ==========================================
-	optimize();
+
+
+
+	// TODO: predict
+	//======================================= main testing routine ==========================================
+	predict();  // save unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict
+
+
 
 
 
@@ -229,9 +251,9 @@ int main()
 
 
 	//================================= save the parameters and release memory ===================================
-	puts("[xxx] saving the models...");
-	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene; para_batch_batch_hidden; para_batch_hidden_gene
-	cout << "Optimization done! Please find the results in 'result' folder." << endl;
+	puts("[xxx] saving the predicted expression arrays (samples) for all tissues...");
+	predict_save();
+	cout << "Optimization done! Please find the results in 'result_predict' folder." << endl;
 	puts("[xxx] releasing the parameter space...");
 	para_release();
 
@@ -244,7 +266,7 @@ int main()
     diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
     printf("Time used totally is %f seconds.\n", diff);
 
-	cout << "[now leave the program]\n";
+	cout << "[now leave the testing program]\n";
 	return 0;
 }
 

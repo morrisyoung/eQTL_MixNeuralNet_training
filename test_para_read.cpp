@@ -14,7 +14,7 @@
 #include "expression.h"
 #include "genotype.h"
 #include "basic.h"
-#include "test.h"
+#include "test_main.h"
 
 
 
@@ -165,7 +165,7 @@ void para_init()
 			while(p)
 			{
 				float para = stof(p);
-				para_cellenv_gene[j][count][count1] = para;
+				para_cellenv_gene[i][count][count1] = para;
 				p = strtok(NULL, sep);
 				count1++;
 			}

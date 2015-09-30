@@ -8,12 +8,6 @@
 using namespace std;
 
 
-typedef struct tuple_long
-{
-	long int first;
-	long int second;
-}tuple_long;
-
 
 // the main function
 int main();

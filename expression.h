@@ -8,12 +8,20 @@
 using namespace std;
 
 
+// the position of a gene
 typedef struct gene_pos
 {
 	int chr;
 	long tss;
 }gene_pos;
 
+
+// the cis- region (SNP list range) of a gene
+typedef struct tuple_long
+{
+	long int first;
+	long int second;
+}tuple_long;
 
 
 // load the expression matrix into memory
