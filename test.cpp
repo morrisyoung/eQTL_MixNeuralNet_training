@@ -4,15 +4,9 @@ the testing routine:
 1. read the saved parameters from the source file;
 2. read the genotype data of testing dataset, to perform the prediction;
 3. save the expected expression array for all the testing samples (from different tissue types) -- etissue list, and seperate files for each tissue;
-4. [outside this program] calculate and plot the Pearson correlation plot for the testing dataset, for each tissue type
+4. [outside this program] calculate and plot the Pearson correlation plot for the testing dataset, for each tissue type;
 
 */
-
-
-// the information page of the data and the project is here:
-//	https://github.com/morrisyoung/eQTL_script
-// the project is here:
-//	https://github.com/morrisyoung/eQTL_cplusplus
 
 
 // standard libraries:
@@ -39,6 +33,7 @@ the testing routine:
 #include "test_para_read.h"
 #include "test_predict.h"
 #include "test_save.h"
+#include "test.h"
 
 
 
@@ -64,14 +59,8 @@ unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
 //// expression relevant:
-// what we need:
-// 1. list of eQTL tissues, hashing all samples with their rpkm value;
-// 2. hashed all eQTL samples, for convenience of reading relevant rpkm data from the course file
-// 3. array of all genes (assuming all genes in the source file are those to be used)
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
-// TODO
-//unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;	// the predicted version of above matrix
-
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;	// the predicted version of above one
 unordered_map<string, string> eQTL_samples;										// hashing all eQTL samples to their tissues
 vector<string> gene_list;														// all genes from the source file
 unordered_map<string, int> gene_index_map;										// re-map those genes into their order (reversed hashing of above)
@@ -160,7 +149,7 @@ int main()
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
 	cout << "there are " << num_etissue << " eTissues in the current framework." << endl;
-	puts("number of training samples in each eTissue are as followed:");
+	puts("number of testing samples in each eTissue are as followed:");
 	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
 	{
 		string etissue = it->first;
@@ -170,6 +159,53 @@ int main()
 	gene_tss_load();  // gene_tss
 	puts("[xxx] loading the X, Y, MT gene list...");
 	gene_xymt_load();  // gene_xymt_rep
+
+
+	// refine the following, as the reference are all built on the training dataset
+	//vector<string> etissue_list;
+	//unordered_map<string, int> etissue_index_map;
+	char filename[100] = "../result/etissue_list.txt"
+	FILE * file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100;
+	char input[input_length];
+	int count = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string etissue = p;
+		etissue_list[count] = etissue;
+		etissue_index_map[etissue] = count;
+		count++;
+	}
+	fclose (file_in);
+
+
+	// need to initialize the following (with eQTL_tissue_rep_predict):
+	//unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		string etissue = etissue_list[i];
+		unordered_map<string, vector<float>> map;
+		eQTL_tissue_rep_predict[eTissue] = map;
+		for(auto it = eQTL_tissue_rep[eTissue].begin(); it != eQTL_tissue_rep[eTissue].end(); ++it)
+		{
+			string esample = it->first;
+			vector<float> vec;
+			eQTL_tissue_rep_predict[etissue][esample] = vec;
+			for(int j =0; j<num_gene; j++)
+			{
+				eQTL_tissue_rep_predict[etissue][esample].pusb_back(0);
+			}
+		}
+	}
 
 
 
@@ -198,8 +234,16 @@ int main()
 
 
 
+
+
+
+
+	// TODO: predict
 	//======================================= main testing routine ==========================================
-	predict();
+	predict();  // save unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict
+
+
+
 
 
 
@@ -225,3 +269,4 @@ int main()
 	cout << "[now leave the testing program]\n";
 	return 0;
 }
+
