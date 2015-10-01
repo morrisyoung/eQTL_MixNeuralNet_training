@@ -154,6 +154,8 @@ void para_save()
 				char buf[1024];
 				sprintf(buf, "%f\t", parameter);
 				fwrite(buf, sizeof(char), strlen(buf), file_out);
+				// or:
+				// fprintf(file_out, "%s", str);
 			}
 			fwrite("\n", sizeof(char), 1, file_out);
 			// leaving this gene

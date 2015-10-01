@@ -14,9 +14,12 @@
 #include "main.h"
 #include "expression.h"
 #include "basic.h"
+#include <math.h>
+
 
 
 using namespace std;
+
 
 
 // initializing the parameter space
@@ -167,7 +170,7 @@ void para_init()
 	file_in = fopen(filename0, "r");
 	if(file_in == NULL)
 	{
-		fputs("File error\n", stderr); exit (1);
+		fputs("File error\n", stderr); exit(1);
 	}
 	//int input_length = 100000;
 	//char input[input_length];
@@ -193,6 +196,11 @@ void para_init()
 			}
 			// append this para, and iterate across all samples
 			float para = stof(p);
+			// NOTE: there may be "nan" in the cis- parameters, as these parameters are from regression analysis
+			if(isnan(para))
+			{
+				para = 0;
+			}
 			rep_para_cis_gene[gene].push_back(para);
 
 			p = strtok(NULL, sep);
@@ -221,7 +229,7 @@ void para_init()
 			long first = gene_cis_index[gene].first;  // index
 			long second = gene_cis_index[gene].second;  // index
 			long amount = second - first + 1;
-			for(int k=0; k<amount; k++)
+			for(int k=0; k<amount; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
 			{
 				para_cis_gene[j][i][k] = rep_para_cis_gene[gene][k];
 			}

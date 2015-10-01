@@ -57,6 +57,7 @@ using namespace std;
 
 
 
+
 // global variables definition and initialization
 //===========================================================
 long int num_snp = 0;		// TBD
@@ -112,7 +113,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 1;
+int MULTI_THREAD = 0;
 
 //===========================================================
 
@@ -213,6 +214,8 @@ int main()
 	//puts("[xxx] beta prior values (from GTEx) loading...");
 	//beta_prior_fill();  // must happen after the above procedure
 	//
+
+
 
 
 

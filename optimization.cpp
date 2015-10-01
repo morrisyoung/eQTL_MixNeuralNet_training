@@ -52,9 +52,9 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 
 // learning control parameters:
-int iter_learn_out = 5;  // iteration across all tissues
-int iter_learn_in = 20;  // iteration across all samples from one tissue
-int batch_size = 20;  // better be 20
+int iter_learn_out = 1;  // iteration across all tissues
+int iter_learn_in = 1;  // iteration across all samples from one tissue
+int batch_size = 1;  // better be 20
 int rate_learner = 1;  // the learning rate
 
 //======================================================================================================
@@ -384,6 +384,7 @@ void optimize()
 	opt_snp_prior_load();
 
 
+
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
 	{
 		for(int count2=0; count2<num_etissue; count2++)  // one count2 is for one tissue
@@ -406,9 +407,11 @@ void optimize()
 				// leaving this mini-batch
 			}
 			// leaving this etissue
+			break;
 		}
 		//
 	}
+
 
 
 	opt_para_release();

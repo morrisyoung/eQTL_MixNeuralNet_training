@@ -141,6 +141,24 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	}
 
 
+
+	// I would like to check the dev parameters here
+	// 
+
+
+
+
+
+
+
+
+
+
+
+
+	// TODO: didn't remove the tissue specificity for the following codes
+
+
 	//********************************* aggregation of this mini-batch *****************************************
 	// 1. average the derivatives calculated from previous steps
 	// 2. will add the derivatives due to regularization in the next part
@@ -215,6 +233,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 	cout << "[@@] leaving the forward-backward propagation..." << endl;
 }
+
 
 
 
