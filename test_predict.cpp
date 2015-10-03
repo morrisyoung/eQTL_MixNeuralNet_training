@@ -24,6 +24,7 @@
 #include "basic.h"
 #include "test_predict.h"
 #include "test_main.h"
+#include "nn_ac_func.h"
 
 
 
@@ -39,6 +40,7 @@ float * cellenv_hidden_var;  // with length "num_cellenv"
 float * batch_var;  // with length "num_batch"
 float * batch_hidden_var;  // with length "num_batch_hidden"
 //======================================================================================================
+
 
 
 
@@ -180,10 +182,7 @@ void predict()
 			}
 		}
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
-		for(int i=0; i<num_cellenv; i++)
-		{
-			cellenv_hidden_var[i] = 1 / ( 1 + exp( - cellenv_hidden_var[i] ));
-		}
+		neuralnet_ac_func(cellenv_hidden_var, num_cellenv);
 		// from cell env variables to genes
 		for(int i=0; i<num_gene; i++)
 		{
@@ -205,10 +204,7 @@ void predict()
 			}
 		}
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
-		for(int i=0; i<num_batch_hidden; i++)
-		{
-			batch_hidden_var[i] = 1 / ( 1 + exp( - batch_hidden_var[i] ));
-		}
+		neuralnet_ac_func(batch_hidden_var, num_batch_hidden);
 		// from hidden batch to genes
 		for(int i=0; i<num_gene; i++)
 		{
@@ -221,8 +217,11 @@ void predict()
 
 
 
-
+		//
+		//
 		// fill in the eQTL_tissue_rep_predict[etissue][esample] for this esample
+		//
+		//
 		for(int i=0; i<num_gene; i++)
 		{
 			eQTL_tissue_rep_predict[etissue][esample][i] = gene_rpkm_exp[i];

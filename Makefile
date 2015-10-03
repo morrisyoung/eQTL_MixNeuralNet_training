@@ -7,10 +7,10 @@
 CC=	g++
 OPT=	-std=c++11 -static-libstdc++
 LIBS=	-lm -lpthread
-SRCS_TRAIN=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp batch.cpp opt_multi_thread.cpp
-OBJS_TRAIN=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o batch.o opt_multi_thread.o
-SRCS_TEST=	test_main.cpp basic.cpp expression.cpp genotype.cpp batch.cpp test_para_read.cpp test_predict.cpp test_save.cpp
-OBJS_TEST=	test_main.o basic.o expression.o genotype.o batch.o test_para_read.o test_predict.o test_save.o
+SRCS_TRAIN=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp batch.cpp opt_multi_thread.cpp nn_ac_func.cpp
+OBJS_TRAIN=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o batch.o opt_multi_thread.o nn_ac_func.o
+SRCS_TEST=	test_main.cpp basic.cpp expression.cpp genotype.cpp batch.cpp test_para_read.cpp test_predict.cpp test_save.cpp nn_ac_func.cpp
+OBJS_TEST=	test_main.o basic.o expression.o genotype.o batch.o test_para_read.o test_predict.o test_save.o nn_ac_func.o
 
 EXECUTABLE_TRAIN=	train
 EXECUTABLE_TEST=	test

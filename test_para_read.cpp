@@ -26,7 +26,7 @@ using namespace std;
 void para_init()
 {
 	//
-	// initializing the memory
+	// initializing the memory (pre-fill with 0)
 	//
 	//==================================== cellular factor pathway =====================================
 	//=============== from snp to cell env variables ===============
@@ -165,7 +165,7 @@ void para_init()
 			while(p)
 			{
 				float para = stof(p);
-				para_cellenv_gene[i][count][count1] = para;
+				para_cellenv_gene[etissue_index][count][count1] = para;
 				p = strtok(NULL, sep);
 				count1++;
 			}
@@ -212,8 +212,8 @@ void para_init()
 			{
 				float para = stof(p);
 				para_cis_gene[etissue_index][count][count1] = para;
-				count1++;
 				p = strtok(NULL, sep);
+				count1++;
 			}
 
 			count++;
