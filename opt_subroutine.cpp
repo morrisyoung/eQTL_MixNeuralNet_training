@@ -142,21 +142,216 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+
+
+
+
+
+
+
+	// DEBUG
+	//======================================================================================================
+	//======================================================================================================
+	//======================================================================================================
+	//======================================================================================================
 	// I would like to check the dev parameters here
-	// 
+	// we will have a "../temp/" dir
+
+	//================================ vector<vector<float *>> para_dev_cis_gene ================================
+	char filename[100] = "../temp_data/para_dev_cis_gene.txt";
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    FILE * file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
+		{
+			fwrite("\n", sizeof(char), 1, file_out);
+		}
+		else
+		{
+			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+			for(int k=0; k<num; k++)
+			{
+				float parameter = para_dev_cis_gene[etissue_index][i][k];
+				char buf[1024];
+				sprintf(buf, "%f\t", parameter);
+				fwrite(buf, sizeof(char), strlen(buf), file_out);
+			}
+			fwrite("\n", sizeof(char), 1, file_out);
+		}
+	}
+	fclose(file_out);
+
+
+	//================================== vector<float *> para_dev_snp_cellenv ===================================
+	sprintf(filename, "%s", "../temp_data/para_dev_snp_cellenv.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+
+	for(int i=0; i<num_cellenv; i++)
+	{
+		for(long j=0; j<num_snp; j++)
+		{
+			float parameter = para_dev_snp_cellenv[i][j];
+			char buf[1024];
+			sprintf(buf, "%f\t", parameter);
+			fwrite(buf, sizeof(char), strlen(buf), file_out);
+		}
+		fwrite("\n", sizeof(char), 1, file_out);
+		// leaving this cellenv
+	}
+	fclose(file_out);
+
+
+	//============================== vector<vector<float *>> para_dev_cellenv_gene ==============================
+	sprintf(filename, "%s", "../temp_data/para_dev_cellenv_gene.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		for(int j=0; j<num_cellenv; j++)
+		{
+			float parameter = para_dev_cellenv_gene[etissue_index][i][j];
+			char buf[1024];
+			sprintf(buf, "%f\t", parameter);
+			fwrite(buf, sizeof(char), strlen(buf), file_out);
+			// or:
+			// fprintf(file_out, "%s", str);
+		}
+		fwrite("\n", sizeof(char), 1, file_out);
+		// leaving this gene
+	}
+	fclose(file_out);
+
+
+	//=============================== vector<float *> para_dev_batch_batch_hidden ===============================
+	sprintf(filename, "%s", "../temp_data/para_dev_batch_batch_hidden.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			float parameter = para_dev_batch_batch_hidden[i][j];
+			char buf[1024];
+			sprintf(buf, "%f\t", parameter);
+			fwrite(buf, sizeof(char), strlen(buf), file_out);
+		}
+		fwrite("\n", sizeof(char), 1, file_out);
+		// leaving this batch_hidden
+	}
+	fclose(file_out);
+
+
+	//=============================== vector<float *> para_dev_batch_hidden_gene ================================
+	sprintf(filename, "%s", "../temp_data/para_dev_batch_hidden_gene.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			float parameter = para_dev_batch_hidden_gene[i][j];
+			char buf[1024];
+			sprintf(buf, "%f\t", parameter);
+			fwrite(buf, sizeof(char), strlen(buf), file_out);
+		}
+		fwrite("\n", sizeof(char), 1, file_out);
+		// leaving this gene
+	}
+	fclose(file_out);
+
+
+
+
+
+	// Let's also print the cellenv variables and the batch_hidden variables out
+	//======================== cellenv variables ========================
+	sprintf(filename, "%s", "../temp_data/var_cellenv.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	for(int i=0; i<num_cellenv; i++)
+	{
+		float parameter = cellenv_hidden_var[i];
+		char buf[1024];
+		sprintf(buf, "%f\n", parameter);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+	}
+	fclose(file_out);
+
+
+	//======================== batch hidden variables ========================
+	sprintf(filename, "%s", "../temp_data/var_batch_hidden.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		float parameter = batch_hidden_var[i];
+		char buf[1024];
+		sprintf(buf, "%f\n", parameter);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+	}
+	fclose(file_out);
+
+	//======================================================================================================
+	//======================================================================================================
+	//======================================================================================================
+	//======================================================================================================
 
 
 
 
 
 
-
-
-
-
-
-
-	// TODO: didn't remove the tissue specificity for the following codes
 
 
 	//********************************* aggregation of this mini-batch *****************************************
@@ -321,6 +516,40 @@ void forward_backward(string etissue,
 			}
 		}
 	}
+
+
+
+
+	// DEBUG
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	sprintf(filename, "%s", "../temp_data/var_cellenv_before.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	for(int i=0; i<num_cellenv; i++)
+	{
+		float parameter = cellenv_con_pointer[i];
+		char buf[1024];
+		sprintf(buf, "%f\n", parameter);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+	}
+	fclose(file_out);
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+
+
+
+
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	for(int i=0; i<num_cellenv; i++)
 	{
@@ -352,6 +581,44 @@ void forward_backward(string etissue,
 			batch_hidden_con_pointer[i] += batch_list_pointer[j] * para_batch_batch_hidden[i][j];
 		}
 	}
+
+
+
+	// DEBUG
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	sprintf(filename, "%s", "../temp_data/var_batch_hidden_before.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+    file_out = fopen(filename, "w+");
+    if(file_out == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		float parameter = batch_hidden_con_pointer[i];
+		char buf[1024];
+		sprintf(buf, "%f\n", parameter);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+	}
+	fclose(file_out);
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+	//====================================================================================================
+
+
+
+
+
+
+
+
+
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	for(int i=0; i<num_batch_hidden; i++)
 	{
@@ -461,6 +728,7 @@ void forward_backward(string etissue,
 
 
 }
+
 
 
 
@@ -628,6 +896,8 @@ void gradient_descent(string etissue)
 
 	int etissue_index = etissue_index_map[etissue];
 
+
+	//============================================ pathway#1 ================================================
 	//====================== para_cis_gene ==========================
 	for(int i=0; i<num_gene; i++)
 	{
@@ -647,6 +917,7 @@ void gradient_descent(string etissue)
 		}
 	}
 
+	//============================================ pathway#2 ================================================
 	//====================== para_snp_cellenv ==========================
 	for(int i=0; i<num_cellenv; i++)
 	{
@@ -660,13 +931,13 @@ void gradient_descent(string etissue)
 	for(int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
-		for(int k=0; k<num_cellenv; k++)
+		for(int j=0; j<num_cellenv; j++)
 		{
-			para_cellenv_gene[etissue_index][i][k] = para_cellenv_gene[etissue_index][i][k] - rate_learner * para_dev_cellenv_gene[etissue_index][i][k];
+			para_cellenv_gene[etissue_index][i][j] = para_cellenv_gene[etissue_index][i][j] - rate_learner * para_dev_cellenv_gene[etissue_index][i][j];
 		}
 	}
 
-
+	//============================================ pathway#3 ================================================
 	//====================== para_batch_batch_hidden ==========================
 	for(int i=0; i<num_batch_hidden; i++)
 	{
