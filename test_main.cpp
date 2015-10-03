@@ -188,7 +188,7 @@ int main()
 	fclose (file_in);
 
 
-	// need to initialize the following (with eQTL_tissue_rep_predict):
+	// need to initialize the following (with "eQTL_tissue_rep_predict"):
 	//unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;
 	for(int i=0; i<etissue_list.size(); i++)
 	{
@@ -238,7 +238,6 @@ int main()
 
 
 
-	// TODO: predict
 	//======================================= main testing routine ==========================================
 	predict();  // save unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict
 

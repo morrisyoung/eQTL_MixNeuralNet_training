@@ -12,6 +12,13 @@ using namespace std;
 
 
 
+// activation function for the neural network
+void neuralnet_ac_func(float *, int);
+
+
+float neuralnet_ac_func_dev(float);
+
+
 // transform the sample ID (like "GTEX-R55E-0826-SM-2TC5M") into individual ID (here is the first 9 digits)
 string sample_to_individual(string);
 
