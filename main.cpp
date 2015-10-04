@@ -113,7 +113,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 1;
+int MULTI_THREAD = 0;
 
 //===========================================================
 

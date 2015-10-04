@@ -18,6 +18,8 @@
 #include <math.h>       /* exp */
 #include "opt_subroutine.h"
 #include "opt_multi_thread.h"
+#include "opt_para_save.h"
+
 
 
 
@@ -52,12 +54,160 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 
 // learning control parameters:
-int iter_learn_out = 5;  // iteration across all tissues
+int iter_learn_out = 1;  // iteration across all tissues
 int iter_learn_in = 10;  // iteration across all samples from one tissue
 int batch_size = 20;  // better be 20
 int rate_learner = 1;  // the learning rate
 
 //======================================================================================================
+
+
+
+
+
+
+
+
+
+// DEBUG
+//======================================================================================================
+//======================================================================================================
+//======================================================================================================
+//======================================================================================================
+// func: check whether there are nan for any of the parameter; if there is, return 1, otherwise return 0
+int para_check_nan(string etissue)
+{
+	int etissue_index = etissue_index_map[etissue];
+
+	int flag = 0;
+
+
+	//================================ vector<vector<float *>> para_cis_gene ================================
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+		if ( got != gene_xymt_rep.end() )
+		{
+			continue;
+		}
+		else
+		{
+			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
+			for(int k=0; k<num; k++)
+			{
+				float parameter = para_cis_gene[etissue_index][i][k];
+				// check nan
+				if(isnan(parameter))
+				{
+					flag = 1;
+					break;
+				}
+			}
+		}
+	}
+	if(flag == 1)
+	{
+		return flag;
+	}
+
+
+
+	//================================== vector<float *> para_snp_cellenv ===================================
+	for(int i=0; i<num_cellenv; i++)
+	{
+		for(long j=0; j<num_snp; j++)
+		{
+			float parameter = para_snp_cellenv[i][j];
+			// check nan
+			if(isnan(parameter))
+			{
+				flag = 1;
+				break;
+			}
+		}
+	}
+	if(flag == 1)
+	{
+		return flag;
+	}
+
+
+
+	//============================== vector<vector<float *>> para_cellenv_gene ==============================
+	for(int i=0; i<num_gene; i++)
+	{
+		string gene = gene_list[i];
+		for(int j=0; j<num_cellenv; j++)
+		{
+			float parameter = para_cellenv_gene[etissue_index][i][j];
+			// check nan
+			if(isnan(parameter))
+			{
+				flag = 1;
+				break;
+			}
+		}
+	}
+	if(flag == 1)
+	{
+		return flag;
+	}
+
+
+
+	//=============================== vector<float *> para_batch_batch_hidden ===============================
+	for(int i=0; i<num_batch_hidden; i++)
+	{
+		for(int j=0; j<num_batch; j++)
+		{
+			float parameter = para_batch_batch_hidden[i][j];
+			// check nan
+			if(isnan(parameter))
+			{
+				flag = 1;
+				break;
+			}
+		}
+	}
+	if(flag == 1)
+	{
+		return flag;
+	}
+
+
+
+
+	//=============================== vector<float *> para_batch_hidden_gene ================================
+	for(int i=0; i<num_gene; i++)
+	{
+		for(int j=0; j<num_batch_hidden; j++)
+		{
+			float parameter = para_batch_hidden_gene[i][j];
+			// check nan
+			if(isnan(parameter))
+			{
+				flag = 1;
+				break;
+			}
+		}
+	}
+
+
+
+	return flag;
+}
+//======================================================================================================
+//======================================================================================================
+//======================================================================================================
+//======================================================================================================
+
+
+
+
+
+
+
 
 
 
@@ -405,10 +555,42 @@ void optimize()
 					opt_mt_control(etissue, pos_start, num_esample);
 				}
 				// leaving this mini-batch
+
+
+
+
+
+				// DEBUG
+				// check nan after this mini-batch
+				int flag = para_check_nan(etissue);
+				if(flag == 1)
+				{
+					//
+					cout << "we get nan..." << endl;
+					cout << count3 << endl;
+					break;
+				}
+
+
+
+
+
+
+
 			}
 			// leaving this etissue
+
+			//DEBUG
+			break;  // won't consider other tissues
+
 		}
 		//
+		// whenever we finish one iteration across all tissues, we should save the learned parameters
+		//
+		//para_inter_save(count1);
+		//
+		//
+
 	}
 
 

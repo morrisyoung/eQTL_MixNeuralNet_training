@@ -13,6 +13,7 @@
 #include <utility>
 #include "global.h"
 #include "main.h"
+#include <math.h>
 
 
 
@@ -120,7 +121,6 @@ void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
 	*/
 
 
-
 	// we need another routine to load the snps from rep in memory
 	// fill in this: unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	// with these: array<vector<float>, 22> * array_pointer, string individual
@@ -164,7 +164,7 @@ void dosage_load()
 	}
 	fclose(file_in);
 	num_individual = count;
- 
+
 	// unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	for(auto it = snp_dosage_rep.begin(); it != snp_dosage_rep.end(); ++it)
 	{

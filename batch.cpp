@@ -38,7 +38,7 @@ void batch_load()
 	while(fgets(input, input_length, file_in) != NULL)
 	{
 		count_line++;
-		if(count_line == 1)continue;
+		if(count_line == 1)continue;	// label line
 
 		trim(input);
 
@@ -86,7 +86,7 @@ void batch_load()
 	while(fgets(input, input_length, file_in) != NULL)
 	{
 		count_line++;
-		if(count_line == 1)continue;
+		if(count_line == 1)continue;	// label line
 
 		trim(input);
 

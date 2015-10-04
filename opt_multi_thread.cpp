@@ -320,6 +320,13 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	aggregation_ave(etissue);
 
 
+	//
+	//
+	// can debug the derivatives from here
+	//
+	//
+
+
 	//===================== regularize, gradient descent, and release space =====================
 	//// add the regularization terms into the derivatives
 	regularization(etissue);
