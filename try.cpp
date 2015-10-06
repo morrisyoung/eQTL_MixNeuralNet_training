@@ -25,6 +25,11 @@ using namespace std;
 int main()
 {
 
+
+    // file write and read testing module
+    /*
+    //=======================================================================================
+    //=======================================================================================
 	//=========== write the file ============
 	char filename[100] = "try.txt";
     FILE * file_out = fopen(filename, "w+");
@@ -88,6 +93,10 @@ int main()
     }
 	fclose(file_in);
 
+    //=======================================================================================
+    //=======================================================================================
+    */
+
 
 
 
@@ -95,13 +104,25 @@ int main()
 	char array[100] = "nan";
 	float number = stof(array);
 	cout << number << endl;
+    cout << number * 1.2 << endl;
 
-	cout << isnan(number) << endl;
-	number = 1.2;
-	cout << isnan(number) << endl;
-	cout << number << endl;
-	cout << isnan(12.34) << endl;
 
+
+	// cout << isnan(number) << endl;
+	// number = 1.2;
+	// cout << isnan(number) << endl;
+	// cout << number << endl;
+	// cout << isnan(12.34) << endl;
+
+
+
+
+
+    sprintf(array, "inf");
+    number = stof(array);
+    cout << number << endl;
+
+    cout << number * 0.0 << endl;
 
 
 

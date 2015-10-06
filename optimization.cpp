@@ -27,6 +27,7 @@ using namespace std;
 
 
 
+
 //====================================== local global variables ========================================
 // these variables are specially designed for this routine -- optimization
 // need to initialize some local containers:
@@ -55,8 +56,8 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
-int iter_learn_in = 10;  // iteration across all samples from one tissue
-int batch_size = 20;  // better be 20
+int iter_learn_in = 200;  // iteration across all samples from one tissue
+int batch_size = 1;  // better be 20
 int rate_learner = 1;  // the learning rate
 
 //======================================================================================================

@@ -474,7 +474,7 @@ void forward_backward(string etissue,
 	// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
 	//========================================================================
 	//========================================================================
-	// step#1: ... (cis-; cell env; batch)
+	// step#1: forward-propogation (cis-; cell env; batch)
 	//========================================================================
 	//========================================================================
 	// ****************************** [part1] cis- *********************************
@@ -678,7 +678,7 @@ void forward_backward(string etissue,
 
 	//========================================================================
 	//========================================================================
-	// step#2: ... (cis-;  cell env; batch)
+	// step#2: back-propogation (cis-;  cell env; batch)
 	//========================================================================
 	//========================================================================
 	// *********************** [part1] cis- ************************
@@ -719,6 +719,36 @@ void forward_backward(string etissue,
 	}
 	// from snp to cell env
 	// pseudo: [ \sum w3 * (expected rpkm - real rpkm) ] * g'(w2 * x1) * x1
+
+
+
+
+
+	// DEBUG
+	//===========================================================================================
+	//===========================================================================================
+    FILE * file_out1 = fopen("../temp_data/error_cellenv_1.txt", "w+");
+    if(file_out1 == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	FILE * file_out2 = fopen("../temp_data/error_cellenv_2.txt", "w+");
+	if(file_out2 == NULL)
+	{
+		fputs("File error\n", stderr); exit(1);
+	}
+	//===========================================================================================
+	//===========================================================================================
+
+
+
+
+	// DEBUG
+	char buf[1024];
+
+
+
+
 	for(int i=0; i<num_cellenv; i++)
 	{
 		//
@@ -727,9 +757,35 @@ void forward_backward(string etissue,
 		{
 			temp += para_cellenv_gene[etissue_index][t][i] * (expr_con_pointer[t] - (*expr_list_pointer)[t]);
 		}
+
+
+
+
+		// DEBUG
+		// save the back-propogated errors to the file, and check
+		sprintf(buf, "%f\n", temp);
+		fwrite(buf, sizeof(char), strlen(buf), file_out1);
+
+
+
+
 		//
 		temp *= neuralnet_ac_func_dev(cellenv_con_pointer[i]);
 		//
+
+
+
+
+		// DEBUG
+		// save the back-propogated errors to the file, and check
+		sprintf(buf, "%f\n", temp);
+		fwrite(buf, sizeof(char), strlen(buf), file_out2);
+
+
+
+
+
+
 		long count = 0;
 		for(int j=0; j<22; j++)  // across all the chromosomes
 		{
@@ -742,6 +798,23 @@ void forward_backward(string etissue,
 			}
 		}
 	}
+
+
+
+
+
+	// DEBUG
+	//===========================================================================================
+	//===========================================================================================
+	fclose(file_out1);
+	fclose(file_out2);
+	//===========================================================================================
+	//===========================================================================================
+
+
+
+
+
 
 	// ********************* [part3] linear or non-linear batches *********************
 	// from hidden batch to genes
@@ -757,6 +830,37 @@ void forward_backward(string etissue,
 	}
 	// from original batch to hidden batch
 	// pseudo: [ \sum w5 * (expected rpkm - real rpkm) ] * g'(w4 * x2) * x2
+
+
+
+
+
+
+	// DEBUG
+	//===========================================================================================
+	//===========================================================================================
+    file_out1 = fopen("../temp_data/error_batch_1.txt", "w+");
+    if(file_out1 == NULL)
+    {
+        fputs("File error\n", stderr); exit(1);
+    }
+	file_out2 = fopen("../temp_data/error_batch_2.txt", "w+");
+	if(file_out2 == NULL)
+	{
+		fputs("File error\n", stderr); exit(1);
+	}
+	FILE * file_out3 = fopen("../temp_data/error_batch_3.txt", "w+");
+	if(file_out3 == NULL)
+	{
+		fputs("File error\n", stderr); exit(1);
+	}
+	//===========================================================================================
+	//===========================================================================================
+
+
+
+
+
 	for(int i=0; i<num_batch_hidden; i++)
 	{
 		//
@@ -765,15 +869,78 @@ void forward_backward(string etissue,
 		{
 			temp += para_batch_hidden_gene[t][i] * (expr_con_pointer[t] - (*expr_list_pointer)[t]);
 		}
+
+
+
+
+		// DEBUG
+		// save the back-propogated errors to the file, and check
+		sprintf(buf, "%f\n", temp);
+		fwrite(buf, sizeof(char), strlen(buf), file_out1);
+
+
+
+
+
 		//
 		temp *= neuralnet_ac_func_dev(batch_hidden_con_pointer[i]);
 		//
+
+
+		// DEBUG
+		// save the back-propogated errors to the file, and check
+		sprintf(buf, "%f\n", temp);
+		fwrite(buf, sizeof(char), strlen(buf), file_out2);
+
+
+
+
+
+
+		// DEBUG: save all the batch var and the multiplied error
+		for(int j=0; j<num_batch; j++)
+		{
+			float batch_value = batch_list_pointer[j];
+			(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
+
+
+			sprintf(buf, "%f\t%f\t", batch_value, temp * batch_value);
+			fwrite(buf, sizeof(char), strlen(buf), file_out3);
+		}
+		fwrite("\n", sizeof(char), 1, file_out3);
+
+
+
+
+
+
 		for(int j=0; j<num_batch; j++)
 		{
 			float batch_value = batch_list_pointer[j];
 			(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
 		}
+
+
+
+
+
 	}
+
+
+	// DEBUG
+	//===========================================================================================
+	//===========================================================================================
+	fclose(file_out1);
+	fclose(file_out2);
+	fclose(file_out3);
+	//===========================================================================================
+	//===========================================================================================
+
+
+
+
+
+
 
 }
 

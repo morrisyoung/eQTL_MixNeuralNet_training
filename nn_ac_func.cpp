@@ -9,7 +9,7 @@
 
 // let's define the tune parameter here
 //$$$$$$$$$$$ we need the tune parameter to tune the signal passed from upper layer $$$$$$$$$$$$
-float tune = 0.01;
+float tune = 0.01;  // original choice is 0.01
 
 
 
