@@ -302,7 +302,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	fclose(file_out);
 
 
-
 	// Let's also print the cellenv variables and the batch_hidden variables out
 	//======================== cellenv variables ========================
 	sprintf(filename, "%s", "../temp_data/var_cellenv.txt");
@@ -524,33 +523,33 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	char filename[100];
-	sprintf(filename, "%s", "../temp_data/var_cellenv_before.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
+	// // DEBUG
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// char filename[100];
+	// sprintf(filename, "%s", "../temp_data/var_cellenv_before.txt");
+	// //puts("the current file worked on is: ");
+	// //puts(filename);
 
-    FILE * file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	for(int i=0; i<num_cellenv; i++)
-	{
-		float parameter = cellenv_con_pointer[i];
-		char buf[1024];
-		sprintf(buf, "%f\n", parameter);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-	}
-	fclose(file_out);
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
+ //    FILE * file_out = fopen(filename, "w+");
+ //    if(file_out == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// for(int i=0; i<num_cellenv; i++)
+	// {
+	// 	float parameter = cellenv_con_pointer[i];
+	// 	char buf[1024];
+	// 	sprintf(buf, "%f\n", parameter);
+	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
+	// }
+	// fclose(file_out);
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
 
 
 
@@ -587,32 +586,32 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	sprintf(filename, "%s", "../temp_data/var_batch_hidden_before.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
+	// // DEBUG
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// sprintf(filename, "%s", "../temp_data/var_batch_hidden_before.txt");
+	// //puts("the current file worked on is: ");
+	// //puts(filename);
 
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		float parameter = batch_hidden_con_pointer[i];
-		char buf[1024];
-		sprintf(buf, "%f\n", parameter);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-	}
-	fclose(file_out);
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
+ //    file_out = fopen(filename, "w+");
+ //    if(file_out == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// for(int i=0; i<num_batch_hidden; i++)
+	// {
+	// 	float parameter = batch_hidden_con_pointer[i];
+	// 	char buf[1024];
+	// 	sprintf(buf, "%f\n", parameter);
+	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
+	// }
+	// fclose(file_out);
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
 
 
 
@@ -637,32 +636,32 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	sprintf(filename, "%s", "../temp_data/var_expr_exp.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
+	// // DEBUG
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// sprintf(filename, "%s", "../temp_data/var_expr_exp.txt");
+	// //puts("the current file worked on is: ");
+	// //puts(filename);
 
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	for(int i=0; i<num_gene; i++)
-	{
-		float rpkm = expr_con_pointer[i];
-		char buf[1024];
-		sprintf(buf, "%f\n", rpkm);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-	}
-	fclose(file_out);
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
-	//====================================================================================================
+ //    file_out = fopen(filename, "w+");
+ //    if(file_out == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// for(int i=0; i<num_gene; i++)
+	// {
+	// 	float rpkm = expr_con_pointer[i];
+	// 	char buf[1024];
+	// 	sprintf(buf, "%f\n", rpkm);
+	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
+	// }
+	// fclose(file_out);
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
+	// //====================================================================================================
 
 
 
@@ -724,27 +723,27 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//===========================================================================================
-	//===========================================================================================
-    FILE * file_out1 = fopen("../temp_data/error_cellenv_1.txt", "w+");
-    if(file_out1 == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	FILE * file_out2 = fopen("../temp_data/error_cellenv_2.txt", "w+");
-	if(file_out2 == NULL)
-	{
-		fputs("File error\n", stderr); exit(1);
-	}
-	//===========================================================================================
-	//===========================================================================================
+	// // DEBUG
+	// //===========================================================================================
+	// //===========================================================================================
+ //    FILE * file_out1 = fopen("../temp_data/error_cellenv_1.txt", "w+");
+ //    if(file_out1 == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// FILE * file_out2 = fopen("../temp_data/error_cellenv_2.txt", "w+");
+	// if(file_out2 == NULL)
+	// {
+	// 	fputs("File error\n", stderr); exit(1);
+	// }
+	// //===========================================================================================
+	// //===========================================================================================
 
 
 
 
-	// DEBUG
-	char buf[1024];
+	// // DEBUG
+	// char buf[1024];
 
 
 
@@ -761,10 +760,10 @@ void forward_backward(string etissue,
 
 
 
-		// DEBUG
-		// save the back-propogated errors to the file, and check
-		sprintf(buf, "%f\n", temp);
-		fwrite(buf, sizeof(char), strlen(buf), file_out1);
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
 
 
 
@@ -776,10 +775,10 @@ void forward_backward(string etissue,
 
 
 
-		// DEBUG
-		// save the back-propogated errors to the file, and check
-		sprintf(buf, "%f\n", temp);
-		fwrite(buf, sizeof(char), strlen(buf), file_out2);
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
 
 
 
@@ -803,13 +802,13 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//===========================================================================================
-	//===========================================================================================
-	fclose(file_out1);
-	fclose(file_out2);
-	//===========================================================================================
-	//===========================================================================================
+	// // DEBUG
+	// //===========================================================================================
+	// //===========================================================================================
+	// fclose(file_out1);
+	// fclose(file_out2);
+	// //===========================================================================================
+	// //===========================================================================================
 
 
 
@@ -836,26 +835,26 @@ void forward_backward(string etissue,
 
 
 
-	// DEBUG
-	//===========================================================================================
-	//===========================================================================================
-    file_out1 = fopen("../temp_data/error_batch_1.txt", "w+");
-    if(file_out1 == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	file_out2 = fopen("../temp_data/error_batch_2.txt", "w+");
-	if(file_out2 == NULL)
-	{
-		fputs("File error\n", stderr); exit(1);
-	}
-	FILE * file_out3 = fopen("../temp_data/error_batch_3.txt", "w+");
-	if(file_out3 == NULL)
-	{
-		fputs("File error\n", stderr); exit(1);
-	}
-	//===========================================================================================
-	//===========================================================================================
+	// // DEBUG
+	// //===========================================================================================
+	// //===========================================================================================
+ //    file_out1 = fopen("../temp_data/error_batch_1.txt", "w+");
+ //    if(file_out1 == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// file_out2 = fopen("../temp_data/error_batch_2.txt", "w+");
+	// if(file_out2 == NULL)
+	// {
+	// 	fputs("File error\n", stderr); exit(1);
+	// }
+	// FILE * file_out3 = fopen("../temp_data/error_batch_3.txt", "w+");
+	// if(file_out3 == NULL)
+	// {
+	// 	fputs("File error\n", stderr); exit(1);
+	// }
+	// //===========================================================================================
+	// //===========================================================================================
 
 
 
@@ -873,10 +872,10 @@ void forward_backward(string etissue,
 
 
 
-		// DEBUG
-		// save the back-propogated errors to the file, and check
-		sprintf(buf, "%f\n", temp);
-		fwrite(buf, sizeof(char), strlen(buf), file_out1);
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
 
 
 
@@ -887,27 +886,27 @@ void forward_backward(string etissue,
 		//
 
 
-		// DEBUG
-		// save the back-propogated errors to the file, and check
-		sprintf(buf, "%f\n", temp);
-		fwrite(buf, sizeof(char), strlen(buf), file_out2);
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
 
 
 
 
 
 
-		// DEBUG: save all the batch var and the multiplied error
-		for(int j=0; j<num_batch; j++)
-		{
-			float batch_value = batch_list_pointer[j];
-			(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
+		// // DEBUG: save all the batch var and the multiplied error
+		// for(int j=0; j<num_batch; j++)
+		// {
+		// 	float batch_value = batch_list_pointer[j];
+		// 	(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
 
 
-			sprintf(buf, "%f\t%f\t", batch_value, temp * batch_value);
-			fwrite(buf, sizeof(char), strlen(buf), file_out3);
-		}
-		fwrite("\n", sizeof(char), 1, file_out3);
+		// 	sprintf(buf, "%f\t%f\t", batch_value, temp * batch_value);
+		// 	fwrite(buf, sizeof(char), strlen(buf), file_out3);
+		// }
+		// fwrite("\n", sizeof(char), 1, file_out3);
 
 
 
@@ -927,14 +926,14 @@ void forward_backward(string etissue,
 	}
 
 
-	// DEBUG
-	//===========================================================================================
-	//===========================================================================================
-	fclose(file_out1);
-	fclose(file_out2);
-	fclose(file_out3);
-	//===========================================================================================
-	//===========================================================================================
+	// // DEBUG
+	// //===========================================================================================
+	// //===========================================================================================
+	// fclose(file_out1);
+	// fclose(file_out2);
+	// fclose(file_out3);
+	// //===========================================================================================
+	// //===========================================================================================
 
 
 
@@ -943,6 +942,9 @@ void forward_backward(string etissue,
 
 
 }
+
+
+
 
 
 

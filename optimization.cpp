@@ -56,9 +56,18 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
-int iter_learn_in = 200;  // iteration across all samples from one tissue
-int batch_size = 1;  // better be 20
+int iter_learn_in = 10;  // iteration across all samples from one tissue
+int batch_size = 20;  // better be 20
+
+// test different learning rate
 int rate_learner = 1;  // the learning rate
+//int rate_learner = 0.1;  // the learning rate
+//int rate_learner = 0.01;  // the learning rate
+//int rate_learner = 0.001;  // the learning rate
+//int rate_learner = 0.0001;  // the learning rate
+//int rate_learner = 0.00001;  // the learning rate
+//int rate_learner = 0.000001;  // the learning rate
+
 
 //======================================================================================================
 
@@ -571,7 +580,6 @@ void optimize()
 					cout << count3 << endl;
 					break;
 				}
-
 
 
 
