@@ -38,7 +38,7 @@ extern vector<vector<float>> tissue_hierarchical_pairwise;
 extern int iter_learn_out;  // iteration across all tissues
 extern int iter_learn_in;  // iteration across all samples from one tissue
 extern int batch_size;
-extern int rate_learner;  // the learning rate
+extern float rate_learner;  // the learning rate
 
 
 

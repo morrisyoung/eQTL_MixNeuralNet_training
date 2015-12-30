@@ -1,13 +1,14 @@
 /*
 the outline of the entire program:
 
-what we should have at hand by now:
+what we should have at hand by now (to train the model):
 1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion, or directly from memory;
 2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
 3. batch variables
 
 
-1. pipeline for processing the genotype data and the expression date (querying and iterating, in a mini-batch manner);
+some notes:
+1. pipeline for processing the genotype data and the expression data (querying and iterating, in a mini-batch manner);
 2. after getting the data, do the stochastic gradient descent algorithm;
 3. pay attention to the data structure used for storing all the parameters (coefficients);
 4. find a way to terminate the optimization process;
@@ -49,6 +50,8 @@ what we should have at hand by now:
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "batch.h"
+#include "io_file.h"
+#include "op_line.h"
 
 
 

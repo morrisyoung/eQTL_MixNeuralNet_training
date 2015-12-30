@@ -56,22 +56,20 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
-int iter_learn_in = 10;  // iteration across all samples from one tissue
+int iter_learn_in = 100;  // iteration across all samples from one tissue
 int batch_size = 20;  // better be 20
 
 // test different learning rate
-int rate_learner = 1;  // the learning rate
-//int rate_learner = 0.1;  // the learning rate
-//int rate_learner = 0.01;  // the learning rate
-//int rate_learner = 0.001;  // the learning rate
-//int rate_learner = 0.0001;  // the learning rate
-//int rate_learner = 0.00001;  // the learning rate
-//int rate_learner = 0.000001;  // the learning rate
+//float rate_learner = 1.0;  // the learning rate; this doesn't work
+//float rate_learner = 0.1;  // the learning rate; this doesn't work
+//float rate_learner = 0.01;  // the learning rate; this doesn't work
+//float rate_learner = 0.001;  // the learning rate; works!!!; bench#3
+//float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
+float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5
+//float rate_learner = 0.000001;  // the learning rate
 
 
 //======================================================================================================
-
-
 
 
 
@@ -569,7 +567,6 @@ void optimize()
 
 
 
-
 				// DEBUG
 				// check nan after this mini-batch
 				int flag = para_check_nan(etissue);
@@ -580,8 +577,6 @@ void optimize()
 					cout << count3 << endl;
 					break;
 				}
-
-
 
 
 
