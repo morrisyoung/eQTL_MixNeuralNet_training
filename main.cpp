@@ -6,7 +6,6 @@ what we should have at hand by now (to train the model):
 2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
 3. batch variables
 
-
 some notes:
 1. pipeline for processing the genotype data and the expression data (querying and iterating, in a mini-batch manner);
 2. after getting the data, do the stochastic gradient descent algorithm;
@@ -15,30 +14,21 @@ some notes:
 */
 
 
-// the information page of the data and the project is here:
+//// the information page of the data and the project is here:
 //	https://github.com/morrisyoung/eQTL_script
 // the project is here:
 //	https://github.com/morrisyoung/eQTL_cplusplus
 
 
-// something TODO in the main frame, e.g., some re-usable modules:
-// 1. file operation module (finished, to be added to the main program);
-// 2. hashtable-in judgement module (no need to do this)
-
-
-// some new notes (Dec.30, 2015):
+//// notes (Dec.30, 2015):
 // 1. should try to make the training program as flexible as possible (operating on objects, other than specific data structure);
 // 2. should add the single chromosome mode, as in simulation, we most probably simulate only one chromosome;
 // 3. ...
 
 
-
-
-
-
+//// source data re-organizing:
 // NOTE: we will re-organize all the data source files, and make them standard (for convenience of working on both real data and simulated data)
 // currently we need the following source files (data), not including the initialization of the parameter space:
-// TODO: need still to clean and standardize the format of data files in this folder
 /*
 1. "./data_real/genotype/chrXXX/SNP_dosage_IndividualID.txt"		// the genotype of this individual
 2. "./data_real/genotype/chrXXX/SNP_info.txt"						// SNP names and positions
@@ -62,6 +52,37 @@ some notes:
 8. "./batch_var_individual.txt"
 9. "./batch_var_sample.txt"
 */
+// what's changed in this transmission:
+/*
+1. none
+2. none
+3. none
+4. none
+5. removed the first two useless lines
+6. none
+7. none
+8. none
+9. none
+*/
+// what needs to be further done in the simulation code:
+/*
+1. genotype: organize as the real data, even if there is only one chromosome (this is the case in simulated data)
+2. as above
+3. list_individuals.txt: ...
+4. list_samples_train.txt: ...
+5. expression.txt: re-organize the simulated data as the real data (a full matrix)
+6. gene_tss.txt: ...
+7. gene_xymt.txt: maybe make this empty?
+8. batch_individuals.txt: will keep the first line -- variable name
+9. batch_samples.txt: will keep the first line -- variable name
+*/
+
+
+
+
+
+
+
 
 
 
@@ -219,9 +240,11 @@ int main()
 	//===================================== prepare the expression matrix =======================================
 	puts("[xxx] loading the gene rpkm matrix...");
 	char filename1[100];
+	filename1[0] = '\0';
 	strcat(filename1, filename_data_source);
 	strcat(filename1, "list_samples_train.txt");
 	char filename2[100];
+	filename2[0] = '\0';
 	strcat(filename2, filename_data_source);
 	strcat(filename2, "expression.txt");
 

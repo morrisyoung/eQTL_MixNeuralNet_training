@@ -36,6 +36,7 @@ long int snp_info_read()
 
 		//======== get all SNPs with their snp_info (count, position) ========
 		char filename[100];
+		filename[0] = '\0';
 		strcat(filename, filename_data_source);
 		strcat(filename, "genotype/chr");
 		char chrom[10];
@@ -148,6 +149,7 @@ void dosage_load()
 	// fill in: int num_individual; unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	// int num_individual;
 	char filename[100];
+	filename[0] = '\0';
 	strcat(filename, filename_data_source);
 	strcat(filename, "list_individuals.txt");
 	//puts("the current file worked on is: ");
@@ -184,6 +186,7 @@ void dosage_load()
 			snp_dosage_rep[individual].push_back(vec);
 			// read the dosage file for this individual on this chromosome
 			char filename[100];
+			filename[0] = '\0';
 			strcat(filename, filename_data_source);
 			strcat(filename, "genotype/chr");
 			char chrom[10];

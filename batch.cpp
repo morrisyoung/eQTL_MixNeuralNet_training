@@ -24,6 +24,7 @@ void batch_load()
 	//============================ part#1: fill in individual batch rep ============================
 	//unordered_map<string, vector<float>> batch_individual;
 	char filename[100];
+	filename[0] = '\0';
 	strcat(filename, filename_data_source);
 	strcat(filename, "batch_individuals.txt");
 	//puts("the current file worked on is: ");

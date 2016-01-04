@@ -78,16 +78,6 @@ long int gene_rpkm_load(char * filename1, char * filename2)  // fill in: eQTL_sa
 		{
 			case 1:
 			{
-				break;
-			}
-
-			case 2:
-			{
-				break;
-			}
-
-			case 3:
-			{
 				// // fill the index_rep, with eQTL_samples
 				int index = 0;
 				trim(input);
@@ -211,6 +201,7 @@ void gene_tss_load()
 	int index = 0;
 
 	char filename[100];
+	filename[0] = '\0';
 	strcat(filename, filename_data_source);
 	strcat(filename, "gene_tss.txt");
 	//puts("the current file worked on is: ");
@@ -278,6 +269,7 @@ void gene_tss_load()
 void gene_xymt_load()
 {
 	char filename[100];
+	filename[0] = '\0';
 	strcat(filename, filename_data_source);
 	strcat(filename, "gene_xymt.txt");
 
