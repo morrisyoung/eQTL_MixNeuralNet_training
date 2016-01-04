@@ -1,10 +1,17 @@
 /*
 the testing routine:
 
-1. read the saved parameters from the source file;
-2. read the genotype data of testing dataset, to perform the prediction;
+1. read the saved parameters from the source files;
+2. read the genotype data (and the batch variables) of testing dataset, to perform the prediction;
 3. save the expected expression array for all the testing samples (from different tissue types) -- etissue list, and seperate files for each tissue;
 4. [outside this program] calculate and plot the Pearson correlation plot for the testing dataset, for each tissue type;
+
+
+several other issues:
+1. for the testing, it's better if we can jump the process of saving all the learned parameters into file, as the numerical precision might be compromised;
+2. for this testing, we know the sample batch values; while in practice, we don't actually know these sample batch variables (as we don't even have these samples);
+	this to some extend limits the practical gene expression prediction of this model
+3. ...
 
 */
 

@@ -11,6 +11,7 @@
 #include "global.h"
 
 
+
 using namespace std;
 
 
@@ -22,7 +23,9 @@ void batch_load()
 	//unordered_map<string, vector<float>> batch_sample;
 	//============================ part#1: fill in individual batch rep ============================
 	//unordered_map<string, vector<float>> batch_individual;
-	char filename[100] = "../batch_var_individual.txt";
+	char filename[100];
+	strcat(filename, filename_data_source);
+	strcat(filename, "batch_individuals.txt");
 	//puts("the current file worked on is: ");
 	//puts(filename);
 
@@ -72,7 +75,8 @@ void batch_load()
 	//============================ part#2: fill in sample batch rep ============================
 	//unordered_map<string, vector<float>> batch_sample;
 	filename[0] = '\0';
-	strcat(filename, "../batch_var_sample.txt");
+	strcat(filename, filename_data_source);
+	strcat(filename, "batch_samples.txt");
 	//puts("the current file worked on is: ");
 	//puts(filename);
 

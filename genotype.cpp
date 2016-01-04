@@ -35,7 +35,9 @@ long int snp_info_read()
 		snp_pos_list[i] = vec2;
 
 		//======== get all SNPs with their snp_info (count, position) ========
-		char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+		char filename[100];
+		strcat(filename, filename_data_source);
+		strcat(filename, "genotype/chr");
 		char chrom[10];
 		sprintf(chrom, "%d", chr);
 		strcat(filename, chrom);
@@ -85,7 +87,9 @@ void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
 		int chr = i+1;
 
 		//======== get all SNPs with their snp_info (count, position) ========
-		char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+		char filename[100];
+		strcat(filename, filename_data_source);
+		strcat(filename, "genotype/chr");
 		char chrom[10];
 		sprintf(chrom, "%d", chr);
 		strcat(filename, chrom);
@@ -120,7 +124,6 @@ void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
 	}
 	*/
 
-
 	// we need another routine to load the snps from rep in memory
 	// fill in this: unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	// with these: array<vector<float>, 22> * array_pointer, string individual
@@ -144,7 +147,12 @@ void dosage_load()
 {
 	// fill in: int num_individual; unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	// int num_individual;
-	char filename[100] = "../list_individual.txt";
+	char filename[100];
+	strcat(filename, filename_data_source);
+	strcat(filename, "list_individuals.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
@@ -175,7 +183,9 @@ void dosage_load()
 			vector<float> vec;
 			snp_dosage_rep[individual].push_back(vec);
 			// read the dosage file for this individual on this chromosome
-			char filename[100] = "../genotype_185_dosage_matrix_qc/chr";
+			char filename[100];
+			strcat(filename, filename_data_source);
+			strcat(filename, "genotype/chr");
 			char chrom[10];
 			sprintf(chrom, "%d", chr);
 			strcat(filename, chrom);

@@ -74,7 +74,7 @@ void StrToCharSeq(char * str1, string str)
 string sample_to_individual(string sample)
 {
 	string individual;
-	for(int i=0; i<9; i++)  // TODO: in next stage, the individual ID may be longer
+	for(int i=0; i<9; i++)  // TODO: in next stage, the individual ID may be longer (we should use the second "-" as the individual ID terminator)
 	{
 		individual.push_back(sample[i]);
 	}

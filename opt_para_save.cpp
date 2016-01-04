@@ -1,4 +1,5 @@
-// saving all the parameters
+// function: save all the parameters into file (after this iteration), and test them or interpret them later on
+// this is mainly used for testing the training code
 
 #include <iostream>
 #include <stdio.h>

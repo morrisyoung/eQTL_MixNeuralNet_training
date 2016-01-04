@@ -210,7 +210,12 @@ void gene_tss_load()
 {
 	int index = 0;
 
-	char filename[100] = "../gencode.v18.genes.patched_contigs.gtf_gene_tss";
+	char filename[100];
+	strcat(filename, filename_data_source);
+	strcat(filename, "gene_tss.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
@@ -272,7 +277,10 @@ void gene_tss_load()
 
 void gene_xymt_load()
 {
-	char filename[100] = "../gencode.v18.genes.patched_contigs.gtf_gene_xymt";
+	char filename[100];
+	strcat(filename, filename_data_source);
+	strcat(filename, "gene_xymt.txt");
+
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{

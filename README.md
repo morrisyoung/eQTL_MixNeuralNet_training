@@ -12,4 +12,6 @@ There are several components in this project:
 
 5. basic.cpp: Some basic functions that may be used by the whole program.
 
-6. xxx
+6. ...
+
+...to be finished

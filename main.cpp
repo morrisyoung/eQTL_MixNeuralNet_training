@@ -22,8 +22,49 @@ some notes:
 
 
 // something TODO in the main frame, e.g., some re-usable modules:
-// 1. file operation module;
-// 2. hashtable-in judgement module
+// 1. file operation module (finished, to be added to the main program);
+// 2. hashtable-in judgement module (no need to do this)
+
+
+// some new notes (Dec.30, 2015):
+// 1. should try to make the training program as flexible as possible (operating on objects, other than specific data structure);
+// 2. should add the single chromosome mode, as in simulation, we most probably simulate only one chromosome;
+// 3. ...
+
+
+
+
+
+
+// NOTE: we will re-organize all the data source files, and make them standard (for convenience of working on both real data and simulated data)
+// currently we need the following source files (data), not including the initialization of the parameter space:
+// TODO: need still to clean and standardize the format of data files in this folder
+/*
+1. "./data_real/genotype/chrXXX/SNP_dosage_IndividualID.txt"		// the genotype of this individual
+2. "./data_real/genotype/chrXXX/SNP_info.txt"						// SNP names and positions
+3. "./data_real/list_individuals.txt"								// the list of individual IDs
+4. "./data_real/list_samples_train.txt"								// the list of samples (from different tissues) used in training
+5. "./data_real/expression.txt"										// the expression matrix
+6. "./data_real/gene_tss.txt"										// the chr# and TSS of all genes
+7. "./data_real/gene_xymt.txt"										// the genes to be excluded in the current model (X, Y, MT genes)
+8. "./data_real/batch_individuals.txt"								// the individual batch variables
+9. "./data_real/batch_samples.txt"									// the tissue sample batch variables (individuals x tissues)
+*/
+// where do they come from (the last processed data source files):
+/*
+1. "./genotype_185_dosage_matrix_qc/chrXXX/SNP_dosage_IndividualID.txt"
+2. "./genotype_185_dosage_matrix_qc/chrXXX/SNP_info.txt"
+3. "./list_individual.txt"
+4. "./phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train"
+5. "./GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized"
+6. "./gencode.v18.genes.patched_contigs.gtf_gene_tss"
+7. "./gencode.v18.genes.patched_contigs.gtf_gene_xymt"
+8. "./batch_var_individual.txt"
+9. "./batch_var_sample.txt"
+*/
+
+
+
 
 
 
@@ -50,8 +91,8 @@ some notes:
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "batch.h"
-#include "io_file.h"
-#include "op_line.h"
+#include "io_file.h"			// some Python-like file IO operations
+#include "op_line.h"			// some Python-like line(string) operations
 
 
 
@@ -118,7 +159,14 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 // multi-threading mark
 int MULTI_THREAD = 1;
 
+
+
+//// file name space
+// (note: if we standadize the source data format and name, we only need the upper folder name)
+char filename_data_source[] = "../data_real/";
 //===========================================================
+
+
 
 
 
@@ -170,8 +218,13 @@ int main()
 
 	//===================================== prepare the expression matrix =======================================
 	puts("[xxx] loading the gene rpkm matrix...");
-	char filename1[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_train";
-	char filename2[100] = "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized";
+	char filename1[100];
+	strcat(filename1, filename_data_source);
+	strcat(filename1, "list_samples_train.txt");
+	char filename2[100];
+	strcat(filename2, filename_data_source);
+	strcat(filename2, "expression.txt");
+
 	num_gene = gene_rpkm_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;

@@ -84,6 +84,13 @@ extern int MULTI_THREAD;
 
 
 
+// file name space
+// (note: if we standadize the source data format and name, we only need the upper folder name)
+extern char filename_data_source[];
+
+
+
+
 
 #endif
 
