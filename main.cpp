@@ -1,12 +1,17 @@
+//// input data:
 /*
-the outline of the entire program:
+1. genotype: grouped by chromosomes, and split for different individuals;
+2. expression: small enough to be fit in memory, though a 3D tensor;
+3. batch variables: individual batch, and tissue sample batch
+*/
 
-what we should have at hand by now (to train the model):
-1. genotype: grouped by chromosomes, and split for different individuals; read in on-demand fashion, or directly from memory;
-2. expression: small enough to be fit in memory; should be loaded into memory immediately after initializing the program
-3. batch variables
 
-some notes:
+//// output:
+// the model, or the coefficients in different parts
+
+
+//// early notes:
+/*
 1. pipeline for processing the genotype data and the expression data (querying and iterating, in a mini-batch manner);
 2. after getting the data, do the stochastic gradient descent algorithm;
 3. pay attention to the data structure used for storing all the parameters (coefficients);
@@ -68,17 +73,18 @@ some notes:
 /*
 1. genotype: organize as the real data, even if there is only one chromosome (this is the case in simulated data)
 2. as above
-3. list_individuals.txt: ...
-4. list_samples_train.txt: ...
-5. expression.txt: re-organize the simulated data as the real data (a full matrix)
-6. gene_tss.txt: ...
-7. gene_xymt.txt: maybe make this empty?
-8. batch_individuals.txt: will keep the first line -- variable name
-9. batch_samples.txt: will keep the first line -- variable name
+3. list_individuals.txt: ...															[done]
+4. list_samples_train.txt: (to do after the simulation)									[done]
+5. expression.txt: re-organize the simulated data as the real data (a full matrix)		[done]
+6. gene_tss.txt: ...																	[done]
+7. gene_xymt.txt: (to do after the simulation)											[done]
+8. batch_individuals.txt: will keep the first line -- variable name 					[done]
+9. batch_samples.txt: will keep the first line -- variable name 						[done]
 */
 
 
-
+/// something tiny left (as Jan.5, 2016):
+// why the SNP info list is separated (SNP name and it's position) by Space other than Tab?
 
 
 

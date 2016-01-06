@@ -1,17 +1,44 @@
-Implementation (C++) for gene expression with regulation. (both the codes and the document to be finished...)
+## 1. Input and Output
 
-There are several components in this project:
+Input will need the following source data ("xxx" means "real" or "simu" corresponding to real dataset or simulated dataset):
 
-1. main.cpp: This is the entrance of the whole project. It will process some command line options, initialize some data and call other routines (mainly the routine for optimization).
+```
+../data_xxx
+../data_xxx/batch_individuals.txt
+../data_xxx/batch_samples.txt
+../data_xxx/genotype
+../data_xxx/genotype/chrX
+../data_xxx/genotype/chrX/SNP_dosage_IndividualID.txt
+../data_xxx/genotype/chrX/SNP_info.txt
+../data_xxx/list_individuals.txt
+../data_xxx/expression.txt
+../data_xxx/gene_tss.txt
+../data_xxx/gene_xymt.txt
+../data_xxx/list_samples_train.txt
+```
 
-2. genotype.cpp: This will read the genotype dosage data from prepared repository. It will also process the pruned SNPs according to the information we have at hand (dosage data of pruned SNPs, associated un-pruned SNPs/representative SNPs and the association signal R^2, and for the regularization we have the prior knowledge score).
+it will also needs the following to initialize all the parameters (these files are prepared by other routines):
 
-3. expression.cpp: This will read and prepare the expression data.
+```
+../result_init
+../result_init/para_init_train_batch_batch_hidden.txt
+../result_init/para_init_train_batch_hidden_gene.txt
+../result_init/para_init_train_cis.txt
+../result_init/para_init_train_snp_cellenv.txt
+../result_init/para_init_train_cellenv_gene.txt
+```
 
-4. optimization.cpp: This is the main routine of the optimization program. It will call other routine to get genotype data and work on expression data, for stochastic gradient descent. It may call other subroutines for detailed stochastic gradient descent algorithm.
+and the output will generate the following data (the model, or the set of coefficients):
 
-5. basic.cpp: Some basic functions that may be used by the whole program.
+```
+../result
+../result/etissue_list.txt
+../result/para_batch_batch_hidden.txt
+../result/para_batch_hidden_gene.txt
+../result/para_snp_cellenv.txt
+../result/para_cellenv_gene
+../result/para_cellenv_gene/etissueX.txt
+../result/para_cis_gene
+../result/para_cis_gene/etissueX.txt
+```
 
-6. ...
-
-...to be finished
