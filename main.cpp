@@ -88,6 +88,12 @@
 
 
 
+//// what to do to change the dataset from real dataset to simulated dataset?
+// 1. change the file header, from char filename_data_source[] = "../data_real/" to char filename_data_source[] = "../data_simu/";
+// 2. change the number of chromosomes, which probably is the only difference between these two types of datasets;
+// 3. ...
+
+
 
 
 
@@ -141,8 +147,8 @@ int num_individual = 0;		// TBD
 
 
 //// genotype relevant:
-array<vector<string>, 22> snp_name_list;
-array<vector<long>, 22> snp_pos_list;
+array<vector<string>, NUM_CHR> snp_name_list;
+array<vector<long>, NUM_CHR> snp_pos_list;
 unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 

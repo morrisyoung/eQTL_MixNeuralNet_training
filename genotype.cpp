@@ -26,7 +26,7 @@ long int snp_info_read()
 	long int num = 0;
 
 	int i;
-	for(i=0; i<22; i++)
+	for(i=0; i<NUM_CHR; i++)
 	{
 		int chr = i+1;
 		vector<string> vec1;
@@ -79,11 +79,11 @@ long int snp_info_read()
 
 
 
-void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
+void snp_dosage_load(array<float *, NUM_CHR> * array_pointer, string individual)
 {
 	/*
 	int i;
-	for(i=0; i<22; i++)
+	for(i=0; i<NUM_CHR; i++)
 	{
 		int chr = i+1;
 
@@ -127,8 +127,8 @@ void snp_dosage_load(array<float *, 22> * array_pointer, string individual)
 
 	// we need another routine to load the snps from rep in memory
 	// fill in this: unordered_map<string, vector<vector<float>>> snp_dosage_rep;
-	// with these: array<vector<float>, 22> * array_pointer, string individual
-	for(int i=0; i<22; i++)
+	// with these: array<vector<float>, NUM_CHR> * array_pointer, string individual
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		int chr = i+1;
 		for(long j=0; j<snp_name_list[i].size(); j++)
@@ -179,7 +179,7 @@ void dosage_load()
 	for(auto it = snp_dosage_rep.begin(); it != snp_dosage_rep.end(); ++it)
 	{
 		string individual = it->first;
-		for(int i=0; i<22; i++)
+		for(int i=0; i<NUM_CHR; i++)
 		{
 			int chr = i+1;
 			vector<float> vec;

@@ -11,6 +11,10 @@
 using namespace std;
 
 
+// Macro definition
+#define NUM_CHR 22
+
+
 
 // number of cell environment variables; default value is 400
 extern int num_cellenv;
@@ -31,8 +35,8 @@ extern int num_individual;
 
 
 // genotype relevant:
-extern array<vector<string>, 22> snp_name_list;
-extern array<vector<long>, 22> snp_pos_list;
+extern array<vector<string>, NUM_CHR> snp_name_list;
+extern array<vector<long>, NUM_CHR> snp_pos_list;
 extern unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 

@@ -36,7 +36,7 @@ int * finish_table;				// finish table for all the samples in this batch ()
 void package_alloc(package_thread * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		long num_temp = snp_name_list[i].size();
 		float * p = (float *)calloc( num_temp, sizeof(float) );
@@ -112,7 +112,7 @@ void package_alloc(package_thread * package_pointer)
 void package_free(package_thread * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		free((package_pointer->snp_dosage_list)[i]);
 	}

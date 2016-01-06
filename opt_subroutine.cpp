@@ -439,7 +439,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 // what we need for the following routine:
 // dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
 void forward_backward(string etissue,
-	array<float *, 22> * dosage_list_pointer,
+	array<float *, NUM_CHR> * dosage_list_pointer,
 	vector<float> * expr_list_pointer,
 	float * expr_con_pointer,
 	float * cellenv_con_pointer,
@@ -508,7 +508,7 @@ void forward_backward(string etissue,
 	{
 		cellenv_con_pointer[i] = 0;
 		long count = 0;
-		for(int j=0; j<22; j++)  // across all the chromosomes
+		for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
 		{
 			int chr = j+1;
 			for(long k=0; k<snp_name_list[j].size(); k++)
@@ -779,7 +779,7 @@ void forward_backward(string etissue,
 
 
 		long count = 0;
-		for(int j=0; j<22; j++)  // across all the chromosomes
+		for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
 		{
 			int chr = j+1;
 			for(long k=0; k<snp_name_list[j].size(); k++)

@@ -9,6 +9,7 @@
 #include <vector>
 #include <forward_list>
 #include <utility>
+#include "global.h"
 
 using namespace std;
 
@@ -26,7 +27,7 @@ long int snp_info_read();
 
 
 // read dosage chunk (for one individual on all chromosomes)
-void snp_dosage_load(array<float *, 22> *, string);
+void snp_dosage_load(array<float *, NUM_CHR> *, string);
 
 
 // load all the dosage data for all individuals on all chromosomes

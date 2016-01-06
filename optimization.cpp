@@ -31,7 +31,7 @@ using namespace std;
 //====================================== local global variables ========================================
 // these variables are specially designed for this routine -- optimization
 // need to initialize some local containers:
-array<float *, 22> snp_dosage_list;
+array<float *, NUM_CHR> snp_dosage_list;
 float * gene_rpkm_exp;  // with length "num_gene"
 float * cellenv_hidden_var;  // with length "num_cellenv"
 float * batch_var;  // with length "num_batch"
@@ -270,7 +270,7 @@ void opt_snp_prior_load()
 		prior_tissue_rep[eTissue] = vec;
 
 		int i;
-		for(i=0; i<22; i++)
+		for(i=0; i<NUM_CHR; i++)
 		{
 			int chr = i+1;
 			vector<float> vec;
@@ -386,7 +386,7 @@ void opt_para_init()
 	puts("opt_para_init..");
 
 	//=============== snp_dosage_list ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		long num_temp = snp_name_list[i].size();
 		float * p = (float *)calloc( num_temp, sizeof(float) );
@@ -472,7 +472,7 @@ void opt_para_init()
 void opt_para_release()
 {
 	//=============== snp_dosage_list ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		free(snp_dosage_list[i]);
 	}

@@ -8,6 +8,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include "global.h"
 
 
 
@@ -25,7 +26,7 @@ typedef struct package_thread
 	int num_esample;
 
 	// variable containers
-	array<float *, 22> snp_dosage_list;
+	array<float *, NUM_CHR> snp_dosage_list;
 	float * gene_rpkm_exp;  	// with length "num_gene"
 	float * cellenv_hidden_var; // with length "num_cellenv"
 	float * batch_var;			// with length "num_batch"

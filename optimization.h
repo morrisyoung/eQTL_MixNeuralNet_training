@@ -6,12 +6,13 @@
 
 
 #include <string>
+#include "global.h"
 
 
 using namespace std;
 
 
-extern array<float *, 22> snp_dosage_list;
+extern array<float *, NUM_CHR> snp_dosage_list;
 extern float * gene_rpkm_exp;  // with length "num_gene"
 extern float * cellenv_hidden_var;  // with length "num_cellenv"
 extern float * batch_var;  // with length "num_batch"
