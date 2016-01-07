@@ -42,3 +42,9 @@ and the output will generate the following data (the model, or the set of coeffi
 ../result/para_cis_gene/etissueX.txt
 ```
 
+The following dir's are for debugging the program:
+
+```
+../temp_data (associated code: opt_subroutine.cpp)
+../result_inter (associated code: opt_para_save.cpp)
+```

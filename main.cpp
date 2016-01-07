@@ -31,7 +31,9 @@
 // 3. ...
 
 
-//// source data re-organizing:
+
+
+//// source data re-organizing (jan.1, 2016):
 // NOTE: we will re-organize all the data source files, and make them standard (for convenience of working on both real data and simulated data)
 // currently we need the following source files (data), not including the initialization of the parameter space:
 /*
@@ -89,13 +91,10 @@
 
 
 //// what to do to change the dataset from real dataset to simulated dataset?
-// 1. change the file header, from char filename_data_source[] = "../data_real/" to char filename_data_source[] = "../data_simu/";
-// 2. change the number of chromosomes, which probably is the only difference between these two types of datasets;
-// 3. ...
-
-
-
-
+// 1. change the file header, from (char filename_data_source[] = "../data_real/") to (char filename_data_source[] = "../data_simu/")
+// 2. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
+// 3. change NUM_CHR, Macro
+// 4. ...
 
 
 
