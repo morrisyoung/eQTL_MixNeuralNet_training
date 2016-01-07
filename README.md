@@ -51,7 +51,7 @@ The following dir's are for debugging the program:
 
 Notes:
 
-1. the program will take source data from either "../data\_real/" or "../data\_simu/" as the input data, while the input data are in same format, only in different folder
+1. the program will take source data from either "../data\_real/" or "../data\_simu/" as the input data, while the input data are in same format, only in different folders
 2. the program will also need to initialize the parameters before learning, which needs either "../result\_init/" or "../result\_init\_simu/"; the source files are in the same format
 3. for both real dataset and simulated dataset, the output (model parameters) will exist in the same folder "../result/"
 
