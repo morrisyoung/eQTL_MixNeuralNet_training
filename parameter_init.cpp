@@ -15,6 +15,8 @@
 #include "expression.h"
 #include "basic.h"
 #include <math.h>
+#include <cstring>
+
 
 
 
@@ -99,7 +101,13 @@ void para_init()
 	//==================================== cellular factor pathway =====================================
 	//=============== from snp to cell env variables ===============
 	// vector<float *> para_snp_cellenv
-	char filename[100] = "../result_init/para_init_train_snp_cellenv.txt";
+	char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_init_snp_cellenv.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
@@ -130,9 +138,53 @@ void para_init()
 	fclose(file_in);
 	//=============== from cell env variables to genes ===============
 	// vector<vector<float *>> para_cellenv_gene
+	// get the temp rep first
+	unordered_map<string, string> map_temp;
+
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "etissue_list_init.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	//FILE * file_in = fopen(filename, "r");
+	file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string etissue = p;
+		
+		p = strtok(NULL, sep);
+		string etissue_index = p;
+
+		map_temp[etissue] = etissue_index;
+	}
+	fclose(file_in);
+
+	// fill the parameter space for each tissue then
 	for(int j=0; j<num_etissue; j++)
 	{
-		char filename[100] = "../result_init/para_init_train_cellenv_gene.txt";
+		string etissue = etissue_list[j];
+		string etissue_index = map_temp[etissue];
+
+		char filename[100];
+		filename[0] = '\0';
+		strcat(filename, file_para_init);
+		strcat(filename, "para_init_cellenv_gene/etissue");
+		strcat(filename, etissue_index.c_str());
+		strcat(filename, ".txt");
+		//puts("the current file worked on is: ");
+		//puts(filename);
+
 		FILE * file_in = fopen(filename, "r");
 		if(file_in == NULL)
 		{
@@ -164,52 +216,67 @@ void para_init()
 	}
 	//==================================== cis- association pathway =====================================
 	// vector<vector<float *>> para_cis_gene
-	// build the rep first, then use it to fill all the parameter space
-	unordered_map<string, vector<float>> rep_para_cis_gene;
-	char filename0[100] = "../result_init/para_init_train_cis.txt";
-	file_in = fopen(filename0, "r");
-	if(file_in == NULL)
-	{
-		fputs("File error\n", stderr); exit(1);
-	}
-	//int input_length = 100000;
-	//char input[input_length];
-	while(fgets(input, input_length, file_in) != NULL)
-	{
-		trim(input);
-
-		const char * sep = "\t";
-		char * p;
-		p = strtok(input, sep);
-		string gene = p;
-		vector<float> vec;
-		rep_para_cis_gene.emplace(gene, vec);
-
-		int count = 0;
-		while(p)
-		{
-			count++;
-			if(count == 1)  // this is the gene
-			{
-				p = strtok(NULL, sep);
-				continue;
-			}
-			// append this para, and iterate across all samples
-			float para = stof(p);
-			// NOTE: there may be "nan" in the cis- parameters, as these parameters are from regression analysis
-			if(isnan(para))
-			{
-				para = 0;
-			}
-			rep_para_cis_gene[gene].push_back(para);
-
-			p = strtok(NULL, sep);
-		}
-	}
-	fclose(file_in);
-	// then fill in the same parameters for all tissue types
+	// map_temp can be used here
 	for(int j=0; j<num_etissue; j++)
 	{
+		// build the rep first, then use it to fill all the parameter space
+		unordered_map<string, vector<float>> rep_para_cis_gene;
+
+		string etissue = etissue_list[j];
+		string etissue_index = map_temp[etissue];
+
+		char filename[100];
+		filename[0] = '\0';
+		strcat(filename, file_para_init);
+		strcat(filename, "para_init_cis_gene/etissue");
+		strcat(filename, etissue_index.c_str());
+		strcat(filename, ".txt");
+		//puts("the current file worked on is: ");
+		//puts(filename);
+
+		FILE * file_in = fopen(filename, "r");
+		if(file_in == NULL)
+		{
+			fputs("File error\n", stderr); exit(1);
+		}
+		//int input_length = 100000;
+		//char input[input_length];
+		while(fgets(input, input_length, file_in) != NULL)
+		{
+			trim(input);
+
+			const char * sep = "\t";
+			char * p;
+			p = strtok(input, sep);
+			string gene = p;
+			vector<float> vec;
+			rep_para_cis_gene.emplace(gene, vec);
+
+			int count = 0;
+			while(p)
+			{
+				count++;
+				if(count == 1)  // this is the gene
+				{
+					p = strtok(NULL, sep);
+					continue;
+				}
+				// append this para, and iterate across all samples
+				float para = stof(p);
+				// NOTE: there may be "nan" in the cis- parameters, as these parameters are from regression analysis
+				if(isnan(para))
+				{
+					para = 0;
+				}
+				rep_para_cis_gene[gene].push_back(para);
+
+				p = strtok(NULL, sep);
+			}
+		}
+		fclose(file_in);
+
+
+		// then fill in the same parameters for all tissue types
 		for(long i=0; i<gene_list.size(); i++)
 		{
 			string gene = gene_list[i];
@@ -239,8 +306,14 @@ void para_init()
 	//==================================== batch effect pathway =====================================
 	//=============== from original batch to hidden batch ===============
 	// vector<float *> para_batch_batch_hidden
-	char filename1[100] = "../result_init/para_init_train_batch_batch_hidden.txt";
-	file_in = fopen(filename1, "r");
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_init_batch_batch_hidden.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
@@ -270,8 +343,14 @@ void para_init()
 	fclose(file_in);
 	//=============== from hidden batch to genes ===============
 	// vector<float *> para_batch_hidden_gene
-	char filename2[100] = "../result_init/para_init_train_batch_hidden_gene.txt";
-	file_in = fopen(filename2, "r");
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_init_batch_hidden_gene.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);

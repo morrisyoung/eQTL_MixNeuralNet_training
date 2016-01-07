@@ -93,8 +93,28 @@
 //// what to do to change the dataset from real dataset to simulated dataset?
 // 1. change the file header, from (char filename_data_source[] = "../data_real/") to (char filename_data_source[] = "../data_simu/")
 // 2. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
-// 3. change NUM_CHR, Macro
+// 3. change NUM_CHR (Macro), the 
 // 4. ...
+
+
+
+//// re-organize the source data for parameter initialization
+// two folders:
+// 1. ../result_init/
+// 2. ../result_init_simu/
+// they have the same contents:
+// ../xxx/etissue_list_init.txt
+// ../xxx/para_init_batch_batch_hidden.txt
+// ../xxx/para_init_batch_hidden_gene.txt
+// ../xxx/para_init_cellenv_gene
+// ../xxx/para_init_cellenv_gene/etissueX.txt
+// ../xxx/para_init_cis_gene
+// ../xxx/para_init_cis_gene/etissueX.txt
+// ../xxx/para_init_snp_cellenv.txt
+// notes:
+// 1. in the real dataset, as I will initialize the parameters for different tissues with the same file, I point all tissues to the same index, in "etissue_list.txt"
+
+
 
 
 
@@ -195,7 +215,8 @@ int MULTI_THREAD = 1;
 
 //// file name space
 // (note: if we standadize the source data format and name, we only need the upper folder name)
-char filename_data_source[] = "../data_real/";
+char filename_data_source[] = "../data_real/";			// or "../data_simu/"
+char file_para_init[] = "../result_init/";				// or "../result_init_simu/"
 //===========================================================
 
 
