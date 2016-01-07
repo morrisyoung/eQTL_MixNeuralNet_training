@@ -45,6 +45,6 @@ and the output will generate the following data (the model, or the set of coeffi
 The following dir's are for debugging the program:
 
 ```
-../temp_data (associated code: opt_subroutine.cpp)
-../result_inter (associated code: opt_para_save.cpp)
+../temp_data (associated code: "opt_subroutine.cpp", to check some intermediate results, such as the derivatives, and the value before and after the logistic activation function)
+../result_inter (associated code: "opt_para_save.cpp", called in "optimization.cpp" to save the results after each iteration across all tissues; not used in practice, as we will always quit the program when something is wrong in the learning)
 ```
