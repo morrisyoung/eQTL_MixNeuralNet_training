@@ -33,7 +33,7 @@
 
 
 
-//// source data re-organizing (jan.1, 2016):
+//// source data re-organizing (Jan.1, 2016):
 // NOTE: we will re-organize all the data source files, and make them standard (for convenience of working on both real data and simulated data)
 // currently we need the following source files (data), not including the initialization of the parameter space:
 /*

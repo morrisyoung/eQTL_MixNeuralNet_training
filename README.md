@@ -48,3 +48,10 @@ The following dir's are for debugging the program:
 ../temp_data (associated code: "opt_subroutine.cpp", to check some intermediate results, such as the derivatives, and the value before and after the logistic activation function)
 ../result_inter (associated code: "opt_para_save.cpp", called in "optimization.cpp" to save the results after each iteration across all tissues; not used in practice, as we will always quit the program when something is wrong in the learning)
 ```
+
+Notes:
+
+1. the program will take source data from either "../data\_real/" or "../data\_simu/" as the input data, while the input data are in same format, only in different folder
+2. the program will also need to initialize the parameters before learning, which needs either "../result\_init/" or "../result\_init\_simu/"; the source files are in the same format
+3. for both real dataset and simulated dataset, the output (model parameters) will exist in the same folder "../result/"
+
