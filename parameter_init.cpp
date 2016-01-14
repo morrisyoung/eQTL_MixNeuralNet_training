@@ -92,6 +92,8 @@ void para_init()
 
 
 
+
+
 	//
 	// initializing their value of those parameters
 	//
@@ -136,6 +138,7 @@ void para_init()
 		count++;
 	}
 	fclose(file_in);
+
 	//=============== from cell env variables to genes ===============
 	// vector<vector<float *>> para_cellenv_gene
 	// get the temp rep first
@@ -214,6 +217,8 @@ void para_init()
 		}
 		fclose(file_in);
 	}
+
+
 	//==================================== cis- association pathway =====================================
 	// vector<vector<float *>> para_cis_gene
 	// map_temp can be used here
@@ -303,6 +308,8 @@ void para_init()
 			// leaving this gene
 		}
 	}
+
+
 	//==================================== batch effect pathway =====================================
 	//=============== from original batch to hidden batch ===============
 	// vector<float *> para_batch_batch_hidden
@@ -341,6 +348,8 @@ void para_init()
 		count++;
 	}
 	fclose(file_in);
+
+
 	//=============== from hidden batch to genes ===============
 	// vector<float *> para_batch_hidden_gene
 	//char filename[100];
