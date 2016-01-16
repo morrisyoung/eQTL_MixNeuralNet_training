@@ -10,7 +10,7 @@
 // the model, or the coefficients in different parts
 
 
-//// early notes:
+//// earlier notes:
 /*
 1. pipeline for processing the genotype data and the expression data (querying and iterating, in a mini-batch manner);
 2. after getting the data, do the stochastic gradient descent algorithm;
@@ -20,20 +20,22 @@
 
 
 //// the information page of the data and the project is here:
+// the processing script is here (this is for the v.4 data):
 //	https://github.com/morrisyoung/eQTL_script
 // the project is here:
 //	https://github.com/morrisyoung/eQTL_cplusplus
+// we also have a simulator here:
+//	https://github.com/morrisyoung/BayesianMixNeuralNet_simulator
 
 
 //// notes (Dec.30, 2015):
 // 1. should try to make the training program as flexible as possible (operating on objects, other than specific data structure);
-// 2. should add the single chromosome mode, as in simulation, we most probably simulate only one chromosome;
-// 3. ...
+// 2. ...
 
 
 
-
-//// source data re-organizing (Jan.1, 2016):
+////=============================================================================================================================================
+//// source data re-organizing (Jan.1, 2016)
 // NOTE: we will re-organize all the data source files, and make them standard (for convenience of working on both real data and simulated data)
 // currently we need the following source files (data), not including the initialization of the parameter space:
 /*
@@ -59,7 +61,7 @@
 8. "./batch_var_individual.txt"
 9. "./batch_var_sample.txt"
 */
-// what's changed in this transmission:
+// what's changed in this transmission (besides file names):
 /*
 1. none
 2. none
@@ -71,31 +73,22 @@
 8. none
 9. none
 */
-// what needs to be further done in the simulation code:
+// what needs to be further done in the simulation code (will output the re-formated data from simulator and partitioner programs):
 /*
-1. genotype: organize as the real data, even if there is only one chromosome (this is the case in simulated data)
-2. as above
-3. list_individuals.txt: ...															[done]
-4. list_samples_train.txt: (to do after the simulation)									[done]
-5. expression.txt: re-organize the simulated data as the real data (a full matrix)		[done]
-6. gene_tss.txt: ...																	[done]
-7. gene_xymt.txt: (to do after the simulation)											[done]
-8. batch_individuals.txt: will keep the first line -- variable name 					[done]
-9. batch_samples.txt: will keep the first line -- variable name 						[done]
+1. genotype: organize as the real data, even if there is only one chromosome (this is the case in simulated data)	[done]
+2. as above																											[done]
+3. list_individuals.txt: ...																						[done]
+4. list_samples_train.txt: (do after the simulation; with partitioner)												[done]
+5. expression.txt: re-organize the simulated data as the real data (a full matrix)									[done]
+6. gene_tss.txt: ...																								[done]
+7. gene_xymt.txt: (to do after the simulation)																		[done]
+8. batch_individuals.txt: will keep the first line -- variable name 												[done]
+9. batch_samples.txt: will keep the first line -- variable name 													[done]
 */
 
 
 /// something tiny left (as Jan.5, 2016):
 // why the SNP info list is separated (SNP name and it's position) by Space other than Tab?
-
-
-
-//// what to do to change the dataset from real dataset to simulated dataset?
-// 1. change the file header, from (char filename_data_source[] = "../data_real/") to (char filename_data_source[] = "../data_simu/")
-// 2. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
-// 3. change NUM_CHR (Macro), the 
-// 4. ...
-
 
 
 //// re-organize the source data for parameter initialization
@@ -113,7 +106,24 @@
 // ../xxx/para_init_snp_cellenv.txt
 // notes:
 // 1. in the real dataset, as I will initialize the parameters for different tissues with the same file, I point all tissues to the same index, in "etissue_list.txt"
+// 2. ...
+////=============================================================================================================================================
 
+
+
+//// [important] what to do to change the dataset from real dataset to simulated dataset?
+// 1. change the file header (source data), from (char filename_data_source[] = "../data_real/";) to (char filename_data_source[] = "../data_simu/";)
+// 2. change the file header (initial parameters), from (char file_para_init[] = "../result_init/";) to (char file_para_init[] = "../result_init_simu/";)
+// 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
+// 4. change NUM_CHR (Macro), the number of chromosomes
+// 5. ...
+
+
+
+//// TODO (Jan.14):
+// 1. add the intercept into the (training code) parameter space and learning algorithms;
+// 2. formalize and do the pruning-enrichment part
+// 3. xxx
 
 
 

@@ -34,7 +34,9 @@ void para_init()
 	//=============== from snp to cell env variables ===============
 	for(int i=0; i<num_cellenv; i++)
 	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
+		//float * p = (float *)calloc( num_snp, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_snp + 1, sizeof(float) );
 		para_snp_cellenv.push_back(p);
 	}
 
@@ -45,7 +47,9 @@ void para_init()
 		para_cellenv_gene.push_back(vec);
 		for(int i=0; i<num_gene; i++)
 		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			//float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			// add the intercept:
+			float * p = (float *)calloc( num_cellenv + 1, sizeof(float) );
 			para_cellenv_gene[j].push_back(p);
 		}
 	}
@@ -70,7 +74,9 @@ void para_init()
 				long first = gene_cis_index[gene].first;  // index
 				long second = gene_cis_index[gene].second;  // index
 				long amount = second - first + 1;
-				float * p = (float *)calloc( amount, sizeof(float) );
+				//float * p = (float *)calloc( amount, sizeof(float) );
+				// add the intercept:
+				float * p = (float *)calloc( amount + 1, sizeof(float) );
 				para_cis_gene[j].push_back(p);
 			}
 		}
@@ -79,14 +85,18 @@ void para_init()
 	//=============== from original batch to hidden batch ===============
 	for(int i=0; i<num_batch_hidden; i++)
 	{
-		float * p = (float *)calloc( num_batch, sizeof(float) );
+		//float * p = (float *)calloc( num_batch, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_batch + 1, sizeof(float) );
 		para_batch_batch_hidden.push_back(p);
 	}
 
 	//=============== from hidden batch to genes ===============
 	for(int i=0; i<num_gene; i++)
 	{
-		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
+		//float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_batch_hidden + 1, sizeof(float) );
 		para_batch_hidden_gene.push_back(p);
 	}
 
@@ -301,7 +311,9 @@ void para_init()
 			long first = gene_cis_index[gene].first;  // index
 			long second = gene_cis_index[gene].second;  // index
 			long amount = second - first + 1;
-			for(int k=0; k<amount; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
+			//for(int k=0; k<amount; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
+			// add the intercept:
+			for(int k = 0; k < amount + 1; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
 			{
 				para_cis_gene[j][i][k] = rep_para_cis_gene[gene][k];
 			}

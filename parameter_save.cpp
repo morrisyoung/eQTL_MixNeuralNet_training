@@ -83,7 +83,9 @@ void para_save()
 			else
 			{
 				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-				for(int k=0; k<num; k++)
+				//for(int k=0; k<num; k++)
+				// add the intercept
+				for(int k=0; k<num+1; k++)
 				{
 					float parameter = para_cis_gene[etissue_index][i][k];
 					char buf[1024];
@@ -111,7 +113,9 @@ void para_save()
 
 	for(int i=0; i<num_cellenv; i++)
 	{
-		for(long j=0; j<num_snp; j++)
+		//for(long j=0; j<num_snp; j++)
+		// add the intercept:
+		for(long j=0; j<num_snp+1; j++)
 		{
 			float parameter = para_snp_cellenv[i][j];
 			char buf[1024];
@@ -149,7 +153,9 @@ void para_save()
 		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
-			for(int j=0; j<num_cellenv; j++)
+			//for(int j=0; j<num_cellenv; j++)
+			// add the intercept:
+			for(int j=0; j<num_cellenv+1; j++)
 			{
 				float parameter = para_cellenv_gene[etissue_index][i][j];
 				char buf[1024];
@@ -179,7 +185,9 @@ void para_save()
 
 	for(int i=0; i<num_batch_hidden; i++)
 	{
-		for(int j=0; j<num_batch; j++)
+		//for(int j=0; j<num_batch; j++)
+		// add the intercept:
+		for(int j=0; j<num_batch+1; j++)
 		{
 			float parameter = para_batch_batch_hidden[i][j];
 			char buf[1024];
@@ -205,7 +213,9 @@ void para_save()
 
 	for(int i=0; i<num_gene; i++)
 	{
-		for(int j=0; j<num_batch_hidden; j++)
+		//for(int j=0; j<num_batch_hidden; j++)
+		// add the intercept:
+		for(int j=0; j<num_batch_hidden+1; j++)
 		{
 			float parameter = para_batch_hidden_gene[i][j];
 			char buf[1024];
