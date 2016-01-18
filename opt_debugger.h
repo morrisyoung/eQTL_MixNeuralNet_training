@@ -19,10 +19,7 @@ int para_check_nan(string etissue);
 void para_temp_save_dev(int);
 
 
-void para_temp_save_cellenv();
-
-
-void para_temp_save_hiddenbatch();
+void para_temp_save_var(float *, int, char *);
 
 
 

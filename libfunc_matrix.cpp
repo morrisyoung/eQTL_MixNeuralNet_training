@@ -15,7 +15,7 @@ using namespace std;
 
 
 
-
+//============================================ task specific functions =================================================
 // func: add the LASSO penalty term in the matrix_para_dev; destroy type
 //		the matrix_para is used to calculate the derivative term, that will be added to the matrix_para_dev
 void para_penalty_lasso_approx(Matrix matrix_para, Matrix matrix_para_dev, float lambda, float sigma)
@@ -42,8 +42,6 @@ void para_penalty_lasso_approx(Matrix matrix_para, Matrix matrix_para_dev, float
 }
 
 
-
-
 // func: do the gradient descent for this parameter matrix
 //		with: beta = beta - rate * dev
 void para_gradient_descent(Matrix matrix_para, Matrix matrix_para_dev, float rate)
@@ -66,3 +64,6 @@ void para_gradient_descent(Matrix matrix_para, Matrix matrix_para_dev, float rat
 }
 
 
+
+
+//============================================ abstract functions =================================================

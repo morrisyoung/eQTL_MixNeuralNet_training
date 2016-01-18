@@ -327,56 +327,23 @@ void para_temp_save_dev(int etissue_index)
 
 
 
-void para_temp_save_cellenv()
+// func: save a list of values from float *
+void para_temp_save_var(float * list, int length, char * filename)
 {
-	//======================== cellenv variables ========================
-	char filename[100];
-	sprintf(filename, "%s", "../result_tempdata/var_cellenv.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
     FILE * file_out = fopen(filename, "w+");
     if(file_out == NULL)
     {
         fputs("File error\n", stderr); exit(1);
     }
-	for(int i=0; i<num_cellenv; i++)
+	for(int i=0; i<length; i++)
 	{
-		float parameter = cellenv_hidden_var[i];
+		float parameter = list[i];
 		char buf[1024];
 		sprintf(buf, "%f\n", parameter);
 		fwrite(buf, sizeof(char), strlen(buf), file_out);
 	}
 	fclose(file_out);
-
+	//
 	return;
 }
-
-
-
-void para_temp_save_hiddenbatch()
-{
-	//======================== batch hidden variables ========================
-	char filename[100];
-	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
-    FILE * file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		float parameter = batch_hidden_var[i];
-		char buf[1024];
-		sprintf(buf, "%f\n", parameter);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-	}
-	fclose(file_out);
-
-	return;
-}
-
 

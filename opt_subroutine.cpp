@@ -168,8 +168,10 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 	// DEBUG: debug the parameter dev, and the current cellenv and hiddenbatch
 	para_temp_save_dev(etissue_index);
-	para_temp_save_cellenv();
-	para_temp_save_hiddenbatch();
+	char filename[100] = "../result_tempdata/var_cellenv.txt";
+	para_temp_save_var(cellenv_hidden_var, num_cellenv, filename);
+	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden.txt");
+	para_temp_save_var(batch_hidden_var, num_batch_hidden, filename);
 
 
 
@@ -312,6 +314,7 @@ void forward_backward(string etissue,
 	// step#1: forward-propogation (cis-; cell env; batch)
 	//========================================================================
 	//========================================================================
+	// TODO: to get the new data structure
 	// ****************************** [part1] cis- *********************************
 	// for cis-, two issues:
 	// 1. if this is a XYMT gene, jump;
@@ -357,45 +360,18 @@ void forward_backward(string etissue,
 	}
 
 
-
-
-	// // DEBUG
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// char filename[100];
-	// sprintf(filename, "%s", "../temp_data/var_cellenv_before.txt");
-	// //puts("the current file worked on is: ");
-	// //puts(filename);
-
- //    FILE * file_out = fopen(filename, "w+");
- //    if(file_out == NULL)
- //    {
- //        fputs("File error\n", stderr); exit(1);
- //    }
-	// for(int i=0; i<num_cellenv; i++)
-	// {
-	// 	float parameter = cellenv_con_pointer[i];
-	// 	char buf[1024];
-	// 	sprintf(buf, "%f\n", parameter);
-	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
-	// }
-	// fclose(file_out);
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-
-
+	// DEBUG
+	char filename[100] = "../result_tempdata/var_cellenv_before.txt"
+	para_temp_save_var(cellenv_con_pointer, num_cellenv, filename);
 
 
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	neuralnet_ac_func(cellenv_con_pointer, num_cellenv);
+
 	// from cell env variables to genes
 	for(int i=0; i<num_gene; i++)
 	{
-		string gene = gene_list[i];
+		//string gene = gene_list[i];
 		for(int j=0; j<num_cellenv; j++)
 		{
 			expr_con_pointer[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_con_pointer[j];
@@ -421,35 +397,9 @@ void forward_backward(string etissue,
 	}
 
 
-
-	// // DEBUG
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// sprintf(filename, "%s", "../temp_data/var_batch_hidden_before.txt");
-	// //puts("the current file worked on is: ");
-	// //puts(filename);
-
- //    file_out = fopen(filename, "w+");
- //    if(file_out == NULL)
- //    {
- //        fputs("File error\n", stderr); exit(1);
- //    }
-	// for(int i=0; i<num_batch_hidden; i++)
-	// {
-	// 	float parameter = batch_hidden_con_pointer[i];
-	// 	char buf[1024];
-	// 	sprintf(buf, "%f\n", parameter);
-	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
-	// }
-	// fclose(file_out);
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-
-
+	// DEBUG
+	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden_before.txt");
+	para_temp_save_var(batch_hidden_con_pointer, num_batch_hidden, filename);
 
 
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
@@ -466,40 +416,9 @@ void forward_backward(string etissue,
 
 
 
-
-
-
-	// // DEBUG
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// sprintf(filename, "%s", "../temp_data/var_expr_exp.txt");
-	// //puts("the current file worked on is: ");
-	// //puts(filename);
-
- //    file_out = fopen(filename, "w+");
- //    if(file_out == NULL)
- //    {
- //        fputs("File error\n", stderr); exit(1);
- //    }
-	// for(int i=0; i<num_gene; i++)
-	// {
-	// 	float rpkm = expr_con_pointer[i];
-	// 	char buf[1024];
-	// 	sprintf(buf, "%f\n", rpkm);
-	// 	fwrite(buf, sizeof(char), strlen(buf), file_out);
-	// }
-	// fclose(file_out);
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-	// //====================================================================================================
-
-
-
-
-
+	// DEBUG
+	sprintf(filename, "%s", "../result_tempdata/var_expr_exp.txt");
+	para_temp_save_var(expr_con_pointer, num_gene, filename);
 
 
 
@@ -552,6 +471,8 @@ void forward_backward(string etissue,
 
 
 
+
+
 	// // DEBUG
 	// //===========================================================================================
 	// //===========================================================================================
@@ -568,14 +489,8 @@ void forward_backward(string etissue,
 	// //===========================================================================================
 	// //===========================================================================================
 
-
-
-
 	// // DEBUG
 	// char buf[1024];
-
-
-
 
 	for(int i=0; i<num_cellenv; i++)
 	{
@@ -586,33 +501,19 @@ void forward_backward(string etissue,
 			temp += para_cellenv_gene[etissue_index][t][i] * (expr_con_pointer[t] - (*expr_list_pointer)[t]);
 		}
 
-
-
-
 		// // DEBUG
 		// // save the back-propogated errors to the file, and check
 		// sprintf(buf, "%f\n", temp);
 		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
 
-
-
-
 		//
 		temp *= neuralnet_ac_func_dev(cellenv_con_pointer[i]);
 		//
-
-
-
 
 		// // DEBUG
 		// // save the back-propogated errors to the file, and check
 		// sprintf(buf, "%f\n", temp);
 		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
-
-
-
-
-
 
 		long count = 0;
 		for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
@@ -627,10 +528,6 @@ void forward_backward(string etissue,
 		}
 	}
 
-
-
-
-
 	// // DEBUG
 	// //===========================================================================================
 	// //===========================================================================================
@@ -638,8 +535,6 @@ void forward_backward(string etissue,
 	// fclose(file_out2);
 	// //===========================================================================================
 	// //===========================================================================================
-
-
 
 
 
@@ -721,10 +616,6 @@ void forward_backward(string etissue,
 		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
 
 
-
-
-
-
 		// // DEBUG: save all the batch var and the multiplied error
 		// for(int j=0; j<num_batch; j++)
 		// {
@@ -737,23 +628,12 @@ void forward_backward(string etissue,
 		// }
 		// fwrite("\n", sizeof(char), 1, file_out3);
 
-
-
-
-
-
 		for(int j=0; j<num_batch; j++)
 		{
 			float batch_value = batch_list_pointer[j];
 			(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
 		}
-
-
-
-
-
 	}
-
 
 	// // DEBUG
 	// //===========================================================================================
@@ -763,9 +643,6 @@ void forward_backward(string etissue,
 	// fclose(file_out3);
 	// //===========================================================================================
 	// //===========================================================================================
-
-
-
 
 
 
