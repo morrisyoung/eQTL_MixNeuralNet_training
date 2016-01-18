@@ -7,6 +7,7 @@
 
 #include <string>
 #include "global.h"
+#include "lib_matrix.h"
 
 
 using namespace std;
@@ -19,12 +20,29 @@ extern float * batch_var;  // with length "num_batch"
 extern float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
+
+
+
+// TOCHANGE
 // parameter derivative containers:
 extern vector<vector<float *>> para_dev_cis_gene;
 extern vector<float *> para_dev_snp_cellenv;
 extern vector<vector<float *>> para_dev_cellenv_gene;
 extern vector<float *> para_dev_batch_batch_hidden;
 extern vector<float *> para_dev_batch_hidden_gene;
+// TODO
+// xxx (for cis to gene)
+extern Matrix matrix_para_dev_snp_cellenv;
+extern vector<Matrix> cube_para_dev_cellenv_gene;
+extern Matrix matrix_para_dev_batch_batch_hidden;
+extern Matrix matrix_para_dev_batch_hidden_gene;
+
+
+
+
+
+
+
 
 
 // some assistant components:
@@ -58,7 +76,6 @@ void opt_para_init();
 
 // release the memory for some dynamically allocated space (if there is)
 void opt_para_release();
-
 
 
 // main entrance

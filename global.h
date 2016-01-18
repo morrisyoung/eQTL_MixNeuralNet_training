@@ -6,6 +6,7 @@
 
 
 #include "expression.h"
+#include "lib_matrix.h"
 
 
 using namespace std;
@@ -78,6 +79,17 @@ extern vector<float *> para_batch_batch_hidden;
 extern vector<float *> para_batch_hidden_gene;
 // mapping the gene to cis snp indices (start position and end position)
 extern unordered_map<string, tuple_long> gene_cis_index;
+
+// re-format into the new class:
+// xxx (for cis to genes)
+extern Matrix matrix_para_snp_cellenv;
+extern vector<Matrix> cube_para_cellenv_gene;
+extern Matrix matrix_para_batch_batch_hidden;
+extern Matrix matrix_para_batch_hidden_gene;
+
+
+
+
 
 
 

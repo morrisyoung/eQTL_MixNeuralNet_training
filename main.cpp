@@ -153,8 +153,9 @@
 #include <sys/time.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "batch.h"
-#include "io_file.h"			// some Python-like file IO operations
-#include "op_line.h"			// some Python-like line(string) operations
+#include "lib_io_file.h"			// some Python-like file IO operations
+#include "lib_op_line.h"			// some Python-like line(string) operations
+#include "lib_matrix.h"
 
 
 
@@ -211,6 +212,12 @@ vector<float *> para_snp_cellenv;
 vector<vector<float *>> para_cellenv_gene;
 vector<float *> para_batch_batch_hidden;
 vector<float *> para_batch_hidden_gene;
+// to the new matrix class:
+// xxx (for cis to genes)
+Matrix matrix_para_snp_cellenv;
+vector<Matrix> cube_para_cellenv_gene;
+Matrix matrix_para_batch_batch_hidden;
+Matrix matrix_para_batch_hidden_gene;
 
 // information table:
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
@@ -261,7 +268,7 @@ int main()
 
 
 
-	//======================================= prepare the snp information ========================================
+	//======================================= prepare the genotype (snp) information ========================================
 	puts("[xxx] preparing the snp info (index --> snp name and chromosome positions)...");
 	num_snp = snp_info_read();  // snp_name_list; snp_pos_list
 	cout << "there are " << num_snp << " snps totally." << endl;
@@ -310,7 +317,7 @@ int main()
 
 
 
-	//========================================== prepare the batch ==============================================
+	//========================================== prepare the batch information ==============================================
 	// we know the num_batch and num_batch_hidden only after we read the batch source file
 	puts("[xxx] batch variable values (for all individuals and samples) loading...");
 	batch_load();  // load the batch variables
@@ -336,6 +343,19 @@ int main()
 	//beta_prior_fill();  // must happen after the above procedure
 	//
 
+	//
+	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
+	//
+	// xxx (for cis to genes)
+	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
+	for(int i=0; i<num_etissue; i++)
+	{
+		Matrix matrix;
+		matrix.init(num_gene, num_cellenv + 1, para_cellenv_gene[i]);
+		cube_para_cellenv_gene.push_back(matrix);
+	}
+	matrix_para_batch_batch_hidden.init(num_batch_hidden, num_batch + 1, para_batch_batch_hidden);
+	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
 
 
 
@@ -343,8 +363,14 @@ int main()
 
 
 
+
+
+
+	// DEBUG the other parts
+	/*
 	//======================================= main optimization routine ==========================================
 	optimize();
+	*/
 
 
 

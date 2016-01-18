@@ -19,6 +19,8 @@
 #include "opt_subroutine.h"
 #include "opt_multi_thread.h"
 #include "opt_para_save.h"
+#include "opt_debugger.h"
+#include "lib_matrix.h"
 
 
 
@@ -38,12 +40,29 @@ float * batch_var;  // with length "num_batch"
 float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
+
+
+
+
+// TOCHANGE
 // parameter derivative containers:
 vector<vector<float *>> para_dev_cis_gene;
 vector<float *> para_dev_snp_cellenv;
 vector<vector<float *>> para_dev_cellenv_gene;
 vector<float *> para_dev_batch_batch_hidden;
 vector<float *> para_dev_batch_hidden_gene;
+// TODO
+// xxx (for cis to gene)
+Matrix matrix_para_dev_snp_cellenv;
+vector<Matrix> cube_para_dev_cellenv_gene;
+Matrix matrix_para_dev_batch_batch_hidden;
+Matrix matrix_para_dev_batch_hidden_gene;
+
+
+
+
+
+
 
 
 // some assistant components:
@@ -70,148 +89,6 @@ float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5
 
 
 //======================================================================================================
-
-
-
-
-
-
-
-// DEBUG
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-// func: check whether there are nan for any of the parameter; if there is, return 1, otherwise return 0
-int para_check_nan(string etissue)
-{
-	int etissue_index = etissue_index_map[etissue];
-
-	int flag = 0;
-
-
-	//================================ vector<vector<float *>> para_cis_gene ================================
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				float parameter = para_cis_gene[etissue_index][i][k];
-				// check nan
-				if(isnan(parameter))
-				{
-					flag = 1;
-					break;
-				}
-			}
-		}
-	}
-	if(flag == 1)
-	{
-		return flag;
-	}
-
-
-
-	//================================== vector<float *> para_snp_cellenv ===================================
-	for(int i=0; i<num_cellenv; i++)
-	{
-		for(long j=0; j<num_snp; j++)
-		{
-			float parameter = para_snp_cellenv[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
-	{
-		return flag;
-	}
-
-
-
-	//============================== vector<vector<float *>> para_cellenv_gene ==============================
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		for(int j=0; j<num_cellenv; j++)
-		{
-			float parameter = para_cellenv_gene[etissue_index][i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
-	{
-		return flag;
-	}
-
-
-
-	//=============================== vector<float *> para_batch_batch_hidden ===============================
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		for(int j=0; j<num_batch; j++)
-		{
-			float parameter = para_batch_batch_hidden[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
-	{
-		return flag;
-	}
-
-
-
-
-	//=============================== vector<float *> para_batch_hidden_gene ================================
-	for(int i=0; i<num_gene; i++)
-	{
-		for(int j=0; j<num_batch_hidden; j++)
-		{
-			float parameter = para_batch_hidden_gene[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-
-
-
-	return flag;
-}
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-//======================================================================================================
-
-
-
 
 
 
@@ -375,9 +252,10 @@ void opt_tissue_hierarchy_load()
 		}
 
 	}
-	fclose (file_in);
+	fclose(file_in);
 
 }
+
 
 
 
@@ -406,25 +284,11 @@ void opt_para_init()
 	batch_hidden_var = (float *)calloc( num_batch_hidden, sizeof(float) );
 
 
-	//=============== para_dev_snp_cellenv ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
-		para_dev_snp_cellenv.push_back(p);
-	}
 
-	//=============== para_dev_cellenv_gene ===============
-	for(int j=0; j<num_etissue; j++)
-	{
-		vector<float *> vec;
-		para_dev_cellenv_gene.push_back(vec);
-		for(int i=0; i<num_gene; i++)
-		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
-			para_dev_cellenv_gene[j].push_back(p);
-		}
-	}
 
+
+
+	// TODO: the following one is to be designed
 	//=============== para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
@@ -451,21 +315,65 @@ void opt_para_init()
 		}
 	}
 
+
+
+
+
+	//=============== para_dev_snp_cellenv ===============
+	// TOCHANGE
+	for(int i=0; i<num_cellenv; i++)
+	{
+		float * p = (float *)calloc( num_snp, sizeof(float) );
+		para_dev_snp_cellenv.push_back(p);
+	}
+	// TODO
+	matrix_para_dev_snp_cellenv.init(num_cellenv, num_snp + 1);		// we do have the intercept term here
+
+
+	//=============== para_dev_cellenv_gene ===============
+	// TOCHANGE
+	for(int j=0; j<num_etissue; j++)
+	{
+		vector<float *> vec;
+		para_dev_cellenv_gene.push_back(vec);
+		for(int i=0; i<num_gene; i++)
+		{
+			float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			para_dev_cellenv_gene[j].push_back(p);
+		}
+	}
+	// TODO
+	for(int j=0; j<num_etissue; j++)
+	{
+		Matrix matrix;
+		matrix.init(num_gene, num_cellenv + 1);						// we do have the intercept term here
+		cube_para_dev_cellenv_gene.push_back(matrix);
+	}
+
+
 	//=============== para_dev_batch_batch_hidden ===============
+	// TOCHANEG
 	for(int i=0; i<num_batch_hidden; i++)
 	{
 		float * p = (float *)calloc( num_batch, sizeof(float) );
 		para_dev_batch_batch_hidden.push_back(p);
 	}
+	// TODO
+	matrix_para_dev_batch_batch_hidden.init(num_batch_hidden, num_batch + 1);
+
 
 	//=============== para_dev_batch_hidden_gene ===============
+	// TOCHANGE
 	for(int i=0; i<num_gene; i++)
 	{
 		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
 		para_dev_batch_hidden_gene.push_back(p);
 	}
+	// TODO
+	matrix_para_dev_batch_hidden_gene.init(num_gene, num_batch_hidden + 1);
 
 }
+
 
 
 
@@ -490,21 +398,10 @@ void opt_para_release()
 	free(batch_hidden_var);
 
 
-	//=============== para_dev_snp_cellenv ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		free(para_dev_snp_cellenv[i]);
-	}
 
-	//=============== para_dev_cellenv_gene ===============
-	for(int j=0; j<num_etissue; j++)
-	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free(para_dev_cellenv_gene[j][i]);
-		}
-	}
 
+
+	// TODO: to be designed for this new data structure
 	//=============== para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
@@ -514,19 +411,58 @@ void opt_para_release()
 		}
 	}
 
+
+
+
+
+	//=============== para_dev_snp_cellenv ===============
+	// TOCHANGE
+	for(int i=0; i<num_cellenv; i++)
+	{
+		free(para_dev_snp_cellenv[i]);
+	}
+	// TODO
+	matrix_para_dev_snp_cellenv.release();
+
+
+	//=============== para_dev_cellenv_gene ===============
+	// TOCHANGE
+	for(int j=0; j<num_etissue; j++)
+	{
+		for(int i=0; i<num_gene; i++)
+		{
+			free(para_dev_cellenv_gene[j][i]);
+		}
+	}
+	// TODO
+	for(int j=0; j<num_etissue; j++)
+	{
+		cube_para_dev_cellenv_gene[j].release();
+	}
+
+
 	//=============== para_dev_batch_batch_hidden ===============
+	// TOCHANGE
 	for(int i=0; i<num_batch_hidden; i++)
 	{
 		free(para_dev_batch_batch_hidden[i]);
 	}
+	// TODO
+	matrix_para_dev_batch_batch_hidden.release();
+
 
 	//=============== para_dev_batch_hidden_gene ===============
+	// TOCHANGE
 	for(int i=0; i<num_gene; i++)
 	{
 		free(para_dev_batch_hidden_gene[i]);
 	}
+	// TODO
+	matrix_para_dev_batch_hidden_gene.release();
+
 
 }
+
 
 
 

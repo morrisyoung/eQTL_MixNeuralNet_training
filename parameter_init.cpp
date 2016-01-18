@@ -508,6 +508,9 @@ void gene_cis_index_init()
 }
 
 
+
+// (Jan.16) currently we don't use the results from GTEx project to initialize the parameters; we initialize them by our own
+// this routine is loading the significance testing results from GTEx project
 void beta_prior_fill()
 {
 	//===================================== part#2: get the beta table from files =====================================
