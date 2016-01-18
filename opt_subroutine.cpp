@@ -314,35 +314,44 @@ void forward_backward(string etissue,
 	// step#1: forward-propogation (cis-; cell env; batch)
 	//========================================================================
 	//========================================================================
+
+
+
 	// TODO: to get the new data structure
 	// ****************************** [part1] cis- *********************************
 	// for cis-, two issues:
 	// 1. if this is a XYMT gene, jump;
 	// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
+	float * expr_con_pointer_cis = (float *)calloc( num_gene, sizeof(float) );
 	for(int i=0; i<num_gene; i++)
 	{
+		//expr_con_pointer_cis[i] = 0;
 		string gene = gene_list[i];
 		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
 		if ( got != gene_xymt_rep.end() )
 		{
-			expr_con_pointer[i] = 0;
+			continue;
 		}
 		else
 		{
-			expr_con_pointer[i] = 0;
 			int chr = gene_tss[gene].chr;
 			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
 			for(int k=0; k<num; k++)
 			{
 				int pos = gene_cis_index[gene].first + k;
 				float dosage = (*dosage_list_pointer)[chr-1][pos];  // dosage at k position
-				expr_con_pointer[i] += dosage * para_cis_gene[etissue_index][i][k];
+				expr_con_pointer_cis[i] += dosage * para_cis_gene[etissue_index][i][k];
 			}
 		}
 	}
 
+
+
+
 	// ********************* [part2] cell env relevant parameters *********************
 	// from snp to cell env variables
+	// TODO: to get the new data structure
+	float * expr_con_pointer_cellenv = (float *)calloc( num_gene, sizeof(float) );
 	for(int i=0; i<num_cellenv; i++)
 	{
 		cellenv_con_pointer[i] = 0;
@@ -359,11 +368,9 @@ void forward_backward(string etissue,
 		}
 	}
 
-
 	// DEBUG
-	char filename[100] = "../result_tempdata/var_cellenv_before.txt"
+	char filename[100] = "../result_tempdata/var_cellenv_before.txt";
 	para_temp_save_var(cellenv_con_pointer, num_cellenv, filename);
-
 
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	neuralnet_ac_func(cellenv_con_pointer, num_cellenv);
@@ -374,44 +381,54 @@ void forward_backward(string etissue,
 		//string gene = gene_list[i];
 		for(int j=0; j<num_cellenv; j++)
 		{
-			expr_con_pointer[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_con_pointer[j];
+			expr_con_pointer_cellenv[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_con_pointer[j];
 		}
 	}
+	// TODO
+	multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
+
+
 
 
 	// ********************* [part3] linear or non-linear batches *********************
+	float * expr_con_pointer_batch = (float *)calloc( num_gene, sizeof(float) );
 	// from original batch to hidden batch
 	for(int i=0; i<num_batch_hidden; i++)
 	{
 		batch_hidden_con_pointer[i] = 0;
 		for(int j=0; j<num_batch; j++)
 		{
-			// DEBUG
-			// print out the item
-			//cout << batch_hidden_con_pointer[i] << endl;
-			//cout << batch_list_pointer[j] << endl;
-			//cout << para_batch_batch_hidden[i][j] << endl;
-
 			batch_hidden_con_pointer[i] += batch_list_pointer[j] * para_batch_batch_hidden[i][j];
 		}
 	}
-
+	// TODO
+	multi_array_matrix(batch_list_pointer, matrix_para_batch_batch_hidden, batch_hidden_con_pointer);
 
 	// DEBUG
 	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden_before.txt");
 	para_temp_save_var(batch_hidden_con_pointer, num_batch_hidden, filename);
 
-
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	neuralnet_ac_func(batch_hidden_con_pointer, num_batch_hidden);
+
 	// from hidden batch to genes
 	for(int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
 		for(int j=0; j<num_batch_hidden; j++)
 		{
-			expr_con_pointer[i] += para_batch_hidden_gene[i][j] * batch_hidden_con_pointer[j];
+			expr_con_pointer_batch[i] += para_batch_hidden_gene[i][j] * batch_hidden_con_pointer[j];
 		}
+	}
+	// TODO
+	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
+
+
+
+	//// merge the signal from three pathways here, to expr_con_pointer
+	for(long int i=0; i<num_gene; i++)
+	{
+		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
 	}
 
 

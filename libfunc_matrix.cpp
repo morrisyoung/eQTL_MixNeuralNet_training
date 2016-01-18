@@ -67,3 +67,25 @@ void para_gradient_descent(Matrix matrix_para, Matrix matrix_para_dev, float rat
 
 
 //============================================ abstract functions =================================================
+// func: multiplay the var array with the parameter matrix to get the result
+// input: variable array; parameter matrix
+// output: result variable array
+void multi_array_matrix(float * input, Matrix matrix_para, float * result)
+{
+	long int dimension1 = matrix_para.get_dimension1();
+	long int dimension2 = matrix_para.get_dimension2();
+
+	for(long int i=0; i< dimension1; i++)
+	{
+		result[i] = 0;
+		for(long int j=0; j<dimension2; j++)
+		{
+			float para = matrix_para.get(i, j);
+			result[i] += input[j] * para;
+		}
+	}
+
+	return;
+}
+
+

@@ -241,6 +241,21 @@ char file_para_init[] = "../result_init/";				// or "../result_init_simu/"
 
 
 
+// TODO:
+// the genotype should be a class, and it supports:
+//	0. inheritance from parent: SNPs name, chr, pos, prior score from pruning
+//	1. SNP values grouped by chromosomes;
+//	2. genome-wide array multiplication;
+//	3. cis-region array multiplication;
+// the expression is also a class:
+//	0. inheritance from parent: gene name, chr, pos (tss), cis region
+//	1. gene expression values grouped by chromosomes
+
+
+
+
+
+
 
 int main()
 {

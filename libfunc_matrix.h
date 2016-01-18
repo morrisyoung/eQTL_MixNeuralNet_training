@@ -25,8 +25,10 @@ using namespace std;
 
 void para_penalty_lasso_approx(Matrix, Matrix, float, float);
 
-
 void para_gradient_descent(Matrix, Matrix, float);
+
+void multi_array_matrix(float *, Matrix, float *);
+
 
 
 
