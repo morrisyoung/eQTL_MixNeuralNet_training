@@ -18,6 +18,7 @@
 #include <math.h>       /* exp */
 #include "opt_debugger.h"
 #include "optimization.h"
+#include "lib_matrix.h"
 
 
 
@@ -37,7 +38,7 @@ int para_check_nan(string etissue)
 
 	int flag = 0;
 
-
+	// TODO: to get the new design
 	//================================ vector<vector<float *>> para_cis_gene ================================
 	for(int i=0; i<num_gene; i++)
 	{
@@ -72,106 +73,37 @@ int para_check_nan(string etissue)
 
 
 
-	//================================== vector<float *> para_snp_cellenv ===================================
-	for(int i=0; i<num_cellenv; i++)
-	{
-		//for(long j=0; j<num_snp; j++)
-		// add the intercept:
-		for(long j=0; j<num_snp+1; j++)
-		{
-			float parameter = para_snp_cellenv[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
+	//================================== Matrix matrix_para_snp_cellenv ===================================
+	if(matrix_para_snp_cellenv.check_nan())
 	{
 		cout << "I find Nan in para_snp_cellenv ..." << endl;
-		return flag;
+		return 1;
 	}
 
-
-
-	//============================== vector<vector<float *>> para_cellenv_gene ==============================
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		//for(int j=0; j<num_cellenv; j++)
-		// add the intercept:
-		for(int j=0; j<num_cellenv+1; j++)
-		{
-			float parameter = para_cellenv_gene[etissue_index][i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
+	//============================== vector<Matrix> cube_para_cellenv_gene ==============================
+	if(cube_para_cellenv_gene[etissue_index].check_nan())
 	{
 		cout << "I find Nan in para_cellenv_gene ..." << endl;
 		return flag;
 	}
 
-
-
-	//=============================== vector<float *> para_batch_batch_hidden ===============================
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		//for(int j=0; j<num_batch; j++)
-		// add the intercept:
-		for(int j=0; j<num_batch+1; j++)
-		{
-			float parameter = para_batch_batch_hidden[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
+	//=============================== Matrix matrix_para_batch_batch_hidden ===============================
+	if(matrix_para_batch_batch_hidden.check_nan())
 	{
 		cout << "I find Nan in para_batch_batch_hidden ..." << endl;
 		return flag;
 	}
 
-
-
-
-	//=============================== vector<float *> para_batch_hidden_gene ================================
-	for(int i=0; i<num_gene; i++)
-	{
-		//for(int j=0; j<num_batch_hidden; j++)
-		// add the intercept:
-		for(int j=0; j<num_batch_hidden+1; j++)
-		{
-			float parameter = para_batch_hidden_gene[i][j];
-			// check nan
-			if(isnan(parameter))
-			{
-				flag = 1;
-				break;
-			}
-		}
-	}
-	if(flag == 1)
+	//=============================== Matrix matrix_para_batch_hidden_gene ================================
+	if(matrix_para_batch_hidden_gene.check_nan())
 	{
 		cout << "I find Nan in para_batch_hidden_gene ..." << endl;
 		return flag;
 	}
 
 
-	return flag;
+	return 0;
 }
-
 
 
 
@@ -180,6 +112,7 @@ int para_check_nan(string etissue)
 //		save all the parameter dev (five parts, for one specific tissue) into "../result_tempdata/"
 void para_temp_save_dev(int etissue_index)
 {
+	// TODO: to get a new design
 	//================================ vector<vector<float *>> para_dev_cis_gene ================================
 	char filename[100] = "../result_tempdata/para_dev_cis_gene.txt";
 	//puts("the current file worked on is: ");
@@ -215,112 +148,56 @@ void para_temp_save_dev(int etissue_index)
 	fclose(file_out);
 
 
-	//================================== vector<float *> para_dev_snp_cellenv ===================================
+
+	//================================== Matrix matrix_para_dev_snp_cellenv ===================================
 	sprintf(filename, "%s", "../result_tempdata/para_dev_snp_cellenv.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_cellenv; i++)
-	{
-		for(long j=0; j<num_snp; j++)
-		{
-			float parameter = para_dev_snp_cellenv[i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this cellenv
-	}
-	fclose(file_out);
+	para_temp_save_matrix(matrix_para_dev_snp_cellenv, filename);
 
 
-	//============================== vector<vector<float *>> para_dev_cellenv_gene ==============================
+	//============================== vector<Matrix> cube_para_dev_cellenv_gene[] ==============================
 	sprintf(filename, "%s", "../result_tempdata/para_dev_cellenv_gene.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
-	file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		for(int j=0; j<num_cellenv; j++)
-		{
-			float parameter = para_dev_cellenv_gene[etissue_index][i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-			// or:
-			// fprintf(file_out, "%s", str);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this gene
-	}
-	fclose(file_out);
+	para_temp_save_matrix(cube_para_dev_cellenv_gene[etissue_index], filename);
 
 
-	//=============================== vector<float *> para_dev_batch_batch_hidden ===============================
+	//=============================== Matrix matrix_para_dev_batch_batch_hidden ===============================
 	sprintf(filename, "%s", "../result_tempdata/para_dev_batch_batch_hidden.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
-
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		for(int j=0; j<num_batch; j++)
-		{
-			float parameter = para_dev_batch_batch_hidden[i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this batch_hidden
-	}
-	fclose(file_out);
+	para_temp_save_matrix(matrix_para_dev_batch_batch_hidden, filename);
 
 
-	//=============================== vector<float *> para_dev_batch_hidden_gene ================================
+	//=============================== Matrix matrix_para_dev_batch_hidden_gene ================================
 	sprintf(filename, "%s", "../result_tempdata/para_dev_batch_hidden_gene.txt");
-	//puts("the current file worked on is: ");
-	//puts(filename);
+	para_temp_save_matrix(matrix_para_dev_batch_hidden_gene, filename);
 
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
+	return;
+}
 
-	for(int i=0; i<num_gene; i++)
+
+
+
+// func: save a Matrix class (actually an matrix) into the file
+void para_temp_save_matrix(Matrix matrix, char * filename)
+{
+	long int dimension1 = matrix.get_dimension1();
+	long int dimension2 = matrix.get_dimension2();
+
+	FILE * file_out = fopen(filename, "w+");
+	if(file_out == NULL)
 	{
-		for(int j=0; j<num_batch_hidden; j++)
+	    fputs("File error\n", stderr); exit(1);
+	}
+
+	for(int i=0; i<dimension1; i++)
+	{
+		for(long j=0; j<dimension2; j++)
 		{
-			float parameter = para_dev_batch_hidden_gene[i][j];
+			float value = matrix.get(i, j);
 			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
+			sprintf(buf, "%f\t", value);
 			fwrite(buf, sizeof(char), strlen(buf), file_out);
 		}
 		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this gene
 	}
 	fclose(file_out);
-
 
 	return;
 }

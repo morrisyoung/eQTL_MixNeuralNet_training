@@ -40,29 +40,15 @@ float * batch_var;  // with length "num_batch"
 float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
-
-
-
-
 // TOCHANGE
 // parameter derivative containers:
 vector<vector<float *>> para_dev_cis_gene;
-vector<float *> para_dev_snp_cellenv;
-vector<vector<float *>> para_dev_cellenv_gene;
-vector<float *> para_dev_batch_batch_hidden;
-vector<float *> para_dev_batch_hidden_gene;
 // TODO
 // xxx (for cis to gene)
 Matrix matrix_para_dev_snp_cellenv;
 vector<Matrix> cube_para_dev_cellenv_gene;
 Matrix matrix_para_dev_batch_batch_hidden;
 Matrix matrix_para_dev_batch_hidden_gene;
-
-
-
-
-
-
 
 
 // some assistant components:
@@ -286,8 +272,6 @@ void opt_para_init()
 
 
 
-
-
 	// TODO: the following one is to be designed
 	//=============== para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
@@ -318,31 +302,11 @@ void opt_para_init()
 
 
 
-
-	//=============== para_dev_snp_cellenv ===============
-	// TOCHANGE
-	for(int i=0; i<num_cellenv; i++)
-	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
-		para_dev_snp_cellenv.push_back(p);
-	}
-	// TODO
+	//=============== matrix_para_dev_snp_cellenv ===============
 	matrix_para_dev_snp_cellenv.init(num_cellenv, num_snp + 1);		// we do have the intercept term here
 
 
-	//=============== para_dev_cellenv_gene ===============
-	// TOCHANGE
-	for(int j=0; j<num_etissue; j++)
-	{
-		vector<float *> vec;
-		para_dev_cellenv_gene.push_back(vec);
-		for(int i=0; i<num_gene; i++)
-		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
-			para_dev_cellenv_gene[j].push_back(p);
-		}
-	}
-	// TODO
+	//=============== cube_para_dev_cellenv_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
 		Matrix matrix;
@@ -351,26 +315,13 @@ void opt_para_init()
 	}
 
 
-	//=============== para_dev_batch_batch_hidden ===============
-	// TOCHANEG
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		float * p = (float *)calloc( num_batch, sizeof(float) );
-		para_dev_batch_batch_hidden.push_back(p);
-	}
-	// TODO
+	//=============== matrix_para_dev_batch_batch_hidden ===============
 	matrix_para_dev_batch_batch_hidden.init(num_batch_hidden, num_batch + 1);
 
 
-	//=============== para_dev_batch_hidden_gene ===============
-	// TOCHANGE
-	for(int i=0; i<num_gene; i++)
-	{
-		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
-		para_dev_batch_hidden_gene.push_back(p);
-	}
-	// TODO
+	//=============== matrix_para_dev_batch_hidden_gene ===============
 	matrix_para_dev_batch_hidden_gene.init(num_gene, num_batch_hidden + 1);
+
 
 }
 
@@ -400,7 +351,6 @@ void opt_para_release()
 
 
 
-
 	// TODO: to be designed for this new data structure
 	//=============== para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
@@ -414,50 +364,22 @@ void opt_para_release()
 
 
 
-
-	//=============== para_dev_snp_cellenv ===============
-	// TOCHANGE
-	for(int i=0; i<num_cellenv; i++)
-	{
-		free(para_dev_snp_cellenv[i]);
-	}
-	// TODO
+	//=============== matrix_para_dev_snp_cellenv ===============
 	matrix_para_dev_snp_cellenv.release();
 
 
-	//=============== para_dev_cellenv_gene ===============
-	// TOCHANGE
-	for(int j=0; j<num_etissue; j++)
-	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free(para_dev_cellenv_gene[j][i]);
-		}
-	}
-	// TODO
+	//=============== cube_para_dev_cellenv_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
 		cube_para_dev_cellenv_gene[j].release();
 	}
 
 
-	//=============== para_dev_batch_batch_hidden ===============
-	// TOCHANGE
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		free(para_dev_batch_batch_hidden[i]);
-	}
-	// TODO
+	//=============== matrix_para_dev_batch_batch_hidden ===============
 	matrix_para_dev_batch_batch_hidden.release();
 
 
-	//=============== para_dev_batch_hidden_gene ===============
-	// TOCHANGE
-	for(int i=0; i<num_gene; i++)
-	{
-		free(para_dev_batch_hidden_gene[i]);
-	}
-	// TODO
+	//=============== matrix_para_dev_batch_hidden_gene ===============
 	matrix_para_dev_batch_hidden_gene.release();
 
 

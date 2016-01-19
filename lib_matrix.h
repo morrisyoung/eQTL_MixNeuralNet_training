@@ -14,10 +14,13 @@
 //m#include <string>
 #include <string.h>
 #include <vector>
+#include <math.h>       /* exp */
+
 
 
 
 using namespace std;
+
 
 
 
@@ -127,6 +130,29 @@ class Matrix
 
 			return;
 		}
+
+		// check nan: check whether there is Nan in this Matrix
+		int check_nan()
+		{
+			int flag = 0;
+
+			for(long int i=0; i<dimension1; i++)
+			{
+				for(long int j=0; j<dimension2; j++)
+				{
+					float value = matrix[i][j];
+					// check nan
+					if(isnan(value))
+					{
+						flag = 1;
+						break;
+					}
+				}
+			}
+
+			return flag;
+		}
+
 
 		//================================ destructor =======================================
 		void release()
