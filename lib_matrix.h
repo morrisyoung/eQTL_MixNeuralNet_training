@@ -65,7 +65,6 @@ class Matrix
 					matrix[i][j] = vec[i][j];
 				}
 			}
-
 			return;
 		}
 
@@ -91,7 +90,6 @@ class Matrix
 					matrix[i][j] = 0;
 				}
 			}
-
 			return;
 		}
 
@@ -105,7 +103,6 @@ class Matrix
 					matrix[i][j] = matrix[i][j] * factor;
 				}
 			}
-
 			return;
 		}
 
@@ -119,7 +116,6 @@ class Matrix
 		void assign(long int pos1, long int pos2, float value)
 		{
 			matrix[pos1][pos2] = value;
-
 			return;
 		}
 
@@ -127,7 +123,6 @@ class Matrix
 		void add_on(long int pos1, long int pos2, float value)
 		{
 			matrix[pos1][pos2] = matrix[pos1][pos2] + value;
-
 			return;
 		}
 
@@ -149,7 +144,6 @@ class Matrix
 					}
 				}
 			}
-
 			return flag;
 		}
 
@@ -175,7 +169,9 @@ class Matrix_imcomp
 {
 	long int dimension;
 	vector<long int> list_length;
-	vector<float *> matrix;			// element as "float *" other than "array", as we don't pre-know the length
+	vector<float *> matrix;				// element as "float *" other than "array", as we don't pre-know the length
+	vector<int>	list_chr;				// the chr index of all these cis- parameter lists
+	vector<long int> list_sst;			// the SNP start site of the cis- parameter list
 
 	public:
 		//================================ constructor =======================================
@@ -187,8 +183,9 @@ class Matrix_imcomp
 				list_length.push_back(0);
 				float * pointer = NULL;
 				matrix.push_back(pointer);
+				list_chr.push_back(-1);
+				list_sst.push_back(-1);
 			}
-
 			return;
 		}
 
@@ -197,7 +194,6 @@ class Matrix_imcomp
 		{
 			list_length[pos] = length;
 			matrix[pos] = (float *)calloc( length, sizeof(float) );
-
 			return;
 		}
 
@@ -210,17 +206,94 @@ class Matrix_imcomp
 			{
 				matrix[pos][i] = list[i];
 			}
+			return;
+		}
 
+		// assign the chr value for one specific element
+		void init_assign_chr(long int pos, int value)
+		{
+			list_chr[pos] = value;
+			return;
+		}
+
+		// assign the SNP start site value for one specific element
+		void init_assign_sst(long int pos, long int value)
+		{
+			list_sst[pos] = value;
 			return;
 		}
 
 
-
 		//================================ operations =======================================
+		// get_dimension1
+		long int get_dimension1()
+		{
+			return dimension;
+		}
 
+		// get_dimension2, for one specific element
+		long int get_dimension2(long int pos)
+		{
+			return list_length[pos];
+		}
 
+		// get chr
+		int get_chr(long int pos)
+		{
+			return list_chr[pos];
+		}
 
+		// get tss
+		long int get_sst(long int pos)
+		{
+			return list_sst[pos];
+		}
 
+		// clean: set the whole value space to 0
+		void clean()
+		{
+			for(long int i=0; i<dimension; i++)
+			{
+				for(long int j=0; j<list_length[i]; j++)
+				{
+					matrix[i][j] = 0;
+				}
+			}
+			return;
+		}
+
+		// scale: scale the full matrix_imcomp based on a given factor
+		void scale(float factor)
+		{
+			for(long int i=0; i<dimension; i++)
+			{
+				for(long int j=0; j<list_length[i]; j++)
+				{
+					matrix[i][j] = matrix[i][j] * factor;
+				}
+			}
+			return;
+		}
+
+		// get
+		float get(long int pos1, long int pos2)
+		{
+			return matrix[pos1][pos2];
+		}
+
+		// assign
+		void assign(long int pos1, long int pos2, float value)
+		{
+			matrix[pos1][pos2] = value;
+			return;
+		}
+
+		// add on
+		void add_on(long int pos1, long int pos2, float value)
+		{
+			matrix[pos1][pos2] = matrix[pos1][pos2] + value;
+			return;
+		}
 
 
 

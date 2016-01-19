@@ -37,40 +37,23 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	int etissue_index = etissue_index_map[etissue];
 
 	//******************* initialize all the parameter derivatives (as 0) *******************
-	// TODO: to change to the new design
-	// vector<vector<float *>> para_dev_cis_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_dev_cis_gene[etissue_index][i][k] = 0;
-			}
-		}
-	}
+	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
+	cube_para_dev_cis_gene[etissue_index].clean();
 
 
-	// vector<float *> para_dev_snp_cellenv;
+	// Matrix matrix_para_dev_snp_cellenv;
 	matrix_para_dev_snp_cellenv.clean();
 
 
-	// vector<vector<float *>> para_dev_cellenv_gene;
+	// vector<Matrix> matrix_para_dev_cellenv_gene;
 	cube_para_dev_cellenv_gene[etissue_index].clean();
 
 
-	// vector<float *> para_dev_batch_batch_hidden;
+	// Matrix matrix_para_dev_batch_batch_hidden;
 	matrix_para_dev_batch_batch_hidden.clean();
 
 
-	// vector<float *> para_dev_batch_hidden_gene;
+	// Matrix matrix_para_dev_batch_hidden_gene;
 	matrix_para_dev_batch_hidden_gene.clean();
 
 
@@ -145,40 +128,23 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// 2. will add the derivatives due to regularization in the next part
 	cout << "aggregation of this mini-batch..." << endl;
 
-	// TODO: to get a new design
-	// vector<vector<float *>> para_dev_cis_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_dev_cis_gene[etissue_index][i][k] = para_dev_cis_gene[etissue_index][i][k] / batch_size;
-			}
-		}
-	}
+	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
+	cube_para_dev_cis_gene[etissue_index].scale( 1.0 / batch_size );
 
 
-	// vector<float *> para_dev_snp_cellenv;
+	// Matrix matrix_para_dev_snp_cellenv;
 	matrix_para_dev_snp_cellenv.scale( 1.0 / batch_size );
 
 
-	// vector<vector<float *>> para_dev_cellenv_gene;
+	// vector<Matrix> cube_para_dev_cellenv_gene;
 	cube_para_dev_cellenv_gene[etissue_index].scale( 1.0 / batch_size );
 
 
-	// vector<float *> para_dev_batch_batch_hidden;
+	// Matrix matrix_para_dev_batch_batch_hidden;
 	matrix_para_dev_batch_batch_hidden.scale( 1.0 / batch_size );
 
 
-	// vector<float *> para_dev_batch_hidden_gene;
+	// Matrix matrix_para_dev_batch_hidden_gene;
 	matrix_para_dev_batch_hidden_gene.scale( 1.0 / batch_size );
 
 
@@ -194,6 +160,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 	cout << "[@@] leaving the forward-backward propagation..." << endl;
+
 }
 
 
@@ -599,65 +566,17 @@ void regularization(string etissue)
 	float lambda_batch_hidden_gene = 1.0;
 
 
-	// TODO: we have special treatment for the cis module, which is not a regular matrix
 	//===================================== part#1 =====================================
-	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, and the distance prior
+	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, (and the distance prior)
 	// TODO: not yet integrated the distance prior information
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int chr = gene_tss[gene].chr;
-			long index_start = gene_cis_index[gene].first;
-			long index_end = gene_cis_index[gene].second;
-			long amount = index_end - index_start + 1;
-			for(int j=0; j<amount; j++)
-			{
-				long pos = j + index_start;  // the pos in snp list
-
-				/// the value of current cis- beta:
-				float beta = para_cis_gene[etissue_index][i][j];
-
-				/// the prior that we need (if there is) for tuning the relative strength of L1 and L2 regularization:
-				float prior = 0;
-				unordered_map<string, vector<vector<float>>>::const_iterator got = prior_tissue_rep.find(etissue);
-				if( got != prior_tissue_rep.end() )
-				{
-					prior = prior_tissue_rep[etissue][chr-1][pos];
-				}
-				else
-				{
-					prior = 1.0;
-				}
-				float alpha = 1 / ( 1 + exp(-(prior-1)) );
-
-				/// the derivative of the beta:
-				float derivative1 = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
-				float derivative2 = 2 * beta;  // L2 regularization item is differentiable
-
-				/// and the value of its derivative should be added with that derivative item from regularization:
-				para_dev_cis_gene[etissue_index][i][j] += lambda_lasso * (1 - alpha) * derivative1 + lambda_ridge * alpha * derivative2;
-			}
-		// leaving the non-xymt gene section
-		}
-	}
-
-
+	para_penalty_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], prior_tissue_vector[etissue_index], lambda_lasso, lambda_ridge, sigma);
 
 
 	//===================================== part#2 =====================================
 	// 2.1. snp to cellenv
 	para_penalty_lasso_approx(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, lambda_snp_cellenv, sigma);
-
 	// 2.2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
 	para_penalty_lasso_approx(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], lambda_cellenv_gene, sigma);
-
 
 
 	//===================================== part#3 =====================================
@@ -669,13 +588,11 @@ void regularization(string etissue)
 	//
 
 
-
 	//===================================== part#4 =====================================
 	// 4. penalize the batch variables hashly
-	// from batch to batch_hidden:
+	// 4.1. from batch to batch_hidden:
 	para_penalty_lasso_approx(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, lambda_batch_batch_hidden, sigma);
-
-	// from batch_hidden to gene:
+	// 4.2. from batch_hidden to gene:
 	para_penalty_lasso_approx(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, lambda_batch_hidden_gene, sigma);
 
 
@@ -712,42 +629,26 @@ void gradient_descent(string etissue)
 
 
 	//============================================ pathway#1 ================================================
-	// TODO
-	//====================== para_cis_gene ==========================
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_cis_gene[etissue_index][i][k] = para_cis_gene[etissue_index][i][k] - rate_learner * para_dev_cis_gene[etissue_index][i][k];
-			}
-		}
-	}
+
+	//====================== cube_para_cis_gene ==========================
+	para_gradient_descent_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], rate_learner);
 
 
 	//============================================ pathway#2 ================================================
-	//====================== para_snp_cellenv ==========================
+	//====================== matrix_para_snp_cellenv ==========================
 	para_gradient_descent(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, rate_learner);
 
 
-	//====================== para_cellenv_gene ==========================
+	//====================== cube_para_cellenv_gene ==========================
 	para_gradient_descent(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], rate_learner);
 
 
 	//============================================ pathway#3 ================================================
-	//====================== para_batch_batch_hidden ==========================
+	//====================== matrix_para_batch_batch_hidden ==========================
 	para_gradient_descent(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, rate_learner);
 
 
-	//====================== para_batch_hidden_gene ==========================
+	//====================== matrix_para_batch_hidden_gene ==========================
 	para_gradient_descent(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, rate_learner);
 
 

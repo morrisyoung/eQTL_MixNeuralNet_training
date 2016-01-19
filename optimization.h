@@ -30,7 +30,7 @@ extern Matrix matrix_para_dev_batch_hidden_gene;
 // some assistant components:
 // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states); per etissue, per chromosome, for each snp
 // TODO: we also still need to integrate distance prior later on with the following prior information
-extern unordered_map<string, vector<vector<float>>> prior_tissue_rep;
+extern vector<vector<vector<float>>> prior_tissue_vector;
 // pairwise phylogenetic distance between etissues
 extern vector<vector<float>> tissue_hierarchical_pairwise;
 

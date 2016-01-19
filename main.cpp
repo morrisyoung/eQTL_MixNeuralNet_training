@@ -360,7 +360,7 @@ int main()
 
 	//
 	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
-	//
+	// cis-
 	for(int j=0; j<num_etissue; j++)
 	{
 		Matrix_imcomp matrix_imcomp;
@@ -379,18 +379,26 @@ int main()
 				long int second = gene_cis_index[gene].second;  // index
 				long int amount = second - first + 1;
 				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
+
+				// assing the chr and the tss:
+				matrix_imcomp.assign_chr(i, gene_tss[gene].chr);
+				matrix_imcomp.assign_sst(i, gene_tss[gene].tss);
 			}
 		}
 		cube_para_cis_gene.push_back(matrix_imcomp);
 	}
+	// snp to cellenv
 	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
+	// cellenv to gene
 	for(int i=0; i<num_etissue; i++)
 	{
 		Matrix matrix;
 		matrix.init(num_gene, num_cellenv + 1, para_cellenv_gene[i]);
 		cube_para_cellenv_gene.push_back(matrix);
 	}
+	// batch to hidden batch
 	matrix_para_batch_batch_hidden.init(num_batch_hidden, num_batch + 1, para_batch_batch_hidden);
+	// hidden batch to gene
 	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
 
 

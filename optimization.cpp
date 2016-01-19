@@ -51,7 +51,7 @@ Matrix matrix_para_dev_batch_hidden_gene;
 // some assistant components:
 // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states); per etissue, per chromosome, for each snp
 // TODO: we also still need to integrate distance prior later on with the following prior information
-unordered_map<string, vector<vector<float>>> prior_tissue_rep;
+vector<vector<vector<float>>> prior_tissue_vector;
 // pairwise phylogenetic distance between etissues
 vector<vector<float>> tissue_hierarchical_pairwise;
 
@@ -80,9 +80,21 @@ float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5
 
 
 // load all the cis- snp prior information (tissue specific) from prepared file outside
-// fill in the following: unordered_map<string, vector<vector<float>>> prior_tissue_rep
+// fill in the following: vector<vector<vector<float>>> prior_tissue_vector
 void opt_snp_prior_load()
 {
+
+	for(int i=0; i<num_etissue; i++)
+	{
+		vector<vector<float>> matrix;
+		prior_tissue_vector.push_back(matrix);
+	}
+
+
+	/*
+	// TODO: there should always be prior information in the repo
+	// TODO: in the simulating data, we don't have this prior, so temporarily stop this
+
 	// get the eTissue-index map
 	unordered_map<string, string> index_map;  // for temporary usage
 	char filename[100] = "../prior.score.unpruned/prior_tissue_index.txt";
@@ -167,8 +179,11 @@ void opt_snp_prior_load()
 			//======================================
 		}
 	}
+	*/
 
 }
+
+
 
 
 
@@ -287,6 +302,10 @@ void opt_para_init()
 				long int second = gene_cis_index[gene].second;  // index
 				long int amount = second - first + 1;
 				matrix_imcomp.init_element(i, amount + 1);
+
+				// assing the chr and the tss:
+				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
+				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
 			}
 		}
 		cube_para_dev_cis_gene.push_back(matrix_imcomp);
