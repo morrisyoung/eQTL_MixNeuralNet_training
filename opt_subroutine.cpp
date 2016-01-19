@@ -210,55 +210,19 @@ void forward_backward(string etissue,
 
 
 
-	// TODO: to get the new data structure
 	// ****************************** [part1] cis- *********************************
 	// for cis-, two issues:
-	// 1. if this is a XYMT gene, jump;
+	// 1. if this is a XYMT gene, we don't have signal from it's cis- SNPs (not consider currently);
 	// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
 	float * expr_con_pointer_cis = (float *)calloc( num_gene, sizeof(float) );
-	for(int i=0; i<num_gene; i++)
-	{
-		//expr_con_pointer_cis[i] = 0;
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int chr = gene_tss[gene].chr;
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				int pos = gene_cis_index[gene].first + k;
-				float dosage = (*dosage_list_pointer)[chr-1][pos];  // dosage at k position
-				expr_con_pointer_cis[i] += dosage * para_cis_gene[etissue_index][i][k];
-			}
-		}
-	}
+	multi_array_matrix_imcomp(dosage_list_pointer, cube_para_cis_gene[etissue_index], expr_con_pointer_cis);
 
 
 
 	// ********************* [part2] cell env relevant parameters *********************
 	// from snp to cell env variables
-	// TODO: to get the new data structure
 	float * expr_con_pointer_cellenv = (float *)calloc( num_gene, sizeof(float) );
-	for(int i=0; i<num_cellenv; i++)
-	{
-		cellenv_con_pointer[i] = 0;
-		long count = 0;
-		for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
-		{
-			int chr = j+1;
-			for(long k=0; k<snp_name_list[j].size(); k++)
-			{
-				float dosage = (*dosage_list_pointer)[j][k];
-				cellenv_con_pointer[i] += dosage * para_snp_cellenv[i][count];
-				count ++;
-			}
-		}
-	}
+	multi_array_list_matrix(dosage_list_pointer, matrix_para_snp_cellenv, expr_con_pointer_cellenv);
 
 	// // DEBUG
 	// char filename[100] = "../result_tempdata/var_cellenv_before.txt";
@@ -269,7 +233,6 @@ void forward_backward(string etissue,
 
 	// from cell env variables to genes
 	multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
-
 
 
 
@@ -289,7 +252,8 @@ void forward_backward(string etissue,
 	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
 
 
-	//// merge the signal from three pathways here, to expr_con_pointer
+
+	// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
 	for(long int i=0; i<num_gene; i++)
 	{
 		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];

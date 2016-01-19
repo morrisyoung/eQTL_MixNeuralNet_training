@@ -14,6 +14,8 @@
 #include <vector>
 #include <unordered_map>
 #include "lib_matrix.h"
+#include <array>
+#include "global.h"
 
 
 
@@ -35,6 +37,9 @@ void para_gradient_descent_cis(Matrix_imcomp, Matrix_imcomp, rate);
 
 void multi_array_matrix(float *, Matrix, float *);
 
+void multi_array_matrix_imcomp(array<float *, NUM_CHR> *, Matrix_imcomp, float *);
+
+void multi_array_list_matrix(array<float *, NUM_CHR> *, Matrix, float *);
 
 
 
