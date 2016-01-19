@@ -206,14 +206,14 @@ unordered_map<string, vector<float>> batch_individual;
 unordered_map<string, vector<float>> batch_sample;
 
 
-//// parameter containers: (we need to initialize all of them in an appropriate way)
+//// parameter containers: (load from the source data files)
 vector<vector<float *>> para_cis_gene;
 vector<float *> para_snp_cellenv;
 vector<vector<float *>> para_cellenv_gene;
 vector<float *> para_batch_batch_hidden;
 vector<float *> para_batch_hidden_gene;
-// to the new matrix class:
-// xxx (for cis to genes)
+// transform the above to the new matrix class:
+vector<Matrix_imcomp> cube_para_cis_gene;
 Matrix matrix_para_snp_cellenv;
 vector<Matrix> cube_para_cellenv_gene;
 Matrix matrix_para_batch_batch_hidden;
@@ -361,7 +361,28 @@ int main()
 	//
 	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
 	//
-	// xxx (for cis to genes)
+	for(int j=0; j<num_etissue; j++)
+	{
+		Matrix_imcomp matrix_imcomp;
+		matrix_imcomp.init(num_gene);
+		for(long int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				continue;
+			}
+			else
+			{
+				long int first = gene_cis_index[gene].first;  // index
+				long int second = gene_cis_index[gene].second;  // index
+				long int amount = second - first + 1;
+				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
+			}
+		}
+		cube_para_cis_gene.push_back(matrix_imcomp);
+	}
 	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
 	for(int i=0; i<num_etissue; i++)
 	{

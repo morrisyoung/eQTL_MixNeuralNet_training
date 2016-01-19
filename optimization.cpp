@@ -40,11 +40,8 @@ float * batch_var;  // with length "num_batch"
 float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
-// TOCHANGE
 // parameter derivative containers:
-vector<vector<float *>> para_dev_cis_gene;
-// TODO
-// xxx (for cis to gene)
+vector<Matrix_imcomp> cube_para_dev_cis_gene;
 Matrix matrix_para_dev_snp_cellenv;
 vector<Matrix> cube_para_dev_cellenv_gene;
 Matrix matrix_para_dev_batch_batch_hidden;
@@ -271,40 +268,32 @@ void opt_para_init()
 
 
 
-
-	// TODO: the following one is to be designed
-	//=============== para_dev_cis_gene ===============
+	//=============== cube_para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
-		vector<float *> vec;
-		para_dev_cis_gene.push_back(vec);
-		for(int i=0; i<num_gene; i++)
+		Matrix_imcomp matrix_imcomp;
+		matrix_imcomp.init(num_gene);
+		for(long int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
 			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
 			if ( got != gene_xymt_rep.end() )
 			{
-				float * p = NULL;  // null pointer
-				para_dev_cis_gene[j].push_back(p);
 				continue;
 			}
 			else
 			{
-				long first = gene_cis_index[gene].first;  // index
-				long second = gene_cis_index[gene].second;  // index
-				long amount = second - first + 1;
-				float * p = (float *)calloc( amount, sizeof(float) );
-				para_dev_cis_gene[j].push_back(p);
+				long int first = gene_cis_index[gene].first;  // index
+				long int second = gene_cis_index[gene].second;  // index
+				long int amount = second - first + 1;
+				matrix_imcomp.init_element(i, amount + 1);
 			}
 		}
+		cube_para_dev_cis_gene.push_back(matrix_imcomp);
 	}
-
-
-
 
 	//=============== matrix_para_dev_snp_cellenv ===============
 	matrix_para_dev_snp_cellenv.init(num_cellenv, num_snp + 1);		// we do have the intercept term here
-
 
 	//=============== cube_para_dev_cellenv_gene ===============
 	for(int j=0; j<num_etissue; j++)
@@ -314,10 +303,8 @@ void opt_para_init()
 		cube_para_dev_cellenv_gene.push_back(matrix);
 	}
 
-
 	//=============== matrix_para_dev_batch_batch_hidden ===============
 	matrix_para_dev_batch_batch_hidden.init(num_batch_hidden, num_batch + 1);
-
 
 	//=============== matrix_para_dev_batch_hidden_gene ===============
 	matrix_para_dev_batch_hidden_gene.init(num_gene, num_batch_hidden + 1);
@@ -350,18 +337,11 @@ void opt_para_release()
 
 
 
-
-	// TODO: to be designed for this new data structure
-	//=============== para_dev_cis_gene ===============
+	//=============== cube_para_dev_cis_gene ===============
 	for(int j=0; j<num_etissue; j++)
 	{
-		for(int i=0; i<num_gene; i++)
-		{
-			free(para_dev_cis_gene[j][i]);
-		}
+		cube_para_dev_cis_gene[j].release();
 	}
-
-
 
 
 	//=============== matrix_para_dev_snp_cellenv ===============

@@ -20,29 +20,11 @@ extern float * batch_var;  // with length "num_batch"
 extern float * batch_hidden_var;  // with length "num_batch_hidden"
 
 
-
-
-
-// TOCHANGE
-// parameter derivative containers:
-extern vector<vector<float *>> para_dev_cis_gene;
-extern vector<float *> para_dev_snp_cellenv;
-extern vector<vector<float *>> para_dev_cellenv_gene;
-extern vector<float *> para_dev_batch_batch_hidden;
-extern vector<float *> para_dev_batch_hidden_gene;
-// TODO
-// xxx (for cis to gene)
+extern vector<Matrix_imcomp> cube_para_dev_cis_gene;
 extern Matrix matrix_para_dev_snp_cellenv;
 extern vector<Matrix> cube_para_dev_cellenv_gene;
 extern Matrix matrix_para_dev_batch_batch_hidden;
 extern Matrix matrix_para_dev_batch_hidden_gene;
-
-
-
-
-
-
-
 
 
 // some assistant components:

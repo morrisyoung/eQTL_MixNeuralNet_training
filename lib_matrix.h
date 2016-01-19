@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 //#include <string.h>
-//m#include <string>
+#include <string>
 #include <string.h>
 #include <vector>
 #include <math.h>       /* exp */
@@ -168,6 +168,74 @@ class Matrix
 };
 
 
+
+
+// matrix (imcomplete, for cis- association parameters) class
+class Matrix_imcomp
+{
+	long int dimension;
+	vector<long int> list_length;
+	vector<float *> matrix;			// element as "float *" other than "array", as we don't pre-know the length
+
+	public:
+		//================================ constructor =======================================
+		void init(long int value)
+		{
+			dimension = value;
+			for(long int i=0; i<dimension; i++)
+			{
+				list_length.push_back(0);
+				float * pointer = NULL;
+				matrix.push_back(pointer);
+			}
+
+			return;
+		}
+
+		// initialize each element (empty) with specified length
+		void init_element(long int pos, long int length)
+		{
+			list_length[pos] = length;
+			matrix[pos] = (float *)calloc( length, sizeof(float) );
+
+			return;
+		}
+
+		// initialize each element (with values) with specified length
+		void fill_element(long int pos, long int length, float * list)
+		{
+			list_length[pos] = length;
+			matrix[pos] = (float *)calloc( length, sizeof(float) );
+			for(long int i=0; i<length; i++)
+			{
+				matrix[pos][i] = list[i];
+			}
+
+			return;
+		}
+
+
+
+		//================================ operations =======================================
+
+
+
+
+
+
+
+		//================================ destructor =======================================
+		void release()
+		{
+			for(long int i=0; i<dimension; i++)
+			{
+				free(matrix[i]);
+			}
+			return;
+		}
+
+
+};
 
 
 

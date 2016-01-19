@@ -259,7 +259,7 @@ void gene_tss_load()
 
 
 	}
-	fclose (file_in);
+	fclose(file_in);
 
 }
 
@@ -288,7 +288,7 @@ void gene_xymt_load()
 		string gene = input;
 		gene_xymt_rep[gene] = 1;
 	}
-	fclose (file_in);
+	fclose(file_in);
 
 }
 
