@@ -112,14 +112,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-
 	// DEBUG: debug the parameter dev, and the current cellenv and hiddenbatch
 	para_temp_save_dev(etissue_index);
 	char filename[100] = "../result_tempdata/var_cellenv.txt";
 	para_temp_save_var(cellenv_hidden_var, num_cellenv, filename);
 	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden.txt");
 	para_temp_save_var(batch_hidden_var, num_batch_hidden, filename);
-
 
 
 
@@ -166,21 +164,25 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+// ADDITIVE
 // property of this function: additive to the total derivative after this round (additive)
 // what we need for the following routine:
 // dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
 void forward_backward(string etissue,
 	array<float *, NUM_CHR> * dosage_list_pointer,
 	vector<float> * expr_list_pointer,
+
 	float * expr_con_pointer,
 	float * cellenv_con_pointer,
 	float * batch_list_pointer,
 	float * batch_hidden_con_pointer,
-	vector<float *> * para_dev_cis_gene_pointer,
-	vector<float *> * para_dev_cellenv_gene_pointer,
-	vector<float *> * para_dev_snp_cellenv_pointer,
-	vector<float *> * para_dev_batch_hidden_gene_pointer,
-	vector<float *> * para_dev_batch_batch_hidden_pointer)
+	// the new Matrix/Matrix_imcomp classes:
+	Matrix_imcomp matrix_imcomp_para_dev_cis_gene;				// drop the Matrix_imcomp object, other than the full cube. TODO: not sure whether there are problems
+	Matrix matrix_para_dev_snp_cellenv;
+	Matrix matrix_para_dev_cellenv_gene;						// drop the Matrix object, other than the full cube
+	Matrix matrix_para_dev_batch_batch_hidden;
+	Matrix matrix_para_dev_batch_hidden_gene
+	)
 {
 	// how to map these pointers:
 	/*
@@ -191,11 +193,11 @@ void forward_backward(string etissue,
 	cellenv_con_pointer --> cellenv_hidden_var
 	batch_hidden_con_pointer --> batch_hidden_var
 
-	para_dev_cis_gene_pointer --> &para_dev_cis_gene[etissue_index]
-	para_dev_cellenv_gene_pointer --> &para_dev_cellenv_gene[etissue_index]
-	para_dev_snp_cellenv_pointer --> &para_dev_snp_cellenv
-	para_dev_batch_hidden_gene_pointer --> &para_dev_batch_hidden_gene
-	para_dev_batch_batch_hidden_pointer --> &para_dev_batch_batch_hidden
+	//para_dev_cis_gene_pointer --> &para_dev_cis_gene[etissue_index]
+	//para_dev_cellenv_gene_pointer --> &para_dev_cellenv_gene[etissue_index]
+	//para_dev_snp_cellenv_pointer --> &para_dev_snp_cellenv
+	//para_dev_batch_hidden_gene_pointer --> &para_dev_batch_hidden_gene
+	//para_dev_batch_batch_hidden_pointer --> &para_dev_batch_batch_hidden
 	*/
 
 	int etissue_index = etissue_index_map[etissue];
@@ -258,6 +260,13 @@ void forward_backward(string etissue,
 	{
 		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
 	}
+	// error is the thing actually needed
+	float * error_list = (float *)calloc(num_gene, sizeof(float));
+	for(long int i=0; i<num_gene; i++)
+	{
+		error_list[i] = expr_con_pointer[i] - (*expr_list_pointer)[i];
+	}
+
 
 
 	// // DEBUG
@@ -272,224 +281,31 @@ void forward_backward(string etissue,
 	//========================================================================
 	//========================================================================
 	// *********************** [part1] cis- ************************
-	// pseudo: (expected rpkm - real rpkm) * genotype
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int chr = gene_tss[gene].chr;
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			float diff = expr_con_pointer[i] - (*expr_list_pointer)[i];
-			for(int k=0; k<num; k++)
-			{
-				int pos = gene_cis_index[gene].first + k;
-				float dosage = (*dosage_list_pointer)[chr-1][pos];  // dosage at k position
-				(*para_dev_cis_gene_pointer)[i][k] += diff * dosage;
-			}
-		}
-	}
+	backward_error_prop_direct_imcomp(matrix_imcomp_para_dev_cis_gene, error_list, dosage_list_pointer);
+
+
 
 	// ***************** [part2] cell env relevant parameters *****************
-	// from cell env to genes
-	// pseudo: (expected rpkm - real rpkm) * cell_env
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		float diff = expr_con_pointer[i] - (*expr_list_pointer)[i];
-		for(int j=0; j<num_cellenv; j++)
-		{
-			(*para_dev_cellenv_gene_pointer)[i][j] += diff * cellenv_con_pointer[j];
-		}
-	}
-	// from snp to cell env
-	// pseudo: [ \sum w3 * (expected rpkm - real rpkm) ] * g'(w2 * x1) * x1
+	//// from cell env to genes
+	backward_error_prop_last_layer(matrix_para_dev_cellenv_gene, error_list, cellenv_con_pointer);
 
-
-
-
-
-
-
-	// // DEBUG
-	// //===========================================================================================
-	// //===========================================================================================
- //    FILE * file_out1 = fopen("../temp_data/error_cellenv_1.txt", "w+");
- //    if(file_out1 == NULL)
- //    {
- //        fputs("File error\n", stderr); exit(1);
- //    }
-	// FILE * file_out2 = fopen("../temp_data/error_cellenv_2.txt", "w+");
-	// if(file_out2 == NULL)
-	// {
-	// 	fputs("File error\n", stderr); exit(1);
-	// }
-	// //===========================================================================================
-	// //===========================================================================================
-
-	// // DEBUG
-	// char buf[1024];
-
-	for(int i=0; i<num_cellenv; i++)
-	{
-		//
-		float temp = 0;
-		for(int t=0; t<num_gene; t++)
-		{
-			temp += para_cellenv_gene[etissue_index][t][i] * (expr_con_pointer[t] - (*expr_list_pointer)[t]);
-		}
-
-		// // DEBUG
-		// // save the back-propogated errors to the file, and check
-		// sprintf(buf, "%f\n", temp);
-		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
-
-		//
-		temp *= neuralnet_ac_func_dev(cellenv_con_pointer[i]);
-		//
-
-		// // DEBUG
-		// // save the back-propogated errors to the file, and check
-		// sprintf(buf, "%f\n", temp);
-		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
-
-		long count = 0;
-		for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
-		{
-			int chr = j+1;
-			for(long k=0; k<snp_name_list[j].size(); k++)
-			{
-				float dosage = (*dosage_list_pointer)[j][k];
-				(*para_dev_snp_cellenv_pointer)[i][count] += temp * dosage;
-				count ++;
-			}
-		}
-	}
-
-	// // DEBUG
-	// //===========================================================================================
-	// //===========================================================================================
-	// fclose(file_out1);
-	// fclose(file_out2);
-	// //===========================================================================================
-	// //===========================================================================================
-
+	//// from snp to cell env
+	backward_error_prop_inter_layer_1(error_list, cube_para_cellenv_gene[etissue_index], matrix_para_dev_snp_cellenv, cellenv_con_pointer, dosage_list_pointer);
 
 
 
 	// ********************* [part3] linear or non-linear batches *********************
-	// from hidden batch to genes
-	// pseudo: (expected rpkm - real rpkm) * hidden batch var
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		float diff = expr_con_pointer[i] - (*expr_list_pointer)[i];
-		for(int j=0; j<num_batch_hidden; j++)
-		{
-			(*para_dev_batch_hidden_gene_pointer)[i][j] += diff * batch_hidden_con_pointer[j];
-		}
-	}
+	//// from hidden batch to genes
+	backward_error_prop_last_layer(matrix_para_dev_batch_hidden_gene, error_list, batch_hidden_con_pointer);
+
 	// from original batch to hidden batch
-	// pseudo: [ \sum w5 * (expected rpkm - real rpkm) ] * g'(w4 * x2) * x2
+	backward_error_prop_inter_layer_2(error_list, matrix_para_batch_hidden_gene, matrix_para_dev_batch_batch_hidden, batch_hidden_con_pointer, batch_list_pointer);
 
 
 
+	free(error_list);
 
-
-
-	// // DEBUG
-	// //===========================================================================================
-	// //===========================================================================================
- //    file_out1 = fopen("../temp_data/error_batch_1.txt", "w+");
- //    if(file_out1 == NULL)
- //    {
- //        fputs("File error\n", stderr); exit(1);
- //    }
-	// file_out2 = fopen("../temp_data/error_batch_2.txt", "w+");
-	// if(file_out2 == NULL)
-	// {
-	// 	fputs("File error\n", stderr); exit(1);
-	// }
-	// FILE * file_out3 = fopen("../temp_data/error_batch_3.txt", "w+");
-	// if(file_out3 == NULL)
-	// {
-	// 	fputs("File error\n", stderr); exit(1);
-	// }
-	// //===========================================================================================
-	// //===========================================================================================
-
-
-
-
-
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		//
-		float temp = 0;
-		for(int t=0; t<num_gene; t++)
-		{
-			temp += para_batch_hidden_gene[t][i] * (expr_con_pointer[t] - (*expr_list_pointer)[t]);
-		}
-
-
-
-
-		// // DEBUG
-		// // save the back-propogated errors to the file, and check
-		// sprintf(buf, "%f\n", temp);
-		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
-
-
-
-
-
-		//
-		temp *= neuralnet_ac_func_dev(batch_hidden_con_pointer[i]);
-		//
-
-
-		// // DEBUG
-		// // save the back-propogated errors to the file, and check
-		// sprintf(buf, "%f\n", temp);
-		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
-
-
-		// // DEBUG: save all the batch var and the multiplied error
-		// for(int j=0; j<num_batch; j++)
-		// {
-		// 	float batch_value = batch_list_pointer[j];
-		// 	(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
-
-
-		// 	sprintf(buf, "%f\t%f\t", batch_value, temp * batch_value);
-		// 	fwrite(buf, sizeof(char), strlen(buf), file_out3);
-		// }
-		// fwrite("\n", sizeof(char), 1, file_out3);
-
-		for(int j=0; j<num_batch; j++)
-		{
-			float batch_value = batch_list_pointer[j];
-			(*para_dev_batch_batch_hidden_pointer)[i][j] += temp * batch_value;
-		}
-	}
-
-	// // DEBUG
-	// //===========================================================================================
-	// //===========================================================================================
-	// fclose(file_out1);
-	// fclose(file_out2);
-	// fclose(file_out3);
-	// //===========================================================================================
-	// //===========================================================================================
-
-
-
-
+	return;
 }
 
 

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "global.h"
 #include <array>
+#include "opt_nn_acfunc.h"
 
 
 
@@ -212,5 +213,190 @@ void multi_array_list_matrix(array<float *, NUM_CHR> * input_pointer, Matrix mat
 
 	return;
 }
+
+
+
+
+
+//============================================ back propogation =================================================
+// NOTE: this is an additive function that update the studied parameter derivatives
+// we have several types of backpropogation:
+// direct association, imcomplete parameter matrix 				[cis- association]
+// last layer, complete parameter matrix 						[hidden batch to genes, cellenv to genes]
+// inter layer, complete parameter matrix 						[snp to cellenv, batch to hidden batch]
+
+
+// this is currently specially for cis- association:
+// we usually have only direct regulation from cis- regulators to the genes (this is the current setting)
+// pseudo: (expected rpkm - real rpkm) * genotype
+void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, float * error_list, array<float *, NUM_CHR> * input_list)
+{
+	long int dimension1 = matrix_imcomp_para_dev.get_dimension1();
+	for(long int i=0; i<dimension; i++)
+	{
+		//float diff = expr_con_pointer[i] - (*expr_list_pointer)[i];
+		float error = error_list[i];
+
+		int chr = matrix_imcomp_para_dev.get_chr(i);
+		long int pos_start = matrix_imcomp_para_dev.get_sst(i);
+
+		long int dimension2 = matrix_imcomp_para_dev.get_dimension2(i);
+		for(long int j=0; j<dimension2; j++)
+		{
+			if(j == dimension2 - 1)								// we do have the intercept term here
+			{
+				matrix_imcomp_para_dev.add_on(i, j, 1 * error);
+			}
+
+			long int pos = pos_start + j;
+			float value = input_list[chr][pos];
+			matrix_imcomp_para_dev.add_on(i, j, value * error);
+		}
+	}
+
+	return;
+}
+
+
+
+// pseudo: (expected rpkm - real rpkm) * cell_env
+// pseudo: (expected rpkm - real rpkm) * hidden batch
+void backward_error_prop_last_layer(Matrix matrix_para_dev, float * error_list, float * input)
+{
+	long int dimension1 = matrix_para_dev.get_dimension1();
+	for(long int i=0; i<dimension1; i++)
+	{
+		float error = error_list[i];
+
+		long int dimension2 = matrix_para_dev.get_dimension2(i);
+		for(long int j=0; j<dimension2; j++)
+		{
+			if(j == dimension2 - 1)								// we do have the intercept term
+			{
+				matrix_para_dev.add_on(i, j, 1 * error);
+			}
+
+			float value = input[j];
+			matrix_para_dev.add_on(i, j, value * error);
+		}
+	}
+
+	return;
+}
+
+
+
+// inter layer 1: first input layer is the linked list -- cis- parameters
+// pseudo: [ \sum w3 * (expected rpkm - real rpkm) ] * g'(w2 * x1) * x1
+// NOTE: the only difference between 1 and 2 is the input (list of lists, or simply list)
+void backward_error_prop_inter_layer_1(float * error_list, Matrix matrix_para_second, Matrix matrix_para_dev_first, float * hidden, array<float *, NUM_CHR> * input_pointer)
+{
+	// // DEBUG: maybe I want to check the backpropogated errors, so I keep a sample here
+	// //===========================================================================================
+	// //===========================================================================================
+ //    FILE * file_out1 = fopen("../temp_data/error_cellenv_1.txt", "w+");
+ //    if(file_out1 == NULL)
+ //    {
+ //        fputs("File error\n", stderr); exit(1);
+ //    }
+	// FILE * file_out2 = fopen("../temp_data/error_cellenv_2.txt", "w+");
+	// if(file_out2 == NULL)
+	// {
+	// 	fputs("File error\n", stderr); exit(1);
+	// }
+	// //===========================================================================================
+	// //===========================================================================================
+
+	// // DEBUG
+	// char buf[1024];
+
+	long int dimention2 = matrix_para_second.get_dimension2();
+	for(long int i=0; i<dimention2 - 1; i++)							// the intercept term is not evaluated in back propogation
+	{
+		//
+		long int dimention1 = matrix_para_second.get_dimension1();
+		float temp = 0;
+		for(int t=0; t<dimention1; t++)
+		{
+			float par = matrix_para_second.get(t, i);
+			temp += par * error_list[t];
+		}
+
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out1);
+
+		//
+		temp *= neuralnet_ac_func_dev(hidden[i]);
+		//
+
+		// // DEBUG
+		// // save the back-propogated errors to the file, and check
+		// sprintf(buf, "%f\n", temp);
+		// fwrite(buf, sizeof(char), strlen(buf), file_out2);
+
+		long int dimention3 = matrix_para_dev_first.get_dimension2();
+		long int count = 0;
+		for(int j=0; j<NUM_CHR; j++)
+		{
+			for(long k=0; k<snp_name_list[j].size(); k++)				// TODO: we don't want global variables visiable here!!!
+			{
+				float var = (*input_pointer)[j][k];
+				matrix_para_dev_first.add_on(i, count, var * temp);
+				count ++;
+			}
+		}
+		matrix_para_dev_first.add_on(i, dimention3 - 1, 1 * temp);		// we do have the intercept term here
+
+	}
+
+	// // DEBUG
+	// //===========================================================================================
+	// //===========================================================================================
+	// fclose(file_out1);
+	// fclose(file_out2);
+	// //===========================================================================================
+	// //===========================================================================================
+
+	return;
+}
+
+
+
+
+// inter layer 2: first input layer is simply a list
+// pseudo: [ \sum w5 * (expected rpkm - real rpkm) ] * g'(w4 * x2) * x2
+void backward_error_prop_inter_layer_2(float * error_list, Matrix matrix_para_second, Matrix matrix_para_dev_first, float * hidden, float * input)
+{
+	long int dimention2 = matrix_para_second.get_dimension2();
+	for(long int i=0; i<dimention2 - 1; i++)							// the intercept term is not evaluated in back propogation
+	{
+		long int dimention1 = matrix_para_second.get_dimension1();
+		float temp = 0;
+		for(int t=0; t<dimention1; t++)
+		{
+			float par = matrix_para_second.get(t, i);
+			temp += par * error_list[t];
+		}
+
+		temp *= neuralnet_ac_func_dev(hidden[i]);
+
+		long int dimention3 = matrix_para_dev_first.get_dimension2();
+		for(long int j=0; j<dimention3; i++)
+		{
+			if(j == dimention3 - 1)										// we do have the intercept term here
+			{
+				matrix_para_dev_first.add_on(i, j, 1 * temp);
+			}
+
+			float var = input[j];
+			matrix_para_dev_first.add_on(i, j, var * temp);
+		}
+	}
+
+	return;
+}
+
 
 
