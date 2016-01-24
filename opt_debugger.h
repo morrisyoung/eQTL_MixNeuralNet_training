@@ -20,6 +20,9 @@ int para_check_nan(string etissue);
 void para_temp_save_dev(int);
 
 
+void para_temp_save_matrix_imcomp(Matrix_imcomp, char *);
+
+
 void para_temp_save_matrix(Matrix, char *);
 
 

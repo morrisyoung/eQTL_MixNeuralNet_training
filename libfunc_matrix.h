@@ -27,12 +27,12 @@ using namespace std;
 //============================================ task specific functions =================================================
 void para_penalty_lasso_approx(Matrix, Matrix, float, float);
 
-void para_penalty_cis(Matrix_imcomp, Matrix_imcomp, vector<vector<float>>>, float, float, float);
+void para_penalty_cis(Matrix_imcomp, Matrix_imcomp, vector<vector<float>>, float, float, float);
 
 
 void para_gradient_descent(Matrix, Matrix, float);
 
-void para_gradient_descent_cis(Matrix_imcomp, Matrix_imcomp, rate);
+void para_gradient_descent_cis(Matrix_imcomp, Matrix_imcomp, float);
 
 
 //============================================ abstract functions =================================================

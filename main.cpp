@@ -382,8 +382,8 @@ int main()
 				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
 
 				// assing the chr and the tss:
-				matrix_imcomp.assign_chr(i, gene_tss[gene].chr);
-				matrix_imcomp.assign_sst(i, gene_tss[gene].tss);
+				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
+				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
 			}
 		}
 		cube_para_cis_gene.push_back(matrix_imcomp);

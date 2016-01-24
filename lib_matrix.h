@@ -175,9 +175,9 @@ class Matrix_imcomp
 
 	public:
 		//================================ constructor =======================================
-		void init(long int value)
+		void init(long int length)
 		{
-			dimension = value;
+			dimension = length;
 			for(long int i=0; i<dimension; i++)
 			{
 				list_length.push_back(0);
@@ -295,6 +295,27 @@ class Matrix_imcomp
 			return;
 		}
 
+		// check nan: check whether there is Nan in this Matrix_imcomp
+		int check_nan()
+		{
+			int flag = 0;
+
+			for(long int i=0; i<dimension; i++)
+			{
+				for(long int j=0; j<list_length[i]; j++)
+				{
+					float value = matrix[i][j];
+					// check nan
+					if(isnan(value))
+					{
+						flag = 1;
+						break;
+					}
+				}
+			}
+
+			return flag;
+		}
 
 
 		//================================ destructor =======================================

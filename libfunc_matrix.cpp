@@ -15,7 +15,6 @@
 
 
 
-
 using namespace std;
 
 
@@ -28,7 +27,6 @@ void para_penalty_lasso_approx(Matrix matrix_para, Matrix matrix_para_dev, float
 {
 	long int dimension1 = matrix_para.get_dimension1();
 	long int dimension2 = matrix_para.get_dimension2();
-
 
 
 	for(int i=0; i<dimension1; i++)
@@ -52,7 +50,7 @@ void para_penalty_lasso_approx(Matrix matrix_para, Matrix matrix_para_dev, float
 // func:
 //		regularization for the cis- parameters, with both lasso and ridge (composed as elastic net)
 //		for sparsity and pruning signal
-void para_penalty_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_imcomp_para_dev, vector<vector<float>>> repo_prior, float lambda_lasso, float lambda_ridge, float sigma)
+void para_penalty_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_imcomp_para_dev, vector<vector<float>> repo_prior, float lambda_lasso, float lambda_ridge, float sigma)
 {
 
 	long int dimension1 = matrix_imcomp_para.get_dimension1();
@@ -171,6 +169,7 @@ void multi_array_matrix_imcomp(array<float *, NUM_CHR> * input_pointer, Matrix_i
 		{
 			if(j == dimension2 - 1)
 			{
+				float par = matrix_imcomp_para.get(i, j);
 				result[i] += 1 * par;			// the last one in the parameter list is for the intercept term
 			}
 			else
@@ -201,14 +200,15 @@ void multi_array_list_matrix(array<float *, NUM_CHR> * input_pointer, Matrix mat
 		{
 			for(long k=0; k<snp_name_list[j].size(); k++)			// TODO: this is to be corrected, as we don't want to see global variables here
 			{
-				float var = (*dosage_list_pointer)[j][k];
-				float par = matrix_para[i][count];
-				cellenv_con_pointer[i] += var * par;
+				float var = (*input_pointer)[j][k];
+				float par = matrix_para.get(i, count);
+				result[i] += var * par;
 				count ++;
 			}
 		}
-		float par = matrix_para[i][dimension2 - 1];					// we do have the intercept term here
-		cellenv_con_pointer[i] += par;
+		// we have not yet considered the intercept term by now
+		float par = matrix_para.get(i, dimension2 - 1);				// we do have the intercept term here
+		result[i] += par;
 	}
 
 	return;
@@ -229,10 +229,10 @@ void multi_array_list_matrix(array<float *, NUM_CHR> * input_pointer, Matrix mat
 // this is currently specially for cis- association:
 // we usually have only direct regulation from cis- regulators to the genes (this is the current setting)
 // pseudo: (expected rpkm - real rpkm) * genotype
-void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, float * error_list, array<float *, NUM_CHR> * input_list)
+void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, float * error_list, array<float *, NUM_CHR> * input_list_pointer)
 {
 	long int dimension1 = matrix_imcomp_para_dev.get_dimension1();
-	for(long int i=0; i<dimension; i++)
+	for(long int i=0; i<dimension1; i++)
 	{
 		//float diff = expr_con_pointer[i] - (*expr_list_pointer)[i];
 		float error = error_list[i];
@@ -249,7 +249,7 @@ void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, flo
 			}
 
 			long int pos = pos_start + j;
-			float value = input_list[chr][pos];
+			float value = (*input_list_pointer)[chr][pos];
 			matrix_imcomp_para_dev.add_on(i, j, value * error);
 		}
 	}
@@ -264,11 +264,11 @@ void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, flo
 void backward_error_prop_last_layer(Matrix matrix_para_dev, float * error_list, float * input)
 {
 	long int dimension1 = matrix_para_dev.get_dimension1();
+	long int dimension2 = matrix_para_dev.get_dimension2();
+
 	for(long int i=0; i<dimension1; i++)
 	{
 		float error = error_list[i];
-
-		long int dimension2 = matrix_para_dev.get_dimension2(i);
 		for(long int j=0; j<dimension2; j++)
 		{
 			if(j == dimension2 - 1)								// we do have the intercept term
@@ -397,6 +397,5 @@ void backward_error_prop_inter_layer_2(float * error_list, Matrix matrix_para_se
 
 	return;
 }
-
 
 

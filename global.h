@@ -81,7 +81,7 @@ extern vector<float *> para_batch_hidden_gene;
 extern unordered_map<string, tuple_long> gene_cis_index;
 
 // re-format into the new class:
-// xxx (for cis to genes)
+extern vector<Matrix_imcomp> cube_para_cis_gene;
 extern Matrix matrix_para_snp_cellenv;
 extern vector<Matrix> cube_para_cellenv_gene;
 extern Matrix matrix_para_batch_batch_hidden;

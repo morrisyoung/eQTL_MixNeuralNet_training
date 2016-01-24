@@ -7,6 +7,9 @@
 
 #include <string>
 #include "global.h"
+#include "lib_matrix.h"
+#include <array>
+#include <vector>
 
 
 using namespace std;
@@ -26,9 +29,9 @@ string sample_to_individual(string);
 
 // the main optimization routine: the forward_backward propagation, and the gradient descent
 void forward_backward_prop_batch(string, int, int);
-void forward_backward(string, array<float *, NUM_CHR> *, vector<float> *, float *, float *, float *, float *, vector<float *> *, vector<float *> *, vector<float *> *, vector<float *> *, vector<float *> *);
-void regularization(string);
-void gradient_descent(string);
+void forward_backward(int, array<float *, NUM_CHR> *, vector<float> *, float *, float *, float *, float *, Matrix_imcomp, Matrix, Matrix, Matrix, Matrix);
+void regularization(int);
+void gradient_descent(int);
 
 
 

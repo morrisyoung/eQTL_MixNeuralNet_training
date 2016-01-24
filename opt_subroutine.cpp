@@ -40,22 +40,17 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
 	cube_para_dev_cis_gene[etissue_index].clean();
 
-
 	// Matrix matrix_para_dev_snp_cellenv;
 	matrix_para_dev_snp_cellenv.clean();
-
 
 	// vector<Matrix> matrix_para_dev_cellenv_gene;
 	cube_para_dev_cellenv_gene[etissue_index].clean();
 
-
 	// Matrix matrix_para_dev_batch_batch_hidden;
 	matrix_para_dev_batch_batch_hidden.clean();
 
-
 	// Matrix matrix_para_dev_batch_hidden_gene;
 	matrix_para_dev_batch_hidden_gene.clean();
-
 
 
 
@@ -94,18 +89,21 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 		}
 
 
-		forward_backward(etissue,
+		forward_backward(etissue_index,
 						&snp_dosage_list,
 						&eQTL_tissue_rep[etissue][esample],
+
 						gene_rpkm_exp,
 						cellenv_hidden_var,
 						batch_var,
 						batch_hidden_var,
-						&(para_dev_cis_gene[etissue_index]),
-						&(para_dev_cellenv_gene[etissue_index]),
-						&para_dev_snp_cellenv,
-						&para_dev_batch_hidden_gene,
-						&para_dev_batch_batch_hidden);
+
+						cube_para_dev_cis_gene[etissue_index],
+						matrix_para_dev_snp_cellenv,
+						cube_para_dev_cellenv_gene[etissue_index],
+						matrix_para_dev_batch_batch_hidden,
+						matrix_para_dev_batch_hidden_gene
+						);
 
 		// leaving the mini-batch
 	}
@@ -148,12 +146,12 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 	//===================================== Regularization in Regression =====================================
-	regularization(etissue);
+	regularization(etissue_index);
 
 
 
 	//=========================================== Gradient Descent ===========================================
-	gradient_descent(etissue);
+	gradient_descent(etissue_index);
 
 
 
@@ -168,7 +166,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 // property of this function: additive to the total derivative after this round (additive)
 // what we need for the following routine:
 // dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
-void forward_backward(string etissue,
+void forward_backward(int etissue_index,
 	array<float *, NUM_CHR> * dosage_list_pointer,
 	vector<float> * expr_list_pointer,
 
@@ -177,10 +175,10 @@ void forward_backward(string etissue,
 	float * batch_list_pointer,
 	float * batch_hidden_con_pointer,
 	// the new Matrix/Matrix_imcomp classes:
-	Matrix_imcomp matrix_imcomp_para_dev_cis_gene;				// drop the Matrix_imcomp object, other than the full cube. TODO: not sure whether there are problems
-	Matrix matrix_para_dev_snp_cellenv;
-	Matrix matrix_para_dev_cellenv_gene;						// drop the Matrix object, other than the full cube
-	Matrix matrix_para_dev_batch_batch_hidden;
+	Matrix_imcomp matrix_imcomp_para_dev_cis_gene,				// drop the Matrix_imcomp object, other than the full cube. TODO: not sure whether there are problems
+	Matrix matrix_para_dev_snp_cellenv,
+	Matrix matrix_para_dev_cellenv_gene,						// drop the Matrix object, other than the full cube
+	Matrix matrix_para_dev_batch_batch_hidden,
 	Matrix matrix_para_dev_batch_hidden_gene
 	)
 {
@@ -200,7 +198,6 @@ void forward_backward(string etissue,
 	//para_dev_batch_batch_hidden_pointer --> &para_dev_batch_batch_hidden
 	*/
 
-	int etissue_index = etissue_index_map[etissue];
 
 	//========================================================================
 	// two step: forward propagation (get the function values); backward propagation (get the parameter derivatives)
@@ -314,7 +311,7 @@ void forward_backward(string etissue,
 
 
 
-void regularization(string etissue)
+void regularization(int etissue_index)
 {
 	cout << "[@@] entering the regularization routine..." << endl;
 
@@ -325,8 +322,6 @@ void regularization(string etissue)
 	// 3.2.[TODO] or we can simply use group LASSO to encourage the tissue consistency
 	// 4. penalize the batch variables hashly (from batch variables to batch_hidden, and from batch_hidden to genes)
 	cout << "adding the regularization items to the derivatives..." << endl;
-
-	int etissue_index = etissue_index_map[etissue];
 
 	//===================================== part#0 =====================================
 	// initialize some learning parameters
@@ -385,7 +380,7 @@ void regularization(string etissue)
 
 
 
-void gradient_descent(string etissue)
+void gradient_descent(int etissue_index)
 {
 	cout << "[@@] entering the gradient descent..." << endl;
 
@@ -404,8 +399,6 @@ void gradient_descent(string etissue)
 	//vector<vector<float *>> para_dev_cellenv_gene;
 	//vector<float *> para_dev_batch_batch_hidden;
 	//vector<float *> para_dev_batch_hidden_gene;
-
-	int etissue_index = etissue_index_map[etissue];
 
 
 	//============================================ pathway#1 ================================================

@@ -1,32 +1,5 @@
-
-
-
-
-
-
-
-
-
-
-
-
-// TODO: this is to be updated to the new Matrix and Matrix_imcomp classes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // the control platform for multi-threading program
+// this program will call sub routines in "opt_subroutine.cpp"
 
 #include <iostream>
 #include <stdio.h>
@@ -46,6 +19,7 @@
 #include "genotype.h"
 #include <string.h>
 #include "expression.h"
+#include "lib_matrix.h"
 
 
 
@@ -61,12 +35,12 @@ int * finish_table;				// finish table for all the samples in this batch ()
 
 
 // initialize all the parameter space
-void package_alloc(package_thread * package_pointer)
+void package_alloc(package_dev * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
 	for(int i=0; i<NUM_CHR; i++)
 	{
-		long num_temp = snp_name_list[i].size();
+		long num_temp = snp_name_list[i].size();						// TODO: maybe it's better that we can hide some global variables
 		float * p = (float *)calloc( num_temp, sizeof(float) );
 		(package_pointer->snp_dosage_list)[i] = p;
 	}
@@ -83,61 +57,48 @@ void package_alloc(package_thread * package_pointer)
 	//=============== (package_pointer->batch_hidden_var) ===============
 	(package_pointer->batch_hidden_var) = (float *)calloc( num_batch_hidden, sizeof(float) );
 
-	//=============== (package_pointer->para_dev_cis_gene) ===============
-	for(int i=0; i<num_gene; i++)
+
+	//=============== (package_pointer->matrix_imcomp_para_dev_cis_gene) ===============
+	(package_pointer->matrix_imcomp_para_dev_cis_gene).init(num_gene);
+	for(long int i=0; i<num_gene; i++)
 	{
 		string gene = gene_list[i];
 		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
 		if ( got != gene_xymt_rep.end() )
 		{
-			float * p = NULL;  // null pointer
-			(package_pointer->para_dev_cis_gene).push_back(p);
 			continue;
 		}
 		else
 		{
-			long first = gene_cis_index[gene].first;  // index
-			long second = gene_cis_index[gene].second;  // index
-			long amount = second - first + 1;
-			float * p = (float *)calloc( amount, sizeof(float) );
-			(package_pointer->para_dev_cis_gene).push_back(p);
+			long int first = gene_cis_index[gene].first;
+			long int second = gene_cis_index[gene].second;
+			long int amount = second - first + 1;
+			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_element(i, amount + 1);
+
+			// assing the chr and the tss:
+			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_chr(i, gene_tss[gene].chr);
+			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_sst(i, gene_tss[gene].tss);
 		}
 	}
 
-	//=============== (package_pointer->para_dev_snp_cellenv) ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
-		(package_pointer->para_dev_snp_cellenv).push_back(p);
-	}
+	//=============== (package_pointer->matrix_para_dev_snp_cellenv) ===============
+	(package_pointer->matrix_para_dev_snp_cellenv).init(num_cellenv, num_snp + 1);					// we do have the intercept term here
 
-	//=============== (package_pointer->para_dev_cellenv_gene) ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		float * p = (float *)calloc( num_cellenv, sizeof(float) );
-		(package_pointer->para_dev_cellenv_gene).push_back(p);
-	}
+	//=============== (package_pointer->matrix_para_dev_cellenv_gene) ===============
+	(package_pointer->matrix_para_dev_cellenv_gene).init(num_gene, num_cellenv + 1);				// we do have the intercept term here
 
-	//=============== (package_pointer->para_dev_batch_batch_hidden) ===============
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		float * p = (float *)calloc( num_batch, sizeof(float) );
-		(package_pointer->para_dev_batch_batch_hidden).push_back(p);
-	}
+	//=============== (package_pointer->matrix_para_dev_batch_batch_hidden) ===============
+	(package_pointer->matrix_para_dev_batch_batch_hidden).init(num_batch_hidden, num_batch + 1);	// we do have the intercept term here
 
-	//=============== (package_pointer->para_dev_batch_hidden_gene) ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
-		(package_pointer->para_dev_batch_hidden_gene).push_back(p);
-	}
+	//=============== (package_pointer->matrix_para_dev_batch_hidden_gene) ===============
+	(package_pointer->matrix_para_dev_batch_hidden_gene).init(num_gene, num_batch_hidden + 1);
 
 }
 
 
 
 // to release the above space
-void package_free(package_thread * package_pointer)
+void package_free(package_dev * package_pointer)
 {
 	//=============== (package_pointer->snp_dosage_list) ===============
 	for(int i=0; i<NUM_CHR; i++)
@@ -157,35 +118,22 @@ void package_free(package_thread * package_pointer)
 	//=============== (package_pointer->batch_hidden_var) ===============
 	free(package_pointer->batch_hidden_var);
 
-	//=============== (package_pointer->para_dev_cis_gene) ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		free((package_pointer->para_dev_cis_gene)[i]);
-	}
 
-	//=============== (package_pointer->para_dev_snp_cellenv) ===============
-	for(int i=0; i<num_cellenv; i++)
-	{
-		free((package_pointer->para_dev_snp_cellenv)[i]);
-	}
 
-	//=============== (package_pointer->para_dev_cellenv_gene) ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		free((package_pointer->para_dev_cellenv_gene)[i]);
-	}
+	//=============== (package_pointer->matrix_imcomp_para_dev_cis_gene) ===============
+	(package_pointer->matrix_imcomp_para_dev_cis_gene).release();
 
-	//=============== (package_pointer->para_dev_batch_batch_hidden) ===============
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		free((package_pointer->para_dev_batch_batch_hidden)[i]);
-	}
+	//=============== (package_pointer->matrix_para_dev_snp_cellenv) ===============
+	(package_pointer->matrix_para_dev_snp_cellenv).release();
 
-	//=============== (package_pointer->para_dev_batch_hidden_gene) ===============
-	for(int i=0; i<num_gene; i++)
-	{
-		free((package_pointer->para_dev_batch_hidden_gene)[i]);
-	}
+	//=============== (package_pointer->matrix_para_dev_cellenv_gene) ===============
+	(package_pointer->matrix_para_dev_cellenv_gene).release();
+
+	//=============== (package_pointer->matrix_para_dev_batch_batch_hidden) ===============
+	(package_pointer->matrix_para_dev_batch_batch_hidden).release();
+
+	//=============== (package_pointer->matrix_para_dev_batch_hidden_gene) ===============
+	(package_pointer->matrix_para_dev_batch_hidden_gene).release();
 
 }
 
@@ -194,7 +142,7 @@ void package_free(package_thread * package_pointer)
 // this is the working program for each thread
 void * WorkPerThread(void * pointer)
 {
-	package_thread * package_pointer = (package_thread *)pointer;
+	package_dev * package_pointer = (package_dev *)pointer;
 	// allocate the memory for this thread (this is independent with other threads, but this should be visiable to the main thread -- aggregation)
 	package_alloc(package_pointer);
 
@@ -223,8 +171,9 @@ void * WorkPerThread(void * pointer)
 		//================ work on the current sample ================
 		// count will determine the sample in this etissue
 		// 1. get all the containers, and forward and backward propagation
-		// 2. get the calculated parameters (derivatives) from this round, and fill that into something
+		// 2. get the calculated parameters (derivatives) from this round, and fill that into para_dev repo
 		string etissue = package_pointer->etissue;
+		int etissue_index = package_pointer->etissue_index;
 		int pos_start = package_pointer->pos_start;
 		int num_esample = package_pointer->num_esample;
 		int id = package_pointer->id;
@@ -260,18 +209,22 @@ void * WorkPerThread(void * pointer)
 		}
 
 		// no need to clean the derivative containers, as they are initially empty
-		forward_backward(etissue,
+		forward_backward(etissue_index,
 						&(package_pointer->snp_dosage_list),
 						&eQTL_tissue_rep[etissue][esample],
+
 						(package_pointer->gene_rpkm_exp),
 						(package_pointer->cellenv_hidden_var),
 						(package_pointer->batch_var),
 						(package_pointer->batch_hidden_var),
-						&(package_pointer->para_dev_cis_gene),
-						&(package_pointer->para_dev_cellenv_gene),
-						&(package_pointer->para_dev_snp_cellenv),
-						&(package_pointer->para_dev_batch_hidden_gene),
-						&(package_pointer->para_dev_batch_batch_hidden));
+
+						(package_pointer->matrix_imcomp_para_dev_cis_gene),
+						(package_pointer->matrix_para_dev_snp_cellenv),
+						(package_pointer->matrix_para_dev_cellenv_gene),
+						(package_pointer->matrix_para_dev_batch_batch_hidden),
+						(package_pointer->matrix_para_dev_batch_hidden_gene)
+						);
+
 	}
 
 	pthread_exit(NULL);
@@ -283,6 +236,8 @@ void * WorkPerThread(void * pointer)
 void opt_mt_control(string etissue, int pos_start, int num_esample)
 {
 	cout << "[@@@] entering the current mini-batch (in multi-treading mode)..." << endl;
+
+	int etissue_index = etissue_index_map[etissue];				// why we transform this information back and forth???
 
 	//=============================== multi-threading parameter initialization ===============================
 	// allocating all the other threads from here
@@ -298,20 +253,19 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	pthread_mutex_init(&mut, NULL);
 	memset(&threads, 0, sizeof(threads));
 
-
-	//=============================== thread local memory allocation ===============================
-	package_thread para_array[num_thread];
+	//=============================== thread local memory preparation (not yet allocation heap) ===============================
+	package_dev para_array[num_thread];
 	for(int i=0; i<num_thread; i++)
 	{
-		package_thread package;
+		package_dev package;
 		package.id = i;
 		package.etissue = etissue;
+		package.etissue_index = etissue_index;
 		package.pos_start = pos_start;
 		package.num_esample = num_esample;
 		//package_alloc(&package);
 		para_array[i] = package;
 	}
-
 
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
@@ -325,10 +279,9 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 		}
 	}
 
-
 	//===================== waiting for all the threads to terminate, and aggregate =====================
 	// free attribute and wait for the other threads
-	aggregation_init(etissue);
+	aggregation_init(etissue_index);
 	pthread_attr_destroy(&attr);
 	for(int i=0; i<num_thread; i++)
 	{
@@ -343,9 +296,9 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 		cout << ", aggregate it's results..." << endl;
 
 		// aggregate the results from this current thread
-		aggregation_add(&para_array[i], etissue);
+		aggregation_add(&para_array[i], etissue_index);
 	}
-	aggregation_ave(etissue);
+	aggregation_ave(etissue_index);
 
 
 	//
@@ -357,9 +310,9 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 	//===================== regularize, gradient descent, and release space =====================
 	//// add the regularization terms into the derivatives
-	regularization(etissue);
+	regularization(etissue_index);
 	/// gradient descent
-	gradient_descent(etissue);
+	gradient_descent(etissue_index);
 
 	//// free the memory allocated for these threads
 	for(int i=0; i<num_thread; i++)
@@ -377,195 +330,125 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 
 
 // set the deravetives to 0
-void aggregation_init(string etissue)
+void aggregation_init(int etissue_index)
 {
-	int etissue_index = etissue_index_map[etissue];
+	//******************* initialize all the parameter derivatives (as 0) *******************
+	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
+	cube_para_dev_cis_gene[etissue_index].clean();
 
-	//********************************* aggregation of this mini-batch *****************************************
-	// vector<vector<float *>> para_dev_cis_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_dev_cis_gene[etissue_index][i][k] = 0;
-			}
-		}
-	}
+	// Matrix matrix_para_dev_snp_cellenv;
+	matrix_para_dev_snp_cellenv.clean();
 
-	// vector<float *> para_dev_snp_cellenv;
-	for(int i=0; i<num_cellenv; i++)
-	{
-		for(long j=0; j<num_snp; j++)
-		{
-			para_dev_snp_cellenv[i][j] = 0;
-		}
-	}
+	// vector<Matrix> matrix_para_dev_cellenv_gene;
+	cube_para_dev_cellenv_gene[etissue_index].clean();
 
-	// vector<vector<float *>> para_dev_cellenv_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		for(int j=0; j<num_cellenv; j++)
-		{
-			para_dev_cellenv_gene[etissue_index][i][j] = 0;
-		}
-	}
+	// Matrix matrix_para_dev_batch_batch_hidden;
+	matrix_para_dev_batch_batch_hidden.clean();
 
-	// vector<float *> para_dev_batch_batch_hidden;
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		for(int j=0; j<num_batch; j++)
-		{
-			para_dev_batch_batch_hidden[i][j] = 0;
-		}
-	}
-
-	// vector<float *> para_dev_batch_hidden_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		for(int j=0; j<num_batch_hidden; j++)
-		{
-			para_dev_batch_hidden_gene[i][j] = 0;
-		}
-	}
+	// Matrix matrix_para_dev_batch_hidden_gene;
+	matrix_para_dev_batch_hidden_gene.clean();
 
 }
+
 
 
 
 // add the results from one thread into the final repo
-void aggregation_add(package_thread * para_array_pointer, string etissue)
+void aggregation_add(package_dev * para_array_pointer, int etissue_index)
 {
-	int etissue_index = etissue_index_map[etissue];
+	long int dimension1;
+	long int dimension2;
+
 
 	//********************************* aggregation of this mini-batch *****************************************
-	// vector<vector<float *>> para_dev_cis_gene;
-	for(int i=0; i<num_gene; i++)
+	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
+	dimension1 = cube_para_dev_cis_gene[etissue_index].get_dimension1();
+	for(long int i=0; i<dimension1; i++)
 	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
+		dimension2 = cube_para_dev_cis_gene[etissue_index].get_dimension2(i);
+		for(long int j=0; j<dimension2; j++)
 		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_dev_cis_gene[etissue_index][i][k] += (para_array_pointer->para_dev_cis_gene)[i][k];
-			}
+			float dev = (para_array_pointer->matrix_imcomp_para_dev_cis_gene).get(i, j);
+			cube_para_dev_cis_gene[etissue_index].add_on(i, j, dev);
 		}
 	}
 
-	// vector<float *> para_dev_snp_cellenv;
-	for(int i=0; i<num_cellenv; i++)
+	// Matrix matrix_para_dev_snp_cellenv;
+	dimension1 = matrix_para_dev_snp_cellenv.get_dimension1();
+	for(long int i=0; i<dimension1; i++)
 	{
-		for(long j=0; j<num_snp; j++)
+		dimension2 = matrix_para_dev_snp_cellenv.get_dimension2();
+		for(long int j=0; j<dimension2; j++)
 		{
-			para_dev_snp_cellenv[i][j] += (para_array_pointer->para_dev_snp_cellenv)[i][j];
+			float dev = (para_array_pointer->matrix_para_dev_snp_cellenv).get(i, j);
+			matrix_para_dev_snp_cellenv.add_on(i, j, dev);
+
 		}
 	}
 
-	// vector<vector<float *>> para_dev_cellenv_gene;
-	for(int i=0; i<num_gene; i++)
+	// vector<Matrix> cube_para_dev_cellenv_gene;
+	dimension1 = cube_para_dev_cellenv_gene[etissue_index].get_dimension1();
+	for(long int i=0; i<dimension1; i++)
 	{
-		for(int j=0; j<num_cellenv; j++)
+		dimension2 = cube_para_dev_cellenv_gene[etissue_index].get_dimension2();
+		for(long int j=0; j<dimension2; j++)
 		{
-			para_dev_cellenv_gene[etissue_index][i][j] += (para_array_pointer->para_dev_cellenv_gene)[i][j];
+			float dev = (para_array_pointer->matrix_para_dev_cellenv_gene).get(i, j);
+			cube_para_dev_cellenv_gene[etissue_index].add_on(i, j, dev);
 		}
 	}
 
-	// vector<float *> para_dev_batch_batch_hidden;
-	for(int i=0; i<num_batch_hidden; i++)
+	// Matrix matrix_para_dev_batch_batch_hidden;
+	dimension1 = matrix_para_dev_batch_batch_hidden.get_dimension1();
+	for(long int i=0; i<dimension1; i++)
 	{
-		for(int j=0; j<num_batch; j++)
+		dimension2 = matrix_para_dev_batch_batch_hidden.get_dimension2();
+		for(long int j=0; j<dimension2; j++)
 		{
-			para_dev_batch_batch_hidden[i][j] += (para_array_pointer->para_dev_batch_batch_hidden)[i][j];
+			float dev = (para_array_pointer->matrix_para_dev_batch_batch_hidden).get(i, j);
+			matrix_para_dev_batch_batch_hidden.add_on(i, j, dev);
 		}
 	}
 
-	// vector<float *> para_dev_batch_hidden_gene;
-	for(int i=0; i<num_gene; i++)
+	// Matrix matrix_para_dev_batch_hidden_gene;
+	dimension1 = matrix_para_dev_batch_hidden_gene.get_dimension1();
+	for(long int i=0; i<dimension1; i++)
 	{
-		for(int j=0; j<num_batch_hidden; j++)
+		dimension2 = matrix_para_dev_batch_hidden_gene.get_dimension2();
+		for(long int j=0; j<dimension2; j++)
 		{
-			para_dev_batch_hidden_gene[i][j] += (para_array_pointer->para_dev_batch_hidden_gene)[i][j];
+			float dev = (para_array_pointer->matrix_para_dev_batch_hidden_gene).get(i, j);
+			matrix_para_dev_batch_hidden_gene.add_on(i, j, dev);
 		}
 	}
 
 }
+
 
 
 
 // average the summed results from all threads
-void aggregation_ave(string etissue)
+void aggregation_ave(int etissue_index)
 {
-	int etissue_index = etissue_index_map[etissue];
+	//********************************* averaging of this mini-batch *****************************************
+	cout << "aggregation of this mini-batch..." << endl;
 
-	//********************************* aggregation of this mini-batch *****************************************
-	// vector<vector<float *>> para_dev_cis_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		string gene = gene_list[i];
-		unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-		if ( got != gene_xymt_rep.end() )
-		{
-			continue;
-		}
-		else
-		{
-			int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-			for(int k=0; k<num; k++)
-			{
-				para_dev_cis_gene[etissue_index][i][k] = para_dev_cis_gene[etissue_index][i][k] / batch_size;
-			}
-		}
-	}
+	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
+	cube_para_dev_cis_gene[etissue_index].scale( 1.0 / batch_size );
 
-	// vector<float *> para_dev_snp_cellenv;
-	for(int i=0; i<num_cellenv; i++)
-	{
-		for(long j=0; j<num_snp; j++)
-		{
-			para_dev_snp_cellenv[i][j] = para_dev_snp_cellenv[i][j] / batch_size;
-		}
-	}
+	// Matrix matrix_para_dev_snp_cellenv;
+	matrix_para_dev_snp_cellenv.scale( 1.0 / batch_size );
 
-	// vector<vector<float *>> para_dev_cellenv_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		for(int j=0; j<num_cellenv; j++)
-		{
-			para_dev_cellenv_gene[etissue_index][i][j] = para_dev_cellenv_gene[etissue_index][i][j] / batch_size;
-		}
-	}
+	// vector<Matrix> cube_para_dev_cellenv_gene;
+	cube_para_dev_cellenv_gene[etissue_index].scale( 1.0 / batch_size );
 
-	// vector<float *> para_dev_batch_batch_hidden;
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		for(int j=0; j<num_batch; j++)
-		{
-			para_dev_batch_batch_hidden[i][j] = para_dev_batch_batch_hidden[i][j] / batch_size;
-		}
-	}
+	// Matrix matrix_para_dev_batch_batch_hidden;
+	matrix_para_dev_batch_batch_hidden.scale( 1.0 / batch_size );
 
-	// vector<float *> para_dev_batch_hidden_gene;
-	for(int i=0; i<num_gene; i++)
-	{
-		for(int j=0; j<num_batch_hidden; j++)
-		{
-			para_dev_batch_hidden_gene[i][j] = para_dev_batch_hidden_gene[i][j] / batch_size;
-		}
-	}
+	// Matrix matrix_para_dev_batch_hidden_gene;
+	matrix_para_dev_batch_hidden_gene.scale( 1.0 / batch_size );
 
 }
+
+
 
