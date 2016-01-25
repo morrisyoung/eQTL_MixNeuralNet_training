@@ -1,18 +1,3 @@
-
-
-
-
-
-
-
-// this is not yet updated to the new Matrix/Matrix_imcomp classes (not sure that's necessary)
-
-
-
-
-
-
-
 // function: save all the parameters into file (after this iteration), and test them or interpret them later on
 // this is mainly used for testing the training code
 
@@ -67,8 +52,7 @@ void para_inter_save(int iteration)
 	fclose(file_out);
 
 
-
-	//================================ vector<vector<float *>> para_cis_gene ================================
+	//================================ vector<Matrix_imcomp> cube_para_cis_gene ================================
 	// this is tissue specific
 	for(int i=0; i<num_etissue; i++)
 	{
@@ -94,42 +78,12 @@ void para_inter_save(int iteration)
 		//puts("the current file worked on is: ");
 		//puts(filename);
 
-	    FILE * file_out = fopen(filename, "w+");
-	    if(file_out == NULL)
-	    {
-	        fputs("File error\n", stderr); exit(1);
-	    }
-
-		for(int i=0; i<num_gene; i++)
-		{
-			string gene = gene_list[i];
-			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-			if ( got != gene_xymt_rep.end() )
-			{
-				fwrite("\n", sizeof(char), 1, file_out);
-			}
-			else
-			{
-				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-				//for(int k=0; k<num; k++)
-				// add the intercept:
-				for(int k=0; k<num+1; k++)
-				{
-					float parameter = para_cis_gene[etissue_index][i][k];
-					char buf[1024];
-					sprintf(buf, "%f\t", parameter);
-					fwrite(buf, sizeof(char), strlen(buf), file_out);
-				}
-				fwrite("\n", sizeof(char), 1, file_out);
-			}
-		}
-		fclose(file_out);
+		cube_para_cis_gene[etissue_index].save(filename);
 		// leaving this etissue
 	}
 
 
-
-	//================================== vector<float *> para_snp_cellenv ===================================
+	//================================== Matrix matrix_para_snp_cellenv ===================================
 	sprintf(filename, "%s", "../result_inter/para_snp_cellenv_");
 
 	// iteration #
@@ -141,31 +95,10 @@ void para_inter_save(int iteration)
 	//puts("the current file worked on is: ");
 	//puts(filename);
 
-
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_cellenv; i++)
-	{
-		//for(long j=0; j<num_snp; j++)
-		// add the intercept:
-		for(long j=0; j<num_snp+1; j++)
-		{
-			float parameter = para_snp_cellenv[i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this cellenv
-	}
-	fclose(file_out);
+	matrix_para_snp_cellenv.save(filename);
 
 
-	//============================== vector<vector<float *>> para_cellenv_gene ==============================
+	//============================== vector<Matrix> cube_para_cellenv_gene ==============================
 	// this is tissue specific
 	for(int i=0; i<num_etissue; i++)
 	{
@@ -191,36 +124,12 @@ void para_inter_save(int iteration)
 		//puts("the current file worked on is: ");
 		//puts(filename);
 
-
-	    FILE * file_out = fopen(filename, "w+");
-	    if(file_out == NULL)
-	    {
-	        fputs("File error\n", stderr); exit(1);
-	    }
-
-		for(int i=0; i<num_gene; i++)
-		{
-			string gene = gene_list[i];
-			//for(int j=0; j<num_cellenv; j++)
-			// add the intercept:
-			for(int j=0; j<num_cellenv+1; j++)
-			{
-				float parameter = para_cellenv_gene[etissue_index][i][j];
-				char buf[1024];
-				sprintf(buf, "%f\t", parameter);
-				fwrite(buf, sizeof(char), strlen(buf), file_out);
-				// or:
-				// fprintf(file_out, "%s", str);
-			}
-			fwrite("\n", sizeof(char), 1, file_out);
-			// leaving this gene
-		}
-		fclose(file_out);
+		cube_para_cellenv_gene[etissue_index].save(filename);
 		// leaving this etissue
 	}
 
 
-	//=============================== vector<float *> para_batch_batch_hidden ===============================
+	//=============================== Matrix matrix_para_batch_batch_hidden ===============================
 	sprintf(filename, "%s", "../result_inter/para_batch_batch_hidden_");
 
 	// iteration #
@@ -232,31 +141,10 @@ void para_inter_save(int iteration)
 	//puts("the current file worked on is: ");
 	//puts(filename);
 
-
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_batch_hidden; i++)
-	{
-		//for(int j=0; j<num_batch; j++)
-		// add the intercept
-		for(int j=0; j<num_batch+1; j++)
-		{
-			float parameter = para_batch_batch_hidden[i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this batch_hidden
-	}
-	fclose(file_out);
+	matrix_para_batch_batch_hidden.save(filename);
 
 
-	//=============================== vector<float *> para_batch_hidden_gene ================================
+	//=============================== Matrix matrix_para_batch_hidden_gene ================================
 	sprintf(filename, "%s", "../result_inter/para_batch_hidden_gene_");
 
 	// iteration #
@@ -268,33 +156,12 @@ void para_inter_save(int iteration)
 	//puts("the current file worked on is: ");
 	//puts(filename);
 
-
-    file_out = fopen(filename, "w+");
-    if(file_out == NULL)
-    {
-        fputs("File error\n", stderr); exit(1);
-    }
-
-	for(int i=0; i<num_gene; i++)
-	{
-		//for(int j=0; j<num_batch_hidden; j++)
-		// add the intercept:
-		for(int j=0; j<num_batch_hidden+1; j++)
-		{
-			float parameter = para_batch_hidden_gene[i][j];
-			char buf[1024];
-			sprintf(buf, "%f\t", parameter);
-			fwrite(buf, sizeof(char), strlen(buf), file_out);
-		}
-		fwrite("\n", sizeof(char), 1, file_out);
-		// leaving this gene
-	}
-	fclose(file_out);
+	matrix_para_batch_hidden_gene.save(filename);
 
 
 
 	cout << "all parameters have been saved into files (after this iteration)..." << endl;
-
+	return;
 }
 
 
