@@ -232,8 +232,10 @@ int MULTI_THREAD = 1;
 
 //// file name space
 // (note: if we standadize the source data format and name, we only need the upper folder name)
-char filename_data_source[] = "../data_real/";			// or "../data_simu/"
-char file_para_init[] = "../result_init/";				// or "../result_init_simu/"
+//char filename_data_source[] = "../data_real/";
+char filename_data_source[] = "../data_simu/";
+//char file_para_init[] = "../result_init/";
+char file_para_init[] = "../result_init_simu/";
 //===========================================================
 
 
@@ -242,7 +244,7 @@ char file_para_init[] = "../result_init/";				// or "../result_init_simu/"
 
 
 // TODO:
-// the genotype should be a class, and it supports:
+// the genotype should be a class, and it supports: (otherwise, we should have a module that can support load other types of genotypes)
 //	0. inheritance from parent: SNPs name, chr, pos, prior score from pruning
 //	1. SNP values grouped by chromosomes;
 //	2. genome-wide array multiplication;
@@ -359,8 +361,11 @@ int main()
 	//beta_prior_fill();  // must happen after the above procedure
 	//
 
+
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
 	//
 	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
+	//
 	// cis-
 	for(int j=0; j<num_etissue; j++)
 	{
@@ -401,8 +406,7 @@ int main()
 	matrix_para_batch_batch_hidden.init(num_batch_hidden, num_batch + 1, para_batch_batch_hidden);
 	// hidden batch to gene
 	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
-
-
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
 
 
 
@@ -429,7 +433,25 @@ int main()
 	cout << "Optimization done! Please find the results in 'result' folder." << endl;
 	puts("[xxx] releasing the parameter space...");
 	para_release();
-
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+	// release all the Matrix/Matrix_imcomp also
+	// cis- SNP
+	for(int i=0; i<num_etissue; i++)
+	{
+		cube_para_cis_gene[i].release();
+	}
+	// snp to cellenv
+	matrix_para_snp_cellenv.release();
+	// cellenv to gene
+	for(int i=0; i<num_etissue; i++)
+	{
+		cube_para_cellenv_gene[i].release();
+	}
+	// batch to hidden batch
+	matrix_para_batch_batch_hidden.release();
+	// hidden batch to gene
+	matrix_para_batch_hidden_gene.release();
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
 
 
 

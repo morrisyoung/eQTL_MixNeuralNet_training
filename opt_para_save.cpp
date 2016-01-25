@@ -1,3 +1,18 @@
+
+
+
+
+
+
+
+// this is not yet updated to the new Matrix/Matrix_imcomp classes (not sure that's necessary)
+
+
+
+
+
+
+
 // function: save all the parameters into file (after this iteration), and test them or interpret them later on
 // this is mainly used for testing the training code
 

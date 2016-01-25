@@ -79,6 +79,7 @@ float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5
 
 
 
+// TODO: we need to think more about this, say, how to use the data from other epigenomics projects
 // load all the cis- snp prior information (tissue specific) from prepared file outside
 // fill in the following: vector<vector<vector<float>>> prior_tissue_vector
 void opt_snp_prior_load()

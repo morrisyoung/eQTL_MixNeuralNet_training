@@ -65,8 +65,7 @@ extern unordered_map<string, vector<float>> batch_sample;
 
 
 
-
-// parameter space:
+//// parameter space:
 // cis parameter table
 extern vector<vector<float *>> para_cis_gene;
 // snp to cell env variable parameter container
@@ -79,8 +78,7 @@ extern vector<float *> para_batch_batch_hidden;
 extern vector<float *> para_batch_hidden_gene;
 // mapping the gene to cis snp indices (start position and end position)
 extern unordered_map<string, tuple_long> gene_cis_index;
-
-// re-format into the new class:
+//// re-format into the new class:
 extern vector<Matrix_imcomp> cube_para_cis_gene;
 extern Matrix matrix_para_snp_cellenv;
 extern vector<Matrix> cube_para_cellenv_gene;
@@ -90,17 +88,13 @@ extern Matrix matrix_para_batch_hidden_gene;
 
 
 
-
-
-
-
-// system control
+//// system control
 extern int MULTI_THREAD;
 
 
 
 
-// file name space
+//// file name space
 // (note: if we standadize the source data format and name, we only need the upper folder name)
 extern char filename_data_source[];
 extern char file_para_init[];

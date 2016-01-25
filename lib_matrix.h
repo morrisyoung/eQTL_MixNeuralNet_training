@@ -148,6 +148,31 @@ class Matrix
 		}
 
 
+		// given a filename, try to save this matrix into a file
+		void save(char * filename)
+		{
+			FILE * file_out = fopen(filename, "w+");
+			if(file_out == NULL)
+			{
+			    fputs("File error\n", stderr); exit(1);
+			}
+
+			for(long int i=0; i<dimension1; i++)
+			{
+				for(long int j=0; j<dimension2; j++)
+				{
+					float parameter = matrix[i][j];
+					char buf[1024];
+					sprintf(buf, "%f\t", parameter);
+					fwrite(buf, sizeof(char), strlen(buf), file_out);
+				}
+				fwrite("\n", sizeof(char), 1, file_out);
+			}
+			fclose(file_out);
+			return;
+		}
+
+
 		//================================ destructor =======================================
 		void release()
 		{
@@ -317,6 +342,30 @@ class Matrix_imcomp
 			return flag;
 		}
 
+		// given a filename, try to save this matrix into a file
+		void save(char * filename)
+		{
+			FILE * file_out = fopen(filename, "w+");
+			if(file_out == NULL)
+			{
+			    fputs("File error\n", stderr); exit(1);
+			}
+
+			for(long int i=0; i<dimension; i++)
+			{
+				for(long int j=0; j<list_length[i]; j++)
+				{
+					float parameter = matrix[i][j];
+					char buf[1024];
+					sprintf(buf, "%f\t", parameter);
+					fwrite(buf, sizeof(char), strlen(buf), file_out);
+				}
+				fwrite("\n", sizeof(char), 1, file_out);
+			}
+			fclose(file_out);
+			return;
+		}
+
 
 		//================================ destructor =======================================
 		void release()
@@ -337,4 +386,5 @@ class Matrix_imcomp
 #endif
 
 // end of lib_matrix.h
+
 

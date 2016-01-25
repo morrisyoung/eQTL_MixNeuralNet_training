@@ -1,4 +1,5 @@
 // initializing all the parameters
+// and release the memory for all parameters
 
 #include <iostream>
 #include <stdio.h>
@@ -675,4 +676,5 @@ void beta_prior_fill()
 	}
 
 }
+
 
