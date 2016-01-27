@@ -5,6 +5,8 @@
 #include "basic.h"
 #include <string>
 #include <utility>
+#include "global.h"
+
 
 
 using namespace std;
@@ -70,15 +72,48 @@ void StrToCharSeq(char * str1, string str)
 
 
 
-// transform the sample ID (like "GTEX-R55E-0826-SM-2TC5M") into individual ID (here is the first 9 digits)
+// transform the sample ID into individual ID
+// in real dataset (GTEx v.4): from "GTEX-R55E-0826-SM-2TC5M" to "GTEX-R55E"
+// in simulated dataset: from "105-15" to "105"
 string sample_to_individual(string sample)
 {
 	string individual;
-	for(int i=0; i<9; i++)  // TODO: in next stage, the individual ID may be longer (we should use the second "-" as the individual ID terminator)
+
+	if(indicator_real == 1)			// real dataset
 	{
-		individual.push_back(sample[i]);
+		int count = 0;
+		for(int i=0; i<sample.size(); i++)
+		{
+			//
+			if(sample[i] == '-')
+			{
+				count++;
+			}
+			//
+			if(count == 2)			// the sub-string before the second '-' is the individual ID
+			{
+				break;
+			}
+
+			individual.push_back(sample[i]);
+		}
+	}
+	else							// simulated dataset
+	{
+		for(int i=0; i<sample.size(); i++)
+		{
+			if(sample[i] != '-')
+			{
+				individual.push_back(sample[i]);
+			}
+			else
+			{
+				break;
+			}
+		}
 	}
 
 	return individual;
 }
+
 

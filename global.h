@@ -7,13 +7,16 @@
 
 #include "expression.h"
 #include "lib_matrix.h"
+#include <array>
+#include <unordered_map>
+
 
 
 using namespace std;
 
 
 // Macro definition
-#define NUM_CHR 22
+#define NUM_CHR 1
 
 
 
@@ -99,6 +102,10 @@ extern int MULTI_THREAD;
 extern char filename_data_source[];
 extern char file_para_init[];
 
+
+
+//// indicator of whether this is working on real dataset
+extern int indicator_real;
 
 
 

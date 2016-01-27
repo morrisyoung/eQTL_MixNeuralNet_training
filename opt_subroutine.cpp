@@ -88,7 +88,6 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 			index++;
 		}
 
-
 		forward_backward(etissue_index,
 						&snp_dosage_list,
 						&eQTL_tissue_rep[etissue][esample],
@@ -207,15 +206,12 @@ void forward_backward(int etissue_index,
 	//========================================================================
 	//========================================================================
 
-
-
 	// ****************************** [part1] cis- *********************************
 	// for cis-, two issues:
 	// 1. if this is a XYMT gene, we don't have signal from it's cis- SNPs (not consider currently);
 	// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
 	float * expr_con_pointer_cis = (float *)calloc( num_gene, sizeof(float) );
 	multi_array_matrix_imcomp(dosage_list_pointer, cube_para_cis_gene[etissue_index], expr_con_pointer_cis);
-
 
 
 	// ********************* [part2] cell env relevant parameters *********************
@@ -234,7 +230,6 @@ void forward_backward(int etissue_index,
 	multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
 
 
-
 	// ********************* [part3] linear or non-linear batches *********************
 	float * expr_con_pointer_batch = (float *)calloc( num_gene, sizeof(float) );
 	// from original batch to hidden batch
@@ -251,7 +246,6 @@ void forward_backward(int etissue_index,
 	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
 
 
-
 	// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
 	for(long int i=0; i<num_gene; i++)
 	{
@@ -264,11 +258,11 @@ void forward_backward(int etissue_index,
 		error_list[i] = expr_con_pointer[i] - (*expr_list_pointer)[i];
 	}
 
-
-
 	// // DEBUG
 	// sprintf(filename, "%s", "../result_tempdata/var_expr_exp.txt");
 	// para_temp_save_var(expr_con_pointer, num_gene, filename);
+
+
 
 
 
@@ -281,14 +275,12 @@ void forward_backward(int etissue_index,
 	backward_error_prop_direct_imcomp(matrix_imcomp_para_dev_cis_gene, error_list, dosage_list_pointer);
 
 
-
 	// ***************** [part2] cell env relevant parameters *****************
 	//// from cell env to genes
 	backward_error_prop_last_layer(matrix_para_dev_cellenv_gene, error_list, cellenv_con_pointer);
 
 	//// from snp to cell env
 	backward_error_prop_inter_layer_1(error_list, cube_para_cellenv_gene[etissue_index], matrix_para_dev_snp_cellenv, cellenv_con_pointer, dosage_list_pointer);
-
 
 
 	// ********************* [part3] linear or non-linear batches *********************
@@ -379,27 +371,10 @@ void regularization(int etissue_index)
 
 
 
-
+// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand, as followed)
 void gradient_descent(int etissue_index)
 {
 	cout << "[@@] entering the gradient descent..." << endl;
-
-	// for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand, as followed)
-
-	// parameter containers:
-	//vector<vector<float *>> para_cis_gene;
-	//vector<float *> para_snp_cellenv;
-	//vector<vector<float *>> para_cellenv_gene;
-	//vector<float *> para_batch_batch_hidden;
-	//vector<float *> para_batch_hidden_gene;
-
-	// parameter derivative containers:
-	//vector<vector<float *>> para_dev_cis_gene;
-	//vector<float *> para_dev_snp_cellenv;
-	//vector<vector<float *>> para_dev_cellenv_gene;
-	//vector<float *> para_dev_batch_batch_hidden;
-	//vector<float *> para_dev_batch_hidden_gene;
-
 
 	//============================================ pathway#1 ================================================
 
@@ -410,7 +385,6 @@ void gradient_descent(int etissue_index)
 	//============================================ pathway#2 ================================================
 	//====================== matrix_para_snp_cellenv ==========================
 	para_gradient_descent(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, rate_learner);
-
 
 	//====================== cube_para_cellenv_gene ==========================
 	para_gradient_descent(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], rate_learner);

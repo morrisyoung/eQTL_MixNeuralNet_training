@@ -404,6 +404,56 @@ void para_init()
 	// release the huge memory used as buff
 	free(input);
 
+
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+	//
+	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
+	// TODO: probably I should also enable these classes to read data from files (and save)
+	//
+	// cis-
+	for(int j=0; j<num_etissue; j++)
+	{
+		Matrix_imcomp matrix_imcomp;
+		matrix_imcomp.init(num_gene);
+		for(long int i=0; i<num_gene; i++)
+		{
+			string gene = gene_list[i];
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				continue;
+			}
+			else
+			{
+				long int first = gene_cis_index[gene].first;  // index
+				long int second = gene_cis_index[gene].second;  // index
+				long int amount = second - first + 1;
+				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
+
+				// assing the chr and the tss:
+				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
+				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
+			}
+		}
+		cube_para_cis_gene.push_back(matrix_imcomp);
+	}
+	// snp to cellenv
+	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
+	// cellenv to gene
+	for(int i=0; i<num_etissue; i++)
+	{
+		Matrix matrix;
+		matrix.init(num_gene, num_cellenv + 1, para_cellenv_gene[i]);
+		cube_para_cellenv_gene.push_back(matrix);
+	}
+	// batch to hidden batch
+	matrix_para_batch_batch_hidden.init(num_batch_hidden, num_batch + 1, para_batch_batch_hidden);
+	// hidden batch to gene
+	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+
+
+	return;
 }
 
 
@@ -447,6 +497,32 @@ void para_release()
 		free(para_batch_hidden_gene[i]);
 	}
 
+
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+	//
+	// release all the Matrix/Matrix_imcomp also
+	// TODO: probably enable Matrix/Matrix_imcomp to read and save data
+	//
+	// cis- SNP
+	for(int i=0; i<num_etissue; i++)
+	{
+		cube_para_cis_gene[i].release();
+	}
+	// snp to cellenv
+	matrix_para_snp_cellenv.release();
+	// cellenv to gene
+	for(int i=0; i<num_etissue; i++)
+	{
+		cube_para_cellenv_gene[i].release();
+	}
+	// batch to hidden batch
+	matrix_para_batch_batch_hidden.release();
+	// hidden batch to gene
+	matrix_para_batch_hidden_gene.release();
+	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+
+
+	return;
 }
 
 
@@ -676,5 +752,6 @@ void beta_prior_fill()
 	}
 
 }
+
 
 

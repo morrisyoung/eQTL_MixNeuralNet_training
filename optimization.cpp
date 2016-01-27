@@ -67,8 +67,9 @@ int batch_size = 20;  // better be 20
 //float rate_learner = 0.01;  // the learning rate; this doesn't work
 //float rate_learner = 0.001;  // the learning rate; works!!!; bench#3
 //float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
-float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5
+float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5  --> the latest one
 //float rate_learner = 0.000001;  // the learning rate
+float rate_learner = 0.0;
 
 
 //======================================================================================================
@@ -432,7 +433,8 @@ void optimize()
 				{
 					//
 					cout << "we get nan..." << endl;
-					cout << count3 << endl;
+					cout << "the # of mini-batch we are in is ";
+					cout << count3 + 1 << endl;
 					break;
 				}
 
@@ -443,7 +445,7 @@ void optimize()
 			// leaving this etissue
 
 			//DEBUG
-			break;  // won't consider other tissues
+			break;  // won't consider other tissues; only consider the current tissue
 
 		}
 		//

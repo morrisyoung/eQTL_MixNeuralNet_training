@@ -116,7 +116,8 @@
 // 2. change the file header (initial parameters), from (char file_para_init[] = "../result_init/";) to (char file_para_init[] = "../result_init_simu/";)
 // 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
 // 4. change NUM_CHR (Macro), the number of chromosomes
-// 5. ...
+// 5. change the indicator (of whether this is real data or not)
+// 6. ...
 
 
 
@@ -172,7 +173,7 @@ int num_cellenv = 400;		// Specified
 long int num_gene = 0;		// TBD
 int num_etissue = 0;		// TBD
 int num_batch = 0;			// TBD
-int num_batch_hidden = 100;	// Specified
+int num_batch_hidden = 50;	// Specified
 int num_individual = 0;		// TBD
 
 
@@ -226,7 +227,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 1;
+int MULTI_THREAD = 0;
 
 
 
@@ -236,6 +237,12 @@ int MULTI_THREAD = 1;
 char filename_data_source[] = "../data_simu/";
 //char file_para_init[] = "../result_init/";
 char file_para_init[] = "../result_init_simu/";
+
+
+
+//// indicator of whether this is working on real dataset
+// this will be used to dicide parameters in some basic functions, like "sample ID to individual ID" function
+int indicator_real = 0;
 //===========================================================
 
 
@@ -243,7 +250,7 @@ char file_para_init[] = "../result_init_simu/";
 
 
 
-// TODO:
+// TODO (Jan.26):
 // the genotype should be a class, and it supports: (otherwise, we should have a module that can support load other types of genotypes)
 //	0. inheritance from parent: SNPs name, chr, pos, prior score from pruning
 //	1. SNP values grouped by chromosomes;
@@ -298,8 +305,6 @@ int main()
 	dosage_load();  // unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 	cout << "there are " << num_individual << " individuals." << endl;
 	//*/
-
-
 
 
 
@@ -362,65 +367,18 @@ int main()
 	//
 
 
-	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+
+
+
+
+
+
+
 	//
-	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
+	// DEBUG the other parts --> (Jan.26) looks like no problem
 	//
-	// cis-
-	for(int j=0; j<num_etissue; j++)
-	{
-		Matrix_imcomp matrix_imcomp;
-		matrix_imcomp.init(num_gene);
-		for(long int i=0; i<num_gene; i++)
-		{
-			string gene = gene_list[i];
-			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
-			if ( got != gene_xymt_rep.end() )
-			{
-				continue;
-			}
-			else
-			{
-				long int first = gene_cis_index[gene].first;  // index
-				long int second = gene_cis_index[gene].second;  // index
-				long int amount = second - first + 1;
-				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
-
-				// assing the chr and the tss:
-				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
-				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
-			}
-		}
-		cube_para_cis_gene.push_back(matrix_imcomp);
-	}
-	// snp to cellenv
-	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
-	// cellenv to gene
-	for(int i=0; i<num_etissue; i++)
-	{
-		Matrix matrix;
-		matrix.init(num_gene, num_cellenv + 1, para_cellenv_gene[i]);
-		cube_para_cellenv_gene.push_back(matrix);
-	}
-	// batch to hidden batch
-	matrix_para_batch_batch_hidden.init(num_batch_hidden, num_batch + 1, para_batch_batch_hidden);
-	// hidden batch to gene
-	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
-	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
-
-
-
-
-
-
-
-
-	// DEBUG the other parts
-	/*
 	//======================================= main optimization routine ==========================================
 	optimize();
-	*/
-
 
 
 
@@ -429,30 +387,10 @@ int main()
 
 	//================================= save the parameters and release memory ===================================
 	puts("[xxx] saving the models...");
-	para_save();  // para_cis_gene; para_snp_cellenv; para_cellenv_gene; para_batch_batch_hidden; para_batch_hidden_gene
+	para_save();	// cube_para_cis_gene; matrix_para_snp_cellenv; cube_para_cellenv_gene; matrix_para_batch_batch_hidden; matrix_para_batch_hidden_gene;
 	cout << "Optimization done! Please find the results in 'result' folder." << endl;
 	puts("[xxx] releasing the parameter space...");
 	para_release();
-	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
-	// release all the Matrix/Matrix_imcomp also
-	// cis- SNP
-	for(int i=0; i<num_etissue; i++)
-	{
-		cube_para_cis_gene[i].release();
-	}
-	// snp to cellenv
-	matrix_para_snp_cellenv.release();
-	// cellenv to gene
-	for(int i=0; i<num_etissue; i++)
-	{
-		cube_para_cellenv_gene[i].release();
-	}
-	// batch to hidden batch
-	matrix_para_batch_batch_hidden.release();
-	// hidden batch to gene
-	matrix_para_batch_hidden_gene.release();
-	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
-
 
 
 
@@ -464,4 +402,5 @@ int main()
 	cout << "[now leave the program]\n";
 	return 0;
 }
+
 

@@ -130,7 +130,6 @@ void snp_dosage_load(array<float *, NUM_CHR> * array_pointer, string individual)
 	// with these: array<vector<float>, NUM_CHR> * array_pointer, string individual
 	for(int i=0; i<NUM_CHR; i++)
 	{
-		int chr = i+1;
 		for(long j=0; j<snp_name_list[i].size(); j++)
 		{
 			float dosage = snp_dosage_rep[individual][i][j];
@@ -139,6 +138,7 @@ void snp_dosage_load(array<float *, NUM_CHR> * array_pointer, string individual)
 	}
 
 
+	return;
 }
 
 
