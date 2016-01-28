@@ -59,7 +59,8 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
 int iter_learn_in = 100;  // iteration across all samples from one tissue
-int batch_size = 20;  // better be 20
+int batch_size = 1;  // better be 20												--> (Jan.27) testing mode
+
 
 // test different learning rate
 //float rate_learner = 1.0;  // the learning rate; this doesn't work
@@ -67,9 +68,8 @@ int batch_size = 20;  // better be 20
 //float rate_learner = 0.01;  // the learning rate; this doesn't work
 //float rate_learner = 0.001;  // the learning rate; works!!!; bench#3
 //float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
-float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5  --> the latest one
+float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5				--> (Jan.27) the latest one
 //float rate_learner = 0.000001;  // the learning rate
-float rate_learner = 0.0;
 
 
 //======================================================================================================
@@ -307,7 +307,9 @@ void opt_para_init()
 
 				// assing the chr and the tss:
 				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
-				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
+				//matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);		// Here is a BUG: sst != tss
+																			// sst: the start index of cis SNPs for one gene; tss: transcription start site
+				matrix_imcomp.init_assign_sst(i, gene_cis_index[gene].first);		// Here is a BUG: sst != tss
 			}
 		}
 		cube_para_dev_cis_gene.push_back(matrix_imcomp);
@@ -411,6 +413,13 @@ void optimize()
 
 			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a batch_size mini-batch in current tissue
 			{
+
+
+				//
+				// TODO: change this module to the real stochastic one (other than rounding over all the samples)
+				//
+
+
 				int pos_start = (batch_size * count3) % (num_esample);
 				printf("[@@@] now we are working on %d iter_out (%d total), eTissue #%d (%d total) -- %s (%d training samples in), #%d mini-batch (%d batch size, rounding all samples).\n", count1+1, iter_learn_out, count2+1, num_etissue, etissue.c_str(), num_esample, count3+1, batch_size);
 				if(MULTI_THREAD == 0)  // normal sequential program
@@ -422,6 +431,14 @@ void optimize()
 					opt_mt_control(etissue, pos_start, num_esample);
 				}
 				// leaving this mini-batch
+
+
+
+
+				// // DEBUG:
+				// // we do only one sample
+				// break;
+
 
 
 

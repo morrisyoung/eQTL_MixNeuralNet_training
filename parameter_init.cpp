@@ -405,6 +405,7 @@ void para_init()
 	free(input);
 
 
+
 	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
 	//
 	// (Jan.16) we will re-format the parameter space into the standard class -- Matrix, and Matrix_imcomplete
@@ -432,7 +433,8 @@ void para_init()
 
 				// assing the chr and the tss:
 				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
-				matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);
+				//matrix_imcomp.init_assign_sst(i, gene_tss[gene].tss);		// Here is a BUG!!! sst != tss
+				matrix_imcomp.init_assign_sst(i, gene_cis_index[gene].first);		// Here is a BUG: sst != tss
 			}
 		}
 		cube_para_cis_gene.push_back(matrix_imcomp);
@@ -451,6 +453,7 @@ void para_init()
 	// hidden batch to gene
 	matrix_para_batch_hidden_gene.init(num_gene, num_batch_hidden + 1, para_batch_hidden_gene);
 	// %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%% %%%%%
+
 
 
 	return;

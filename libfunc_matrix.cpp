@@ -147,7 +147,7 @@ void multi_array_matrix(float * input, Matrix matrix_para, float * result)
 			float para = matrix_para.get(i, j);
 			result[i] += input[j] * para;
 		}
-		result[i] += matrix_para.get(i, dimension2 - 1);		// here we do have the regression intercept term
+		result[i] += 1 * matrix_para.get(i, dimension2 - 1);		// here we do have the regression intercept term
 	}
 
 	return;
@@ -159,12 +159,30 @@ void multi_array_matrix(float * input, Matrix matrix_para, float * result)
 // TODO: this might need to be changed, as I don't want to bring the global variables in this routine
 void multi_array_matrix_imcomp(array<float *, NUM_CHR> * input_pointer, Matrix_imcomp matrix_imcomp_para, float * result)
 {
+
+	/*
+	// DEBUG: check the genotyoe list
+	for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
+	{
+		for(long k=0; k<snp_name_list[j].size(); k++)			// TODO: this is to be corrected, as we don't want to see global variables here
+		{
+			float var = (*input_pointer)[j][k];
+			cout << var << "\t";
+		}
+	}
+	cout << endl;
+	// DEBUG done: there is no problem
+	*/
+
+
 	long int dimension1 = matrix_imcomp_para.get_dimension1();
 	for(long int i=0; i<dimension1; i++)
 	{
 		int chr = matrix_imcomp_para.get_chr(i);
-
+		long int start = matrix_imcomp_para.get_sst(i);
 		long int dimension2 = matrix_imcomp_para.get_dimension2(i);
+
+		result[i] = 0;
 		for(long int j=0; j<dimension2; j++)
 		{
 			if(j == dimension2 - 1)
@@ -174,13 +192,61 @@ void multi_array_matrix_imcomp(array<float *, NUM_CHR> * input_pointer, Matrix_i
 			}
 			else
 			{
-				int pos = matrix_imcomp_para.get_sst(i) + j;
-				float var = (* input_pointer)[chr][pos];
+				long int pos = start + j;
+				float var = (*input_pointer)[chr-1][pos];
 				float par = matrix_imcomp_para.get(i, j);
 				result[i] += var * par;
 			}
 		}
+
+
+
+		/*
+		// DEBUG: let's also save the two lists (var and par), for the problem items
+		// DEBUG
+		if(i == 490 or i == 1057 or i == 489)
+		{
+			cout << result[i] << "\t" << chr << "\t" << dimension2 << endl;
+
+			// DEBUG
+			cout << snp_name_list[0].size() << endl;
+
+
+			// DEBUG
+			for(long k=0; k<snp_name_list[0].size(); k++)			// TODO: this is to be corrected, as we don't want to see global variables here
+			{
+				float var = (*input_pointer)[chr-1][k];
+				cout << var << "\t";
+			}
+			cout << "\n";
+
+
+			// enumerate all the elements (var, par)
+			for(long int j = 0; j < dimension2; j++)
+			{
+				if(j == dimension2 - 1)
+				{
+					float par = matrix_imcomp_para.get(i, j);
+					cout << "1 " << par << "\t";
+				}
+				else
+				{
+					long int pos = start + j;
+					float var = (*input_pointer)[chr-1][pos];
+					float par = matrix_imcomp_para.get(i, j);
+					cout << var << " " << par << " " << j << " " << pos << "\t";
+				}
+			}
+			cout << "\n";
+		}
+		// DEBUG: the genotype calling has some problem (some genotype are quite large; but others are all 0)
+	*/
+
+
+
 	}
+
+
 
 	return;
 }

@@ -104,7 +104,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 						matrix_para_dev_batch_hidden_gene
 						);
 
-		// leaving the mini-batch
+		// iterating in this mini-batch
 	}
 
 
@@ -122,25 +122,17 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 	// 1. average the derivatives calculated from previous steps
 	// 2. will add the derivatives due to regularization in the next part
 	cout << "aggregation of this mini-batch..." << endl;
-
 	// vector<Matrix_imcomp> cube_para_dev_cis_gene;
 	cube_para_dev_cis_gene[etissue_index].scale( 1.0 / batch_size );
-
-
 	// Matrix matrix_para_dev_snp_cellenv;
 	matrix_para_dev_snp_cellenv.scale( 1.0 / batch_size );
-
-
 	// vector<Matrix> cube_para_dev_cellenv_gene;
 	cube_para_dev_cellenv_gene[etissue_index].scale( 1.0 / batch_size );
-
-
 	// Matrix matrix_para_dev_batch_batch_hidden;
 	matrix_para_dev_batch_batch_hidden.scale( 1.0 / batch_size );
-
-
 	// Matrix matrix_para_dev_batch_hidden_gene;
 	matrix_para_dev_batch_hidden_gene.scale( 1.0 / batch_size );
+
 
 
 
@@ -161,7 +153,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
-// ADDITIVE
+// NOTE: ADDITIVE
 // property of this function: additive to the total derivative after this round (additive)
 // what we need for the following routine:
 // dosage list; expression value list; expression list; cellenv list; batch list; batch hidden list; ALL parameter (derivative) containers
@@ -190,12 +182,31 @@ void forward_backward(int etissue_index,
 	cellenv_con_pointer --> cellenv_hidden_var
 	batch_hidden_con_pointer --> batch_hidden_var
 
-	//para_dev_cis_gene_pointer --> &para_dev_cis_gene[etissue_index]
-	//para_dev_cellenv_gene_pointer --> &para_dev_cellenv_gene[etissue_index]
-	//para_dev_snp_cellenv_pointer --> &para_dev_snp_cellenv
-	//para_dev_batch_hidden_gene_pointer --> &para_dev_batch_hidden_gene
-	//para_dev_batch_batch_hidden_pointer --> &para_dev_batch_batch_hidden
+	// all the other Matrix/Matrix_imcomp are directly called
 	*/
+
+
+
+	// DEBUG: this is used to debug the program
+	char filename[100];
+
+
+
+	/*
+	// DEBUG: check the genotyoe list
+	for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
+	{
+		for(long k=0; k<snp_name_list[j].size(); k++)			// TODO: this is to be corrected, as we don't want to see global variables here
+		{
+			float var = (*dosage_list_pointer)[j][k];
+			cout << var << "\t";
+		}
+	}
+	cout << endl;
+	// DEBUG done: there is no problem
+	*/
+
+
 
 
 	//========================================================================
@@ -214,20 +225,43 @@ void forward_backward(int etissue_index,
 	multi_array_matrix_imcomp(dosage_list_pointer, cube_para_cis_gene[etissue_index], expr_con_pointer_cis);
 
 
+	// // DEBUG mode: let's save the signal from all the three pathways
+	// sprintf(filename, "%s", "../result_tempdata/var_expr_cis.txt");
+	// para_temp_save_var(expr_con_pointer_cis, num_gene, filename);
+
+
 	// ********************* [part2] cell env relevant parameters *********************
 	// from snp to cell env variables
 	float * expr_con_pointer_cellenv = (float *)calloc( num_gene, sizeof(float) );
-	multi_array_list_matrix(dosage_list_pointer, matrix_para_snp_cellenv, expr_con_pointer_cellenv);
+	multi_array_list_matrix(dosage_list_pointer, matrix_para_snp_cellenv, cellenv_con_pointer);
 
-	// // DEBUG
-	// char filename[100] = "../result_tempdata/var_cellenv_before.txt";
+
+	// // // DEBUG
+	// sprintf(filename, "%s", "../result_tempdata/var_cellenv_before.txt");
 	// para_temp_save_var(cellenv_con_pointer, num_cellenv, filename);
+
 
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	neuralnet_ac_func(cellenv_con_pointer, num_cellenv);
 
+
+
+	// // // DEBUG
+	// sprintf(filename, "%s", "../result_tempdata/var_cellenv_after.txt");
+	// para_temp_save_var(cellenv_con_pointer, num_cellenv, filename);
+
+
+
 	// from cell env variables to genes
 	multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
+
+
+
+	// // // DEBUG
+	// sprintf(filename, "%s", "../result_tempdata/var_expr_cellenv.txt");
+	// para_temp_save_var(expr_con_pointer_cellenv, num_gene, filename);
+
+
 
 
 	// ********************* [part3] linear or non-linear batches *********************
@@ -235,15 +269,34 @@ void forward_backward(int etissue_index,
 	// from original batch to hidden batch
 	multi_array_matrix(batch_list_pointer, matrix_para_batch_batch_hidden, batch_hidden_con_pointer);
 
+
 	// // DEBUG
 	// sprintf(filename, "%s", "../result_tempdata/var_batch_hidden_before.txt");
 	// para_temp_save_var(batch_hidden_con_pointer, num_batch_hidden, filename);
 
+
+
 	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 	neuralnet_ac_func(batch_hidden_con_pointer, num_batch_hidden);
 
+
+
+	// // DEBUG
+	// sprintf(filename, "%s", "../result_tempdata/var_batch_hidden_after.txt");
+	// para_temp_save_var(batch_hidden_con_pointer, num_batch_hidden, filename);
+
+
+
 	// from hidden batch to genes
 	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
+
+
+
+	// // DEBUG
+	// sprintf(filename, "%s", "../result_tempdata/var_expr_batch.txt");
+	// para_temp_save_var(expr_con_pointer_batch, num_gene, filename);
+
+
 
 
 	// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
@@ -258,10 +311,14 @@ void forward_backward(int etissue_index,
 		error_list[i] = expr_con_pointer[i] - (*expr_list_pointer)[i];
 	}
 
-	// // DEBUG
-	// sprintf(filename, "%s", "../result_tempdata/var_expr_exp.txt");
-	// para_temp_save_var(expr_con_pointer, num_gene, filename);
 
+
+	// DEBUG
+	sprintf(filename, "%s", "../result_tempdata/var_expr_exp.txt");
+	para_temp_save_var(expr_con_pointer, num_gene, filename);
+	// DEBUG: check the error
+	sprintf(filename, "%s", "../result_tempdata/var_expr_error.txt");
+	para_temp_save_var(error_list, num_gene, filename);
 
 
 
