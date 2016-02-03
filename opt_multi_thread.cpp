@@ -77,7 +77,8 @@ void package_alloc(package_dev * package_pointer)
 
 			// assing the chr and the tss:
 			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_chr(i, gene_tss[gene].chr);
-			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_sst(i, gene_tss[gene].tss);
+			//(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_sst(i, gene_tss[gene].tss);	// here is a bug!!! sst != tss
+			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_sst(i, gene_cis_index[gene].first);	// Here is a BUG: sst != tss
 		}
 	}
 

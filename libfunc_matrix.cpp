@@ -71,7 +71,7 @@ void para_penalty_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_imc
 
 			/// the prior that we need (if there is) for tuning the relative strength of L1 and L2 regularization:
 			// TODO: we don't load this currently; NOTE that we don't have the prior information for the intercept term (the last term)
-			//prior = prior_tissue_rep[etissue][chr][pos];
+			//prior = prior_tissue_rep[etissue][chr-1][pos];
 			float prior = 1.0;
 
 			float alpha = 1 / ( 1 + exp(-(prior-1)) );
@@ -395,7 +395,7 @@ void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, flo
 			if(isnan(value))
 			{
 				//cout << error << endl;
-				cout << i << " " << j << " " << (*input_list_pointer)[chr][pos] << endl;
+				cout << i << " " << j << " " << (*input_list_pointer)[chr-1][pos] << endl;
 			}
 			*/
 
