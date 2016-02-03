@@ -395,9 +395,9 @@ int main()
 
 
 	//============== timing ends ================
-    gettimeofday(&time_end, NULL);
-    diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
-    printf("Time used totally is %f seconds.\n", diff);
+	gettimeofday(&time_end, NULL);
+	diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
+	printf("Time used totally is %f seconds.\n", diff);
 
 	cout << "[now leave the program]\n";
 	return 0;

@@ -104,6 +104,24 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 						matrix_para_dev_batch_hidden_gene
 						);
 
+
+
+		// DEBUG
+		// for this sample (or for this individual as we fix the tissue type currenlty):
+		// I want to check the genotype of this individual, as the problem seems to come up there!!!
+		// save: individual ID; genotype
+		// debug here and also in the subroutine
+		// for(long int i=0; i<snp_name_list[0].size(); i++)
+		// {
+		// 	float dosage = snp_dosage_list[0][i];
+		// 	if(isnan(dosage))
+		// 	{
+		// 		cout << individual << " " << i << " " << dosage << endl;
+		// 	}
+		// }
+
+
+
 		// iterating in this mini-batch
 	}
 
@@ -111,6 +129,8 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 	// DEBUG: debug the parameter dev, and the current cellenv and hiddenbatch
 	para_temp_save_dev(etissue_index);
+
+	// DEBUG: save some variables (is this so necessary especially after a whole batch?)
 	char filename[100] = "../result_tempdata/var_cellenv.txt";
 	para_temp_save_var(cellenv_hidden_var, num_cellenv, filename);
 	sprintf(filename, "%s", "../result_tempdata/var_batch_hidden.txt");
@@ -184,6 +204,26 @@ void forward_backward(int etissue_index,
 
 	// all the other Matrix/Matrix_imcomp are directly called
 	*/
+
+
+
+
+	// DEBUG: check the Nan in genotype
+	/*
+	cout << "$$$" << endl;
+	for(long int i=0; i<snp_name_list[0].size(); i++)
+	{
+		float dosage = snp_dosage_list[0][i];
+		if(isnan(dosage))
+		{
+			cout << i << " " << dosage << endl;
+		}
+	}
+	*/
+
+
+
+
 
 
 

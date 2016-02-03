@@ -59,7 +59,7 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
 int iter_learn_in = 100;  // iteration across all samples from one tissue
-int batch_size = 1;  // better be 20												--> (Jan.27) testing mode
+int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
 
 
 // test different learning rate
@@ -68,8 +68,10 @@ int batch_size = 1;  // better be 20												--> (Jan.27) testing mode
 //float rate_learner = 0.01;  // the learning rate; this doesn't work
 //float rate_learner = 0.001;  // the learning rate; works!!!; bench#3
 //float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
-float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5				--> (Jan.27) the latest one
+//float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5				--> (Jan.27) the latest one
 //float rate_learner = 0.000001;  // the learning rate
+
+float rate_learner = 0.000000001;
 
 
 //======================================================================================================
@@ -436,7 +438,7 @@ void optimize()
 
 
 				// // DEBUG:
-				// // we do only one sample
+				// // we do only one sample (or one mini-batch)
 				// break;
 
 

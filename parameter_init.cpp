@@ -429,7 +429,7 @@ void para_init()
 				long int first = gene_cis_index[gene].first;  // index
 				long int second = gene_cis_index[gene].second;  // index
 				long int amount = second - first + 1;
-				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);
+				matrix_imcomp.fill_element(i, amount + 1, para_cis_gene[j][i]);		// we do have the intercept term here!!!
 
 				// assing the chr and the tss:
 				matrix_imcomp.init_assign_chr(i, gene_tss[gene].chr);
@@ -440,7 +440,7 @@ void para_init()
 		cube_para_cis_gene.push_back(matrix_imcomp);
 	}
 	// snp to cellenv
-	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);
+	matrix_para_snp_cellenv.init(num_cellenv, num_snp + 1, para_snp_cellenv);		// we do have the intercept term here!!!
 	// cellenv to gene
 	for(int i=0; i<num_etissue; i++)
 	{

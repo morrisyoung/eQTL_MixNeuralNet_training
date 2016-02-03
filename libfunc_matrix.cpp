@@ -11,6 +11,8 @@
 #include "global.h"
 #include <array>
 #include "opt_nn_acfunc.h"
+#include <math.h>       /* exp */
+
 
 
 
@@ -297,6 +299,53 @@ void multi_array_list_matrix(array<float *, NUM_CHR> * input_pointer, Matrix mat
 // pseudo: (expected rpkm - real rpkm) * genotype
 void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, float * error_list, array<float *, NUM_CHR> * input_list_pointer)
 {
+
+
+	// DEBUG
+	/*
+	cout << "$$" << endl;
+	for(long int i=0; i<snp_name_list[0].size(); i++)
+	{
+		float dosage = (*input_list_pointer)[0][i];
+		if(isnan(dosage))
+		{
+			cout << i << " " << dosage << endl;
+		}
+	}
+	*/
+
+	/*
+	// DEBUG: save the genotype of this individual
+	char filename[100] = "../result_tempdata/genotype.txt";
+	// char filename[100] = "../result/para_cis_gene/";
+	// char temp[10];
+	// sprintf(temp, "%d", i+1);
+	// strcat(filename, "etissue");
+	// strcat(filename, temp);
+	// strcat(filename, ".txt");
+
+	FILE * file_out = fopen(filename, "w+");
+	if(file_out == NULL)
+	{
+	    fputs("File error\n", stderr); exit(1);
+	}
+
+	int count = 0;
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		count ++;
+		string etissue = etissue_list[i];
+		char buf[100];
+		sprintf(buf, "%s\t%d\n", etissue.c_str(), count);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+	}
+	fclose(file_out);
+	*/
+
+
+
+
+
 	long int dimension1 = matrix_imcomp_para_dev.get_dimension1();
 	for(long int i=0; i<dimension1; i++)
 	{
@@ -312,12 +361,48 @@ void backward_error_prop_direct_imcomp(Matrix_imcomp matrix_imcomp_para_dev, flo
 			if(j == dimension2 - 1)								// we do have the intercept term here
 			{
 				matrix_imcomp_para_dev.add_on(i, j, 1 * error);
+
+
+
+
+				/*
+				// DEBUG: check whether or not a large number contributes to nan
+				float value = matrix_imcomp_para_dev.get(i, j);
+				if(isnan(value))
+				{
+					//cout << error << endl;
+					cout << i << " " << j << endl;
+				}
+				*/
+
+
+
+
 				break;
 			}
 
 			long int pos = pos_start + j;
-			float value = (*input_list_pointer)[chr][pos];
+			float value = (*input_list_pointer)[chr-1][pos];			// here is a bug!!! the list is indexed by "chr-1"!!!
 			matrix_imcomp_para_dev.add_on(i, j, value * error);
+
+
+
+
+
+			/*
+			// DEBUG: check whether or not a large number contributes to nan
+			value = matrix_imcomp_para_dev.get(i, j);
+			if(isnan(value))
+			{
+				//cout << error << endl;
+				cout << i << " " << j << " " << (*input_list_pointer)[chr][pos] << endl;
+			}
+			*/
+
+
+
+
+
 		}
 	}
 

@@ -36,42 +36,45 @@ int para_check_nan(string etissue)
 {
 	int etissue_index = etissue_index_map[etissue];
 
+	int flag = 0;	// indicating whether or not there is any Nan n the parameter space
+
 	//================================== vector<Matrix_imcomp> cube_para_cis_gene ===================================
 	if(cube_para_cis_gene[etissue_index].check_nan())
 	{
 		cout << "I find Nan in para_cis_gene ..." << endl;
-		return 1;
+		flag = 1;
 	}
 
 	//================================== Matrix matrix_para_snp_cellenv ===================================
 	if(matrix_para_snp_cellenv.check_nan())
 	{
 		cout << "I find Nan in para_snp_cellenv ..." << endl;
-		return 1;
+		flag = 1;
 	}
 
 	//============================== vector<Matrix> cube_para_cellenv_gene ==============================
 	if(cube_para_cellenv_gene[etissue_index].check_nan())
 	{
 		cout << "I find Nan in para_cellenv_gene ..." << endl;
-		return 1;
+		flag = 1;
 	}
 
 	//=============================== Matrix matrix_para_batch_batch_hidden ===============================
 	if(matrix_para_batch_batch_hidden.check_nan())
 	{
 		cout << "I find Nan in para_batch_batch_hidden ..." << endl;
-		return 1;
+		flag = 1;
 	}
 
 	//=============================== Matrix matrix_para_batch_hidden_gene ================================
 	if(matrix_para_batch_hidden_gene.check_nan())
 	{
 		cout << "I find Nan in para_batch_hidden_gene ..." << endl;
-		return 1;
+		flag = 1;
 	}
 
-	return 0;
+
+	return flag;
 }
 
 
