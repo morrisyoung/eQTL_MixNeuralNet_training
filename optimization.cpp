@@ -58,7 +58,7 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
-int iter_learn_in = 100;  // iteration across all samples from one tissue
+int iter_learn_in = 200;  // iteration across all samples from one tissue
 int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
 
 
@@ -67,13 +67,56 @@ int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
 //float rate_learner = 0.1;  // the learning rate; this doesn't work
 //float rate_learner = 0.01;  // the learning rate; this doesn't work
 //float rate_learner = 0.001;  // the learning rate; works!!!; bench#3
-//float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
+float rate_learner = 0.0001;  // the learning rate; works!!!; bench#4
 //float rate_learner = 0.00001;  // the learning rate; works!!!; bench#5				--> (Jan.27) the latest one
 //float rate_learner = 0.000001;  // the learning rate
 
-float rate_learner = 0.000000001;
 
 
+
+//========================================
+// the following is the debugging routine
+//========================================
+/*
+Feb.3:
+Finally we cleaned all the bugs (if there is no more).
+I'm now working on tuning the learn_rate parameter. It looks like large learn_rate will lead to the program go wild:
+###########################
+try different learning rate parameters:
+2(1): all the parameters tend to be quite large, and there appears “Nan” at iter#8 in snp_cellenv
+3(0.01): iter#29 “Nan” in snp_cellenv
+4(0.0001): no “Nan”, and all the parameter values seem to be normal
+5(0.000001): no “Nan”, and all the parameter values seem to be normal
+###########################
+"0.001" and "0.0001" seem good, yet it looks like they are still wilding the program, with different speeds.
+I will try these two parameters with more iterations, to see where do they end up
+###########################
+I have run 200 iterations (1h12min) for 0.001 and 0.0001, and the results are in workbench#2 (0.001) and workbench#3 (0.0001)
+I will run 1000 iterations (6h) for 0.001 and 0.0001, to see how do they converge; they are in workbench#4 and workbench#5
+...
+...
+...
+###########################
+
+
+
+Feb.4:
+something I planned to do, but finally give up as there is no need to do that:
+1. add the stochastic module (the current method won't affect too much);
+2. add errors to the true parameters (however, even we are in the true parameters, the model seem to diverse, so no meaning to do that);
+3. learning several iterations in training set, predict on the testing set (directly predict other than saving the parameters first) (however, as the learning is diverging, this seems not so meaningful)
+
+
+
+Feb.8 (Feb.12):
+I will test the following this week:
+(done) 1. add errors to the parameters (N(0, 1), as all the parameters are drawn from N(0, 1), so errors with that magtitude is acceptable; we can also try other error magtitude later on);
+2. tune the prior (sparsity) strength, to see whether we have a better converging trend;
+3. output the likelihood for the tensor, with and without errors (on parameters) added, and check its trend; we can do this on either training set or testing set;
+4. it's the time now to make the program truly stochastic (for gradient descent)
+
+
+*/
 //======================================================================================================
 
 
@@ -406,6 +449,21 @@ void optimize()
 
 
 
+
+
+	// DEBUG
+	// save the loglikelihood along the way
+	char filename[100] = "../result/loglike.txt";
+	FILE * file_out_loglike = fopen(filename, "w+");
+	if(file_out_loglike == NULL)
+	{
+	    fputs("File error\n", stderr); exit(1);
+	}
+
+
+
+
+
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
 	{
 		for(int count2=0; count2<num_etissue; count2++)  // one count2 is for one tissue
@@ -413,13 +471,28 @@ void optimize()
 			string etissue = etissue_list[count2];
 			int num_esample = eQTL_tissue_rep[etissue].size();
 
+
+
+			// DEBUG
+			// indicating the current tissue
+			char buf[100];
+			sprintf(buf, "%s\t", etissue.c_str());
+			fwrite(buf, sizeof(char), strlen(buf), file_out_loglike);
+
+
+
+
 			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a batch_size mini-batch in current tissue
 			{
+
 
 
 				//
 				// TODO: change this module to the real stochastic one (other than rounding over all the samples)
 				//
+				// QUESTION: can we shuffle the sample list?
+
+
 
 
 				int pos_start = (batch_size * count3) % (num_esample);
@@ -460,11 +533,34 @@ void optimize()
 
 
 
+				// DEBUG: (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue)
+				float loglike = cal_loglike(etissue);
+				char buf[1024];
+				sprintf(buf, "%f\t", loglike);
+				fwrite(buf, sizeof(char), strlen(buf), file_out_loglike);
+
+
+
+
+
+
+
+
 			}
 			// leaving this etissue
 
+
+			// DEBUG
+			// finish this line in the likelihood file
+			fwrite("\n", sizeof(char), 1, file_out_loglike);
+
+
+
+
 			//DEBUG
 			break;  // won't consider other tissues; only consider the current tissue
+
+
 
 		}
 		//
@@ -478,7 +574,17 @@ void optimize()
 
 
 
+	// DEBUG
+	// finish the likelihood file
+	fclose(file_out_loglike);
+
+
+
+
+
+
 	opt_para_release();
 	puts("============== leaving the optimization routine...");
 }
+
 

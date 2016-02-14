@@ -34,6 +34,10 @@ void regularization(int);
 void gradient_descent(int);
 
 
+// calculate the log-likelihood for one tissue
+float cal_loglike(string);
+
+
 
 
 #endif

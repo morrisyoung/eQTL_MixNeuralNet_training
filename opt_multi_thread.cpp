@@ -73,7 +73,7 @@ void package_alloc(package_dev * package_pointer)
 			long int first = gene_cis_index[gene].first;
 			long int second = gene_cis_index[gene].second;
 			long int amount = second - first + 1;
-			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_element(i, amount + 1);
+			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_element(i, amount + 1);			// we do have the intercept term
 
 			// assing the chr and the tss:
 			(package_pointer->matrix_imcomp_para_dev_cis_gene).init_assign_chr(i, gene_tss[gene].chr);
@@ -92,7 +92,7 @@ void package_alloc(package_dev * package_pointer)
 	(package_pointer->matrix_para_dev_batch_batch_hidden).init(num_batch_hidden, num_batch + 1);	// we do have the intercept term here
 
 	//=============== (package_pointer->matrix_para_dev_batch_hidden_gene) ===============
-	(package_pointer->matrix_para_dev_batch_hidden_gene).init(num_gene, num_batch_hidden + 1);
+	(package_pointer->matrix_para_dev_batch_hidden_gene).init(num_gene, num_batch_hidden + 1);		// we do have the intercept term here
 
 }
 

@@ -114,17 +114,11 @@
 //// [important] what to do to change the dataset from real dataset to simulated dataset?
 // 1. change the file header (source data), from (char filename_data_source[] = "../data_real/";) to (char filename_data_source[] = "../data_simu/";)
 // 2. change the file header (initial parameters), from (char file_para_init[] = "../result_init/";) to (char file_para_init[] = "../result_init_simu/";)
-// 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables
+// 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables, to (int num_cellenv = 400) and (int num_batch_hidden = 50)
 // 4. change NUM_CHR (Macro), the number of chromosomes
 // 5. change the indicator (of whether this is real data or not)
 // 6. ...
 
-
-
-//// TODO (Jan.14):
-// 1. add the intercept into the (training code) parameter space and learning algorithms;
-// 2. formalize and do the pruning-enrichment part
-// 3. xxx
 
 
 
@@ -227,7 +221,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 //// system control
 // multi-threading mark
-int MULTI_THREAD = 0;
+int MULTI_THREAD = 1;
 
 
 
@@ -236,7 +230,11 @@ int MULTI_THREAD = 0;
 //char filename_data_source[] = "../data_real/";
 char filename_data_source[] = "../data_simu/";
 //char file_para_init[] = "../result_init/";
-char file_para_init[] = "../result_init_simu/";
+//char file_para_init[] = "../result_init_simu/";
+
+// DEBUG: (testing initializing with errors)
+char file_para_init[] = "../result_init_simu_with_error/";
+
 
 
 
@@ -250,7 +248,7 @@ int indicator_real = 0;
 
 
 
-// TODO (Jan.26):
+// TODO (about the data structure used) (Jan.26):
 // the genotype should be a class, and it supports: (otherwise, we should have a module that can support load other types of genotypes)
 //	0. inheritance from parent: SNPs name, chr, pos, prior score from pruning
 //	1. SNP values grouped by chromosomes;
@@ -260,6 +258,8 @@ int indicator_real = 0;
 // the expression is also a class:
 //	0. inheritance from parent: gene name, chr, pos (tss), cis region
 //	1. gene expression values grouped by chromosomes
+// UPDATE (Feb.12):
+// we'll try to keep the current things there, and testing the algorithm first of all, other than changing the whole framework
 
 
 
