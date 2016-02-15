@@ -65,6 +65,27 @@ void aggregation_ave(int);
 
 
 
+// each thread should have such a local parameter space
+typedef struct package_thread_loglike
+{
+	// meta data
+	int id;
+	string etissue;
+	float loglike;
+
+}package_loglike;
+
+
+
+// this is the working program for each thread, for calculating the log-likelihood
+void * WorkPerThread_loglike(void *);
+
+// calculate the log-likelihood in a multithreading fashion
+float cal_loglike_multithread(string);
+
+
+
+
 #endif
 
 // end of opt_multi_thread.h

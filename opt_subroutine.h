@@ -38,6 +38,10 @@ void gradient_descent(int);
 float cal_loglike(string);
 
 
+// forward process, and return the log-likelihood
+float forward_loglike(string, int);
+
+
 
 
 #endif

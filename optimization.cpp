@@ -532,16 +532,20 @@ void optimize()
 
 
 
-
 				// DEBUG: (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue)
-				float loglike = cal_loglike(etissue);
+				float loglike;
+				if(MULTI_THREAD)
+				{
+					loglike = cal_loglike_multithread(etissue);
+				}
+				else  // I expect this won't be used
+				{
+					loglike = cal_loglike(etissue);
+				}
+
 				char buf[1024];
 				sprintf(buf, "%f\t", loglike);
 				fwrite(buf, sizeof(char), strlen(buf), file_out_loglike);
-
-
-
-
 
 
 

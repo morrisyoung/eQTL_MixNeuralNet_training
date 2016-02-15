@@ -555,116 +555,127 @@ void gradient_descent(int etissue_index)
 
 
 
+
+// TODO: I should be able to adapt the following function into multi-threading version
 // calculate the loglikelihood for all the samples in one tissue
 float cal_loglike(string etissue)
 {
 	cout << "now calculating the log-likelihood..." << endl;
 
 	float loglike = 0;
-
 	int etissue_index = etissue_index_map[etissue];
-	float * error_list = (float *)calloc(num_gene, sizeof(float));
 
 	for(int pos = 0; pos < esample_tissue_rep[etissue].size(); pos++)
 	{
-		//========================================================================
-		// prepare all the containers, and the input variables
-		//========================================================================
-		//========================================================================
-		string esample = esample_tissue_rep[etissue][pos];
-		string individual = sample_to_individual(esample);
-		cout << "current sample #" << pos+1 << ": " << esample << endl;
-
-		//=================================================== init ============================================================
-		// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
-		// to: 1. forward_backward propagation;
-		// genotype dosage data
-		//cout << "getting the dosage data for individual #" << individual << endl;
-		snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
-		// expression rpkm data: eQTL_tissue_rep[etissue][esample]
-		//cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
-		// and the batch variable for this individual and this sample
-		int num_batch_individual = batch_individual[individual].size();
-		int index = 0;
-		for(int i=0; i<num_batch_individual; i++)
-		{
-			float value = batch_individual[individual][i];
-			batch_var[index] = value;
-			index++;
-		}
-		int num_batch_sample = batch_sample[esample].size();
-		for(int i=0; i<num_batch_sample; i++)
-		{
-			float value = batch_sample[esample][i];
-			batch_var[index] = value;
-			index++;
-		}
-
-		// make it compatible with the old code
-		array<float *, NUM_CHR> * dosage_list_pointer = &snp_dosage_list;
-		vector<float> * expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
-		float * expr_con_pointer = gene_rpkm_exp;
-		float * cellenv_con_pointer = cellenv_hidden_var;
-		float * batch_list_pointer = batch_var;
-		float * batch_hidden_con_pointer = batch_hidden_var;
-
-
-
-		//========================================================================
-		// forward-propogation (cis-; cell env; batch)
-		//========================================================================
-		//========================================================================
-
-		// ****************************** [part1] cis- *********************************
-		// for cis-, two issues:
-		// 1. if this is a XYMT gene, we don't have signal from it's cis- SNPs (not consider currently);
-		// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
-		float * expr_con_pointer_cis = (float *)calloc( num_gene, sizeof(float) );
-		multi_array_matrix_imcomp(dosage_list_pointer, cube_para_cis_gene[etissue_index], expr_con_pointer_cis);
-
-
-		// ********************* [part2] cell env relevant parameters *********************
-		// from snp to cell env variables
-		float * expr_con_pointer_cellenv = (float *)calloc( num_gene, sizeof(float) );
-		multi_array_list_matrix(dosage_list_pointer, matrix_para_snp_cellenv, cellenv_con_pointer);
-
-		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
-		neuralnet_ac_func(cellenv_con_pointer, num_cellenv);
-
-		// from cell env variables to genes
-		multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
-
-
-		// ********************* [part3] linear or non-linear batches *********************
-		float * expr_con_pointer_batch = (float *)calloc( num_gene, sizeof(float) );
-		// from original batch to hidden batch
-		multi_array_matrix(batch_list_pointer, matrix_para_batch_batch_hidden, batch_hidden_con_pointer);
-
-		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
-		neuralnet_ac_func(batch_hidden_con_pointer, num_batch_hidden);
-
-		// from hidden batch to genes
-		multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
-
-
-		// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
-		for(long int i=0; i<num_gene; i++)
-		{
-			expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
-		}
-		// error is the thing actually needed
-		for(long int i=0; i<num_gene; i++)
-		{
-			error_list[i] = expr_con_pointer[i] - (*expr_list_pointer)[i];
-			// save the loglike
-			loglike -= (error_list[i]) * (error_list[i]);
-		}
-
-
-	// leaving this sample
+		loglike += forward_loglike(etissue, pos);
 	}
 
-	free(error_list);
+	return loglike;
+}
+
+
+
+
+// forward process, accumulated the errors
+float forward_loglike(string etissue, int pos)
+{
+	float loglike = 0;
+	int etissue_index = etissue_index_map[etissue];
+
+
+	//========================================================================
+	// prepare all the containers, and the input variables
+	//========================================================================
+	//========================================================================
+	string esample = esample_tissue_rep[etissue][pos];
+	string individual = sample_to_individual(esample);
+	cout << "loglike: current sample #" << pos+1 << ": " << esample << endl;
+
+	//=================================================== init ============================================================
+	// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
+	// to: 1. forward_backward propagation;
+	// genotype dosage data
+	//cout << "getting the dosage data for individual #" << individual << endl;
+	snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
+	// expression rpkm data: eQTL_tissue_rep[etissue][esample]
+	//cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
+	// and the batch variable for this individual and this sample
+	int num_batch_individual = batch_individual[individual].size();
+	int index = 0;
+	for(int i=0; i<num_batch_individual; i++)
+	{
+		float value = batch_individual[individual][i];
+		batch_var[index] = value;
+		index++;
+	}
+	int num_batch_sample = batch_sample[esample].size();
+	for(int i=0; i<num_batch_sample; i++)
+	{
+		float value = batch_sample[esample][i];
+		batch_var[index] = value;
+		index++;
+	}
+
+	// make it compatible with the old code
+	array<float *, NUM_CHR> * dosage_list_pointer = &snp_dosage_list;
+	vector<float> * expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
+	float * expr_con_pointer = gene_rpkm_exp;
+	float * cellenv_con_pointer = cellenv_hidden_var;
+	float * batch_list_pointer = batch_var;
+	float * batch_hidden_con_pointer = batch_hidden_var;
+
+
+	//========================================================================
+	// forward-propogation (cis-; cell env; batch)
+	//========================================================================
+	//========================================================================
+
+	// ****************************** [part1] cis- *********************************
+	// for cis-, two issues:
+	// 1. if this is a XYMT gene, we don't have signal from it's cis- SNPs (not consider currently);
+	// 2. we use (gene_cis_index[gene].second - gene_cis_index[gene].first + 1) as the length of the cis- parameter array
+	float * expr_con_pointer_cis = (float *)calloc( num_gene, sizeof(float) );
+	multi_array_matrix_imcomp(dosage_list_pointer, cube_para_cis_gene[etissue_index], expr_con_pointer_cis);
+
+
+	// ********************* [part2] cell env relevant parameters *********************
+	// from snp to cell env variables
+	float * expr_con_pointer_cellenv = (float *)calloc( num_gene, sizeof(float) );
+	multi_array_list_matrix(dosage_list_pointer, matrix_para_snp_cellenv, cellenv_con_pointer);
+
+	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
+	neuralnet_ac_func(cellenv_con_pointer, num_cellenv);
+
+	// from cell env variables to genes
+	multi_array_matrix(cellenv_con_pointer, cube_para_cellenv_gene[etissue_index], expr_con_pointer_cellenv);
+
+
+	// ********************* [part3] linear or non-linear batches *********************
+	float * expr_con_pointer_batch = (float *)calloc( num_gene, sizeof(float) );
+	// from original batch to hidden batch
+	multi_array_matrix(batch_list_pointer, matrix_para_batch_batch_hidden, batch_hidden_con_pointer);
+
+	//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
+	neuralnet_ac_func(batch_hidden_con_pointer, num_batch_hidden);
+
+	// from hidden batch to genes
+	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
+
+
+	// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
+	for(long int i=0; i<num_gene; i++)
+	{
+		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
+	}
+	// error is the thing actually needed
+	loglike = 0;
+	for(long int i=0; i<num_gene; i++)
+	{
+		float error = expr_con_pointer[i] - (*expr_list_pointer)[i];
+		// save the loglike
+		loglike -= pow(error, 2.0);
+	}
+
 
 	return loglike;
 }

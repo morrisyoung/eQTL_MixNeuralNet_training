@@ -453,3 +453,124 @@ void aggregation_ave(int etissue_index)
 
 
 
+
+// this is the working program for each thread, for calculating the log-likelihood
+void * WorkPerThread_loglike(void * pointer)
+{
+	package_loglike * package_pointer = (package_loglike *)pointer;
+
+	float loglike = 0;
+	string etissue = package_pointer->etissue;
+	int amount_sample = esample_tissue_rep[etissue].size();
+
+	while(1)
+	{
+		int count = -1;
+		//================ check whether there are still left samples to be processed ================
+		// if there are, take into this thread; otherwise, terminate this thread
+		pthread_mutex_lock(&mut);
+		for(int i=0; i<amount_sample; i++)
+		{
+			if(finish_table[i] == 0)
+			{
+				count = i;
+				finish_table[i] = 1;
+				break;
+			}
+		}
+		pthread_mutex_unlock(&mut);
+
+		if(count == -1)  // no left samples for processing
+		{
+			break;
+		}
+
+		//================ work on the current sample ================
+		loglike += forward_loglike(etissue, count);
+	}
+
+	package_pointer->loglike = loglike;
+
+	pthread_exit(NULL);
+}
+
+
+
+
+// calculate the log-likelihood in a multithreading fashion
+float cal_loglike_multithread(string etissue)
+{
+	cout << "[@@@] now calculating the log-likelihood (multithreading)..." << endl;
+
+	float loglike = 0;
+	int etissue_index = etissue_index_map[etissue];
+	int amount_sample = esample_tissue_rep[etissue].size();
+
+
+	//=============================== multi-threading parameter initialization ===============================
+	// allocating all the other threads from here
+	pthread_t threads[num_thread];
+	void * status;
+	pthread_attr_t attr;
+	// Initialize and set thread joinable
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	//
+	finish_table = (int *)calloc(amount_sample, sizeof(int));
+	//
+	pthread_mutex_init(&mut, NULL);
+	memset(&threads, 0, sizeof(threads));
+
+	//=============================== thread local memory preparation (not yet allocation heap) ===============================
+	package_loglike para_array[num_thread];
+	for(int i=0; i<num_thread; i++)
+	{
+		package_loglike package;
+		package.id = i;
+		package.etissue = etissue;
+		package.loglike = 0;		// to be filled with the thread work
+		para_array[i] = package;
+	}
+
+	//=============================== thread initialization ===============================
+	for(int i=0; i<num_thread; i++)
+	{
+		cout << "main() : creating thread#" << i+1 << endl;
+		int rc = pthread_create(&threads[i], NULL, WorkPerThread_loglike, (void *)&para_array[i]);
+		if(rc)
+		{
+			cout << "Error:unable to create thread," << rc << endl;
+			exit(-1);
+		}
+	}
+
+
+	//===================== waiting for all the threads to terminate, and aggregate =====================
+	// free attribute and wait for the other threads
+	pthread_attr_destroy(&attr);
+	for(int i=0; i<num_thread; i++)
+	{
+		int rc = pthread_join(threads[i], &status);
+		if(rc)
+		{
+			cout << "Error:unable to join " << rc << endl;
+			exit(-1);
+		}
+		cout << "Main: completed thread#" << i+1;
+		cout << " exiting with status: " << status;
+		cout << ", aggregate it's results..." << endl;
+
+		// aggregate the results from this current thread
+		loglike += para_array[i].loglike;
+	}
+
+
+	//===================== finish and quit =====================
+	free(finish_table);
+	cout << "[@@@] finishing the current loglike cal (in multi-treading mode)..." << endl;
+
+
+	return loglike;
+}
+
+
