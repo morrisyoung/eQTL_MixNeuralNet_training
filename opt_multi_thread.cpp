@@ -34,6 +34,7 @@ int * finish_table;				// finish table for all the samples in this batch ()
 
 
 
+
 // initialize all the parameter space
 void package_alloc(package_dev * package_pointer)
 {
@@ -463,6 +464,30 @@ void * WorkPerThread_loglike(void * pointer)
 	string etissue = package_pointer->etissue;
 	int amount_sample = esample_tissue_rep[etissue].size();
 
+
+	//======== allocating memory for local containers ========
+	array<float *, NUM_CHR> snp_dosage_list;
+	float * gene_rpkm_exp;  // with length "num_gene"
+	float * cellenv_hidden_var;  // with length "num_cellenv"
+	float * batch_var;  // with length "num_batch"
+	float * batch_hidden_var;  // with length "num_batch_hidden"
+	//=============== snp_dosage_list ===============
+	for(int i=0; i<NUM_CHR; i++)
+	{
+		long num_temp = snp_name_list[i].size();
+		float * p = (float *)calloc( num_temp, sizeof(float) );
+		snp_dosage_list[i] = p;
+	}
+	//=============== gene_rpkm_exp ===============
+	gene_rpkm_exp = (float *)calloc( num_gene, sizeof(float) );
+	//=============== cellenv_hidden_var ===============
+	cellenv_hidden_var = (float *)calloc( num_cellenv, sizeof(float) );
+	//=============== batch_var ===============
+	batch_var = (float *)calloc( num_batch, sizeof(float) );
+	//=============== batch_hidden_var ===============
+	batch_hidden_var = (float *)calloc( num_batch_hidden, sizeof(float) );
+
+
 	while(1)
 	{
 		int count = -1;
@@ -485,11 +510,34 @@ void * WorkPerThread_loglike(void * pointer)
 			break;
 		}
 
+		// NOTE: debugging
+		//cout << package_pointer->id << ": " << count << endl;
+
 		//================ work on the current sample ================
-		loglike += forward_loglike(etissue, count);
+		loglike += forward_loglike(etissue, count, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);
+
 	}
 
 	package_pointer->loglike = loglike;
+
+
+	// free memory
+	//=============== snp_dosage_list ===============
+	for(int i=0; i<NUM_CHR; i++)
+	{
+		free(snp_dosage_list[i]);
+	}
+	//=============== gene_rpkm_exp ===============
+	free(gene_rpkm_exp);
+	//=============== cellenv_hidden_var ===============
+	free(cellenv_hidden_var);
+	//=============== batch_var ===============
+	free(batch_var);
+	//=============== batch_hidden_var ===============
+	free(batch_hidden_var);
+
+
+
 
 	pthread_exit(NULL);
 }
@@ -546,6 +594,7 @@ float cal_loglike_multithread(string etissue)
 
 
 	//===================== waiting for all the threads to terminate, and aggregate =====================
+	loglike = 0;
 	// free attribute and wait for the other threads
 	pthread_attr_destroy(&attr);
 	for(int i=0; i<num_thread; i++)

@@ -58,7 +58,8 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 // learning control parameters:
 int iter_learn_out = 1;  // iteration across all tissues
-int iter_learn_in = 200;  // iteration across all samples from one tissue
+//int iter_learn_in = 200;  // iteration across all samples from one tissue 			--> (Mar.8, 2016) this is probably too much (we used 3:40 for running only one tissue; maybe 50 is good enough, as the changing speed is much slower)
+int iter_learn_in = 50;
 int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
 
 
@@ -532,6 +533,7 @@ void optimize()
 
 
 
+
 				// DEBUG: (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue)
 				float loglike;
 				if(MULTI_THREAD)
@@ -561,8 +563,9 @@ void optimize()
 
 
 
+			// DEBUG: we do think all the tissues
 			//DEBUG
-			break;  // won't consider other tissues; only consider the current tissue
+			//break;  // won't consider other tissues; only consider the current tissue
 
 
 

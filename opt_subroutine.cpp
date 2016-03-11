@@ -344,6 +344,11 @@ void forward_backward(int etissue_index,
 	{
 		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
 	}
+	free(expr_con_pointer_cis);
+	free(expr_con_pointer_cellenv);
+	free(expr_con_pointer_batch);
+
+
 	// error is the thing actually needed
 	float * error_list = (float *)calloc(num_gene, sizeof(float));
 	for(long int i=0; i<num_gene; i++)
@@ -567,7 +572,7 @@ float cal_loglike(string etissue)
 
 	for(int pos = 0; pos < esample_tissue_rep[etissue].size(); pos++)
 	{
-		loglike += forward_loglike(etissue, pos);
+		loglike += forward_loglike(etissue, pos, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);
 	}
 
 	return loglike;
@@ -577,7 +582,7 @@ float cal_loglike(string etissue)
 
 
 // forward process, accumulated the errors
-float forward_loglike(string etissue, int pos)
+float forward_loglike(string etissue, int pos, array<float *, NUM_CHR> * dosage_list_pointer, float * expr_con_pointer, float * cellenv_con_pointer, float * batch_list_pointer, float * batch_hidden_con_pointer)
 {
 	float loglike = 0;
 	int etissue_index = etissue_index_map[etissue];
@@ -591,12 +596,24 @@ float forward_loglike(string etissue, int pos)
 	string individual = sample_to_individual(esample);
 	cout << "loglike: current sample #" << pos+1 << ": " << esample << endl;
 
+
+
+	// make it compatible with the old code
+	//array<float *, NUM_CHR> * dosage_list_pointer = &snp_dosage_list;
+	vector<float> * expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
+	//float * expr_con_pointer = gene_rpkm_exp;
+	//float * cellenv_con_pointer = cellenv_hidden_var;
+	//float * batch_list_pointer = batch_var;
+	//float * batch_hidden_con_pointer = batch_hidden_var;
+
+
+
 	//=================================================== init ============================================================
 	// get the: 0. esample and individual; 1. genotype; 2. expression data; 3. batch variables
 	// to: 1. forward_backward propagation;
 	// genotype dosage data
 	//cout << "getting the dosage data for individual #" << individual << endl;
-	snp_dosage_load(&snp_dosage_list, individual);  // snp dosage data for one individual across all chromosomes
+	snp_dosage_load(dosage_list_pointer, individual);  // snp dosage data for one individual across all chromosomes
 	// expression rpkm data: eQTL_tissue_rep[etissue][esample]
 	//cout << "we have this amount of genes expressed in this individual:" << eQTL_tissue_rep[etissue][esample].size() << endl;
 	// and the batch variable for this individual and this sample
@@ -605,24 +622,16 @@ float forward_loglike(string etissue, int pos)
 	for(int i=0; i<num_batch_individual; i++)
 	{
 		float value = batch_individual[individual][i];
-		batch_var[index] = value;
+		batch_list_pointer[index] = value;
 		index++;
 	}
 	int num_batch_sample = batch_sample[esample].size();
 	for(int i=0; i<num_batch_sample; i++)
 	{
 		float value = batch_sample[esample][i];
-		batch_var[index] = value;
+		batch_list_pointer[index] = value;
 		index++;
 	}
-
-	// make it compatible with the old code
-	array<float *, NUM_CHR> * dosage_list_pointer = &snp_dosage_list;
-	vector<float> * expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
-	float * expr_con_pointer = gene_rpkm_exp;
-	float * cellenv_con_pointer = cellenv_hidden_var;
-	float * batch_list_pointer = batch_var;
-	float * batch_hidden_con_pointer = batch_hidden_var;
 
 
 	//========================================================================
@@ -662,11 +671,18 @@ float forward_loglike(string etissue, int pos)
 	multi_array_matrix(batch_hidden_con_pointer, matrix_para_batch_hidden_gene, expr_con_pointer_batch);
 
 
+
 	// ********************* [end] merge the signal from three pathways here, to expr_con_pointer *********************
 	for(long int i=0; i<num_gene; i++)
 	{
 		expr_con_pointer[i] = expr_con_pointer_cis[i] + expr_con_pointer_cellenv[i] + expr_con_pointer_batch[i];
 	}
+	free(expr_con_pointer_cis);
+	free(expr_con_pointer_cellenv);
+	free(expr_con_pointer_batch);
+
+
+
 	// error is the thing actually needed
 	loglike = 0;
 	for(long int i=0; i<num_gene; i++)

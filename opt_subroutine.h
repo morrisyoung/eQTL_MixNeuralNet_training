@@ -41,6 +41,7 @@ float cal_loglike(string);
 // forward process, and return the log-likelihood
 float forward_loglike(string, int);
 
+float forward_loglike(string, int, array<float *, NUM_CHR> *, float *, float *, float *, float *);
 
 
 
