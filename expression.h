@@ -24,8 +24,12 @@ typedef struct tuple_long
 }tuple_long;
 
 
-// load the expression matrix into memory
-long int gene_rpkm_load(char *, char *);  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
+// load the expression matrix into memory (training dataset)
+long int gene_train_load(char *, char *);  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
+
+// load the testing dataset
+void gene_test_load(char *, char *);  // fill in: eQTL_tissue_rep_test, eQTL_samples_test, esample_tissue_rep_test
+
 
 
 // load tss for all genes, from the annotation file

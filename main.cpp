@@ -194,6 +194,14 @@ unordered_map<string, vector<string>> esample_tissue_rep;						// esample lists 
 unordered_map<string, gene_pos> gene_tss;										// TSS for all genes (including those pruned genes)
 unordered_map<string, int> gene_xymt_rep;										// map all the X, Y, MT genes
 
+// (Mar.22, 2016)
+// I will replicate the "unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep" and "unordered_map<string, string> eQTL_samples" and "unordered_map<string, vector<string>> esample_tissue_rep;" for the testing dataset:
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_test;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+unordered_map<string, string> eQTL_samples_test;	// hashing all eQTL samples to their tissues
+unordered_map<string, vector<string>> esample_tissue_rep_test;	// esample lists of all etissues
+
+
+
 
 //// batch variables:
 // batch variables are per genotype per sample (one individual may produce several RNA samples)
@@ -230,10 +238,10 @@ int MULTI_THREAD = 1;
 //char filename_data_source[] = "../data_real/";
 char filename_data_source[] = "../data_simu/";
 //char file_para_init[] = "../result_init/";
-char file_para_init[] = "../result_init_simu/";
+//char file_para_init[] = "../result_init_simu/";
 
 // DEBUG: (testing initializing the model parameters with errors from the true model)
-//char file_para_init[] = "../result_init_simu_with_error/";
+char file_para_init[] = "../result_init_simu_with_error/";
 
 
 
@@ -310,7 +318,8 @@ int main()
 
 
 	//===================================== prepare the expression matrix =======================================
-	puts("[xxx] loading the gene rpkm matrix...");
+	// loading the training dataset
+	puts("[xxx] loading the gene rpkm matrix (training)...");
 	char filename1[100];
 	filename1[0] = '\0';
 	strcat(filename1, filename_data_source);
@@ -320,7 +329,7 @@ int main()
 	strcat(filename2, filename_data_source);
 	strcat(filename2, "expression.txt");
 
-	num_gene = gene_rpkm_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
+	num_gene = gene_train_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
@@ -331,10 +340,26 @@ int main()
 		string etissue = it->first;
 		cout << etissue << ":" << (it->second).size() << endl;
 	}
+
+
+	// loading the testing dataset
+	puts("[xxx] loading the gene rpkm matrix (testing)...");
+	filename1[0] = '\0';
+	strcat(filename1, filename_data_source);
+	strcat(filename1, "list_samples_test.txt");
+	filename2[0] = '\0';
+	strcat(filename2, filename_data_source);
+	strcat(filename2, "expression.txt");
+
+	gene_test_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
+
+
+	// loading others
 	puts("[xxx] loading the tss for genes...");
 	gene_tss_load();  // gene_tss
 	puts("[xxx] loading the X, Y, MT gene list...");
 	gene_xymt_load();  // gene_xymt_rep
+
 
 
 
@@ -365,7 +390,6 @@ int main()
 	//puts("[xxx] beta prior values (from GTEx) loading...");
 	//beta_prior_fill();  // must happen after the above procedure
 	//
-
 
 
 

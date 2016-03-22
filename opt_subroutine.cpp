@@ -20,6 +20,7 @@
 #include "opt_nn_acfunc.h"
 #include "opt_debugger.h"
 #include "libfunc_matrix.h"
+#include <cmath>        // std::abs
 
 
 
@@ -476,6 +477,35 @@ void regularization(int etissue_index)
 	// float lambda_cellenv_gene = 0.0000001;
 	// float lambda_batch_batch_hidden = 0.0000001;
 	// float lambda_batch_hidden_gene = 0.0000001;
+
+
+
+
+	// group#11
+	// float lambda_lasso = 10;
+	// float lambda_ridge = 10;
+	// float lambda_snp_cellenv = 10;
+	// float lambda_cellenv_gene = 10;
+	// float lambda_batch_batch_hidden = 10;
+	// float lambda_batch_hidden_gene = 10;
+
+	// group#12
+	// float lambda_lasso = 1000;
+	// float lambda_ridge = 1000;
+	// float lambda_snp_cellenv = 1000;
+	// float lambda_cellenv_gene = 1000;
+	// float lambda_batch_batch_hidden = 1000;
+	// float lambda_batch_hidden_gene = 1000;
+
+	// group#13
+	// float lambda_lasso = 100000;
+	// float lambda_ridge = 100000;
+	// float lambda_snp_cellenv = 100000;
+	// float lambda_cellenv_gene = 100000;
+	// float lambda_batch_batch_hidden = 100000;
+	// float lambda_batch_hidden_gene = 100000;
+
+
 	//========================================================================================================
 
 
@@ -561,7 +591,6 @@ void gradient_descent(int etissue_index)
 
 
 
-// TODO: I should be able to adapt the following function into multi-threading version
 // calculate the loglikelihood for all the samples in one tissue
 float cal_loglike(string etissue)
 {
@@ -572,7 +601,7 @@ float cal_loglike(string etissue)
 
 	for(int pos = 0; pos < esample_tissue_rep[etissue].size(); pos++)
 	{
-		loglike += forward_loglike(etissue, pos, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);
+		loglike += forward_loglike_testerror(0, etissue, pos, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);	// indicator=0 --> loglike; indicator=1 --> testerror
 	}
 
 	return loglike;
@@ -582,9 +611,9 @@ float cal_loglike(string etissue)
 
 
 // forward process, accumulated the errors
-float forward_loglike(string etissue, int pos, array<float *, NUM_CHR> * dosage_list_pointer, float * expr_con_pointer, float * cellenv_con_pointer, float * batch_list_pointer, float * batch_hidden_con_pointer)
+float forward_loglike_testerror(int indicator, string etissue, int pos, array<float *, NUM_CHR> * dosage_list_pointer, float * expr_con_pointer, float * cellenv_con_pointer, float * batch_list_pointer, float * batch_hidden_con_pointer)
 {
-	float loglike = 0;
+	float result = 0;
 	int etissue_index = etissue_index_map[etissue];
 
 
@@ -592,15 +621,36 @@ float forward_loglike(string etissue, int pos, array<float *, NUM_CHR> * dosage_
 	// prepare all the containers, and the input variables
 	//========================================================================
 	//========================================================================
-	string esample = esample_tissue_rep[etissue][pos];
+	//=================================================================================================================
+	//******************************************* loglike or testerror ************************************************
+	//=================================================================================================================
+	string esample;
+	if(indicator == 0)	// training set, loglike
+	{
+		esample = esample_tissue_rep[etissue][pos];
+	}
+	else 				// testing set, testerror
+	{
+		esample = esample_tissue_rep_test[etissue][pos];
+	}
 	string individual = sample_to_individual(esample);
 	cout << "loglike: current sample #" << pos+1 << ": " << esample << endl;
 
 
-
 	// make it compatible with the old code
 	//array<float *, NUM_CHR> * dosage_list_pointer = &snp_dosage_list;
-	vector<float> * expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
+	//=================================================================================================================
+	//******************************************* loglike or testerror ************************************************
+	//=================================================================================================================
+	vector<float> * expr_list_pointer;
+	if(indicator == 0)	// training set, loglike
+	{
+		expr_list_pointer = &eQTL_tissue_rep[etissue][esample];
+	}
+	else 				// testing set, testerror
+	{
+		expr_list_pointer = &eQTL_tissue_rep_test[etissue][esample];
+	}
 	//float * expr_con_pointer = gene_rpkm_exp;
 	//float * cellenv_con_pointer = cellenv_hidden_var;
 	//float * batch_list_pointer = batch_var;
@@ -684,16 +734,54 @@ float forward_loglike(string etissue, int pos, array<float *, NUM_CHR> * dosage_
 
 
 	// error is the thing actually needed
-	loglike = 0;
-	for(long int i=0; i<num_gene; i++)
+	//=================================================================================================================
+	//******************************************* loglike or testerror ************************************************
+	//=================================================================================================================
+	if(indicator == 0)		// training set, loglike
 	{
-		float error = expr_con_pointer[i] - (*expr_list_pointer)[i];
-		// save the loglike
-		loglike -= pow(error, 2.0);
+		float loglike = 0;
+		for(long int i=0; i<num_gene; i++)
+		{
+			float error = expr_con_pointer[i] - (*expr_list_pointer)[i];
+			// save the loglike
+			loglike -= pow(error, 2.0);
+		}
+		result = loglike;
+	}
+	else 					// testing error, testerror
+	{
+		float testerror = 0;
+		for(long int i=0; i<num_gene; i++)
+		{
+			float error = abs(expr_con_pointer[i] - (*expr_list_pointer)[i]);
+			testerror += error;
+		}
+		result = testerror;
 	}
 
 
-	return loglike;
+	return result;
+}
+
+
+
+// testing error for one tissue
+// type: MAE or AE (mean absolute error or absolute error)
+float cal_testerror(string etissue)
+{	
+	float testerror = 0;
+
+	cout << "now calculating the testing error (for the current tissue)..." << endl;
+
+	int etissue_index = etissue_index_map[etissue];
+
+	for(int pos = 0; pos < esample_tissue_rep_test[etissue].size(); pos++)
+	{
+		testerror += forward_loglike_testerror(1, etissue, pos, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);	// indicator=0 --> loglike; indicator=1 --> testerror
+	}
+
+
+	return testerror;
 }
 
 

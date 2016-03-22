@@ -19,7 +19,8 @@
 using namespace std;
 
 
-long int gene_rpkm_load(char * filename1, char * filename2)  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
+// func: loading the training dataset
+long int gene_train_load(char * filename1, char * filename2)  // fill in: eQTL_samples; gene_list; eQTL_tissue_rep
 {
 	//===================================== eQTL_samples ===========================================
 	FILE * file_in = fopen(filename1, "r");
@@ -193,6 +194,163 @@ long int gene_rpkm_load(char * filename1, char * filename2)  // fill in: eQTL_sa
 
 	return gene_list.size();
 }
+
+
+
+
+
+// func: loading the testing dataset
+void gene_test_load(char * filename1, char * filename2)  // fill in: eQTL_tissue_rep_test, eQTL_samples_test, esample_tissue_rep_test
+{
+
+	//===================================== eQTL_samples_test ===========================================
+	FILE * file_in = fopen(filename1, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int input_length = 100000;
+	char input[input_length];
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string eTissue = p;
+		unordered_map<string, vector<float>> rep;
+		eQTL_tissue_rep_test.emplace(eTissue, rep);
+
+		int count = 0;
+		while(p)
+		{
+			count++;
+			if(count == 1)  // this is the eTissue
+			{
+				p = strtok(NULL, sep);
+				continue;
+			}
+
+			// append this sample, and iterate across all samples
+			string sample = p;
+			vector<float> list;
+			eQTL_tissue_rep_test[eTissue].emplace(sample, list);
+			eQTL_samples_test.emplace(sample, eTissue);
+
+			p = strtok(NULL, sep);
+		}
+
+	}
+	fclose (file_in);
+
+
+	//===================================== eQTL_tissue_rep ===========================================
+	unordered_map<int, string> index_rep;
+	file_in = fopen(filename2, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	int count = 0;
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		count++;
+		switch(count)
+		{
+			case 1:
+			{
+				// // fill the index_rep, with eQTL_samples_test
+				int index = 0;
+				trim(input);
+
+				const char * sep = "\t";
+				char * p;
+				p = strtok(input, sep);
+
+				while(p)
+				{
+					index++;
+					if(index == 1 || index == 2)
+					{
+						p = strtok(NULL, sep);
+						continue;
+					}
+
+					string sample = p;
+ 					unordered_map<string, string>::const_iterator got = eQTL_samples_test.find(sample);
+  					if ( got != eQTL_samples_test.end() )
+  					{
+  						index_rep.emplace(index, sample);
+  					}
+
+					p = strtok(NULL, sep);
+				}
+				break;
+			}
+
+			default:
+			{
+				// fill in the eQTL_tissue_rep_test
+				int index = 0;
+				trim(input);
+
+				const char * sep = "\t";
+				char * p;
+				p = strtok(input, sep);
+				string gene = p;
+				//gene_list.push_back(gene);
+
+				while(p)
+				{
+					index++;
+					if(index == 1 || index == 2)
+					{
+						p = strtok(NULL, sep);
+						continue;
+					}
+
+ 					unordered_map<int, string>::const_iterator got = index_rep.find(index);
+  					if ( got != index_rep.end() )
+  					{
+						char rpkm[100];
+						strcpy(rpkm, p);
+						float expression = stof(rpkm);
+						string sample = index_rep[index];
+						string eTissue = eQTL_samples_test[sample];
+						eQTL_tissue_rep_test[eTissue][sample].push_back(expression);
+  					}
+
+					p = strtok(NULL, sep);
+				}
+				break;
+			}
+		}
+
+
+	}
+	fclose (file_in);
+
+
+	//===================================== esample_tissue_rep_test ===========================================
+	//unordered_map<string, vector<string>> esample_tissue_rep;  // esample lists of all etissues
+	for(int i=0; i<etissue_list.size(); i++)
+	{
+		string etissue = etissue_list[i];
+		vector<string> vec;
+		esample_tissue_rep_test[etissue] = vec;
+		for(auto it=eQTL_tissue_rep_test[etissue].begin(); it != eQTL_tissue_rep_test[etissue].end(); ++it)
+		{
+			string esample = it->first;
+			esample_tissue_rep_test[etissue].push_back(esample);
+		}
+	}
+
+
+	return;
+}
+
+
 
 
 

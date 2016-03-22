@@ -57,6 +57,15 @@ extern unordered_map<string, vector<string>> esample_tissue_rep;  // esample lis
 extern unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)
 extern unordered_map<string, int> gene_xymt_rep;  // map all the X, Y, MT genes
 
+// expression (testing set):
+extern unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_test;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+extern unordered_map<string, string> eQTL_samples_test;	// hashing all eQTL samples to their tissues
+extern unordered_map<string, vector<string>> esample_tissue_rep_test;	// esample lists of all etissues
+
+
+
+
+
 
 
 

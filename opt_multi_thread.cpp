@@ -456,13 +456,25 @@ void aggregation_ave(int etissue_index)
 
 
 // this is the working program for each thread, for calculating the log-likelihood
-void * WorkPerThread_loglike(void * pointer)
+void * WorkPerThread_loglike_testerror(void * pointer)
 {
-	package_loglike * package_pointer = (package_loglike *)pointer;
+	package_loglike_testerror * package_pointer = (package_loglike_testerror *)pointer;
+	int indicator = package_pointer->indicator;
 
-	float loglike = 0;
+	float result = 0;
 	string etissue = package_pointer->etissue;
-	int amount_sample = esample_tissue_rep[etissue].size();
+	//=================================================================================================================
+	//******************************************* loglike or testerror ************************************************
+	//=================================================================================================================
+	int amount_sample;
+	if(indicator == 0)
+	{
+		amount_sample = esample_tissue_rep[etissue].size();
+	}
+	else
+	{
+		amount_sample = esample_tissue_rep_test[etissue].size();
+	}
 
 
 	//======== allocating memory for local containers ========
@@ -514,11 +526,20 @@ void * WorkPerThread_loglike(void * pointer)
 		//cout << package_pointer->id << ": " << count << endl;
 
 		//================ work on the current sample ================
-		loglike += forward_loglike(etissue, count, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);
-
+		//=================================================================================================================
+		//******************************************* loglike or testerror ************************************************
+		//=================================================================================================================
+		if(indicator == 0)
+		{
+			result += forward_loglike_testerror(0, etissue, count, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);	// indicator=0 --> loglike; indicator=1 --> testerror
+		}
+		else
+		{
+			result += forward_loglike_testerror(1, etissue, count, &snp_dosage_list, gene_rpkm_exp, cellenv_hidden_var, batch_var, batch_hidden_var);	// indicator=0 --> loglike; indicator=1 --> testerror
+		}
 	}
 
-	package_pointer->loglike = loglike;
+	package_pointer->result = result;
 
 
 	// free memory
@@ -570,13 +591,14 @@ float cal_loglike_multithread(string etissue)
 	memset(&threads, 0, sizeof(threads));
 
 	//=============================== thread local memory preparation (not yet allocation heap) ===============================
-	package_loglike para_array[num_thread];
+	package_loglike_testerror para_array[num_thread];
 	for(int i=0; i<num_thread; i++)
 	{
-		package_loglike package;
+		package_loglike_testerror package;
 		package.id = i;
+		package.indicator = 0;		// indicating loglike
 		package.etissue = etissue;
-		package.loglike = 0;		// to be filled with the thread work
+		package.result = 0;		// to be filled with the thread work
 		para_array[i] = package;
 	}
 
@@ -584,7 +606,7 @@ float cal_loglike_multithread(string etissue)
 	for(int i=0; i<num_thread; i++)
 	{
 		cout << "main() : creating thread#" << i+1 << endl;
-		int rc = pthread_create(&threads[i], NULL, WorkPerThread_loglike, (void *)&para_array[i]);
+		int rc = pthread_create(&threads[i], NULL, WorkPerThread_loglike_testerror, (void *)&para_array[i]);
 		if(rc)
 		{
 			cout << "Error:unable to create thread," << rc << endl;
@@ -610,7 +632,7 @@ float cal_loglike_multithread(string etissue)
 		cout << ", aggregate it's results..." << endl;
 
 		// aggregate the results from this current thread
-		loglike += para_array[i].loglike;
+		loglike += para_array[i].result;
 	}
 
 
@@ -620,6 +642,86 @@ float cal_loglike_multithread(string etissue)
 
 
 	return loglike;
+}
+
+
+
+
+float cal_testerror_multithread(string etissue)
+{
+	cout << "[@@@] now calculating the testing error (multithreading)..." << endl;
+
+	float testerror = 0;
+	int etissue_index = etissue_index_map[etissue];
+	int amount_sample = esample_tissue_rep_test[etissue].size();
+
+
+	//=============================== multi-threading parameter initialization ===============================
+	// allocating all the other threads from here
+	pthread_t threads[num_thread];
+	void * status;
+	pthread_attr_t attr;
+	// Initialize and set thread joinable
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	//
+	finish_table = (int *)calloc(amount_sample, sizeof(int));
+	//
+	pthread_mutex_init(&mut, NULL);
+	memset(&threads, 0, sizeof(threads));
+
+	//=============================== thread local memory preparation (not yet allocation heap) ===============================
+	package_loglike_testerror para_array[num_thread];
+	for(int i=0; i<num_thread; i++)
+	{
+		package_loglike_testerror package;
+		package.id = i;
+		package.indicator = 1;		// indicating testerror
+		package.etissue = etissue;
+		package.result = 0;		// to be filled with the thread work
+		para_array[i] = package;
+	}
+
+	//=============================== thread initialization ===============================
+	for(int i=0; i<num_thread; i++)
+	{
+		cout << "main() : creating thread#" << i+1 << endl;
+		int rc = pthread_create(&threads[i], NULL, WorkPerThread_loglike_testerror, (void *)&para_array[i]);
+		if(rc)
+		{
+			cout << "Error:unable to create thread," << rc << endl;
+			exit(-1);
+		}
+	}
+
+
+	//===================== waiting for all the threads to terminate, and aggregate =====================
+	testerror = 0;
+	// free attribute and wait for the other threads
+	pthread_attr_destroy(&attr);
+	for(int i=0; i<num_thread; i++)
+	{
+		int rc = pthread_join(threads[i], &status);
+		if(rc)
+		{
+			cout << "Error:unable to join " << rc << endl;
+			exit(-1);
+		}
+		cout << "Main: completed thread#" << i+1;
+		cout << " exiting with status: " << status;
+		cout << ", aggregate it's results..." << endl;
+
+		// aggregate the results from this current thread
+		testerror += para_array[i].result;
+	}
+
+
+	//===================== finish and quit =====================
+	free(finish_table);
+	cout << "[@@@] finishing the current loglike cal (in multi-treading mode)..." << endl;
+
+
+	return testerror;
 }
 
 

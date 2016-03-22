@@ -57,7 +57,7 @@ vector<vector<float>> tissue_hierarchical_pairwise;
 
 
 // learning control parameters:
-int iter_learn_out = 1;  // iteration across all tissues
+int iter_learn_out = 2;  // iteration across all tissues
 //int iter_learn_in = 200;  // iteration across all samples from one tissue 			--> (Mar.8, 2016) this is probably too much (we used 3:40 for running only one tissue; maybe 50 is good enough, as the changing speed is much slower)
 int iter_learn_in = 50;
 int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
@@ -451,8 +451,7 @@ void optimize()
 
 
 
-
-	// DEBUG
+	//======== likelihood ========
 	// save the loglikelihood along the way
 	char filename[100] = "../result/loglike.txt";
 	FILE * file_out_loglike = fopen(filename, "w+");
@@ -460,6 +459,16 @@ void optimize()
 	{
 	    fputs("File error\n", stderr); exit(1);
 	}
+
+
+	//======== testing error (predictive error) ========
+	sprintf(filename, "%s", "../result/test_error.txt");
+	FILE * file_out_testerror = fopen(filename, "w+");
+	if(file_out_testerror == NULL)
+	{
+	    fputs("File error\n", stderr); exit(1);
+	}
+
 
 
 
@@ -474,7 +483,7 @@ void optimize()
 
 
 
-			// DEBUG
+			//======== likelihood ========
 			// indicating the current tissue
 			char buf[100];
 			sprintf(buf, "%s\t", etissue.c_str());
@@ -482,18 +491,27 @@ void optimize()
 
 
 
+			//======== testing error (predictive error) ========
+			//char buf[100];
+			sprintf(buf, "%s\t", etissue.c_str());
+			fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
 
+
+
+
+
+			// entering this tissue
 			for(int count3=0; count3<iter_learn_in; count3++)  // one count3 is for a batch_size mini-batch in current tissue
 			{
-
 
 
 				//
 				// TODO: change this module to the real stochastic one (other than rounding over all the samples)
 				//
 				// QUESTION: can we shuffle the sample list?
-
-
+				//
+				// ANS: not urgent to do that, as the current setting is perceptron
+				//
 
 
 				int pos_start = (batch_size * count3) % (num_esample);
@@ -510,17 +528,13 @@ void optimize()
 
 
 
-
 				// // DEBUG:
-				// // we do only one sample (or one mini-batch)
+				// // we do only one sample (or one mini-batch) for the current tissue
 				// break;
 
 
-
-
-
-				// DEBUG
-				// check nan after this mini-batch
+				//======== parameter check ========
+				// check "nan" after this mini-batch
 				int flag = para_check_nan(etissue);
 				if(flag == 1)
 				{
@@ -533,8 +547,8 @@ void optimize()
 
 
 
-
-				// DEBUG: (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue)
+				//======== likelihood ========
+				// (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue); or maybe check every several mini-batches
 				float loglike;
 				if(MULTI_THREAD)
 				{
@@ -551,21 +565,50 @@ void optimize()
 
 
 
+				//======== testing error (predictive error) ========
+				// we can check every several mini-batches
+				float testerror;
+				if(MULTI_THREAD)
+				{
+					testerror = cal_testerror_multithread(etissue);
+				}
+				else  // I expect this won't be used
+				{
+					testerror = cal_testerror(etissue);
+				}
+
+				//char buf[1024];
+				sprintf(buf, "%f\t", testerror);
+				fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
+
+
+
+
+
+
+
 
 			}
 			// leaving this etissue
 
 
-			// DEBUG
+			//======== likelihood ========
 			// finish this line in the likelihood file
 			fwrite("\n", sizeof(char), 1, file_out_loglike);
+
+
+			//======== testing error (predictive error) ========
+			fwrite("\n", sizeof(char), 1, file_out_testerror);
+
+
+
 
 
 
 
 			// DEBUG: we do think all the tissues
-			//DEBUG
-			//break;  // won't consider other tissues; only consider the current tissue
+			//DEBUG: won't consider other tissues; only consider the current tissue
+			//break;
 
 
 
@@ -581,9 +624,15 @@ void optimize()
 
 
 
-	// DEBUG
+	//======== likelihood ========
 	// finish the likelihood file
 	fclose(file_out_loglike);
+
+
+	//======== testing error (predictive error) ========
+	fclose(file_out_testerror);
+
+
 
 
 

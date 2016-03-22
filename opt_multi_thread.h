@@ -66,22 +66,26 @@ void aggregation_ave(int);
 
 
 // each thread should have such a local parameter space
-typedef struct package_thread_loglike
+typedef struct package_thread_loglike_testerror
 {
 	// meta data
 	int id;
+	int indicator;		// indicating the loglikelihood or testing error
 	string etissue;
-	float loglike;
+	float result;
 
-}package_loglike;
+}package_loglike_testerror;
 
 
 
 // this is the working program for each thread, for calculating the log-likelihood
-void * WorkPerThread_loglike(void *);
+void * WorkPerThread_loglike_testerror(void *);
 
 // calculate the log-likelihood in a multithreading fashion
 float cal_loglike_multithread(string);
+
+// calculate the testing errors on the testing dataset
+float cal_testerror_multithread(string);
 
 
 
