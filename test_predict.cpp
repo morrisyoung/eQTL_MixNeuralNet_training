@@ -24,7 +24,7 @@
 #include "basic.h"
 #include "test_predict.h"
 #include "test_main.h"
-#include "nn_ac_func.h"
+#include "opt_nn_acfunc.h"
 
 
 
@@ -34,7 +34,7 @@ using namespace std;
 
 
 //====================================== local global variables ========================================
-array<float *, 22> snp_dosage_list;
+array<float *, NUM_CHR> snp_dosage_list;
 float * gene_rpkm_exp;  // with length "num_gene"
 float * cellenv_hidden_var;  // with length "num_cellenv"
 float * batch_var;  // with length "num_batch"
@@ -48,7 +48,7 @@ float * batch_hidden_var;  // with length "num_batch_hidden"
 void opt_para_init()
 {
 	//=============== snp_dosage_list ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		long num_temp = snp_name_list[i].size();
 		float * p = (float *)calloc( num_temp, sizeof(float) );
@@ -74,7 +74,7 @@ void opt_para_init()
 void opt_para_release()
 {
 	//=============== snp_dosage_list ===============
-	for(int i=0; i<22; i++)
+	for(int i=0; i<NUM_CHR; i++)
 	{
 		free(snp_dosage_list[i]);
 	}
@@ -138,6 +138,7 @@ void predict()
 			index++;
 		}
 
+
 		// ****************************** [part1] cis- *********************************
 		// for cis-, two issues:
 		// 1. if this is a XYMT gene, jump;
@@ -155,14 +156,29 @@ void predict()
 				gene_rpkm_exp[i] = 0;
 				int chr = gene_tss[gene].chr;
 				int num = gene_cis_index[gene].second - gene_cis_index[gene].first + 1;
-				for(int k=0; k<num; k++)
+				// for(int k=0; k<num; k++)
+				// {
+				// 	int pos = gene_cis_index[gene].first + k;
+				// 	float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
+				// 	gene_rpkm_exp[i] += dosage * para_cis_gene[etissue_index][i][k];
+				// }
+				// add the intercept
+				for(int k=0; k<num + 1; k++)
 				{
-					int pos = gene_cis_index[gene].first + k;
-					float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
-					gene_rpkm_exp[i] += dosage * para_cis_gene[etissue_index][i][k];
+					if(k == num)	// the intercept
+					{
+						gene_rpkm_exp[i] += 1 * para_cis_gene[etissue_index][i][k];		// the intercept term
+					}
+					else
+					{
+						int pos = gene_cis_index[gene].first + k;
+						float dosage = snp_dosage_list[chr-1][pos];  // dosage at k position
+						gene_rpkm_exp[i] += dosage * para_cis_gene[etissue_index][i][k];
+					}
 				}
 			}
 		}
+
 
 		// ********************* [part2] cell env relevant parameters *********************
 		// from snp to cell env variables
@@ -170,7 +186,7 @@ void predict()
 		{
 			cellenv_hidden_var[i] = 0;
 			long count = 0;
-			for(int j=0; j<22; j++)  // across all the chromosomes
+			for(int j=0; j<NUM_CHR; j++)  // across all the chromosomes
 			{
 				int chr = j+1;
 				for(long k=0; k<snp_name_list[j].size(); k++)
@@ -180,6 +196,8 @@ void predict()
 					count ++;
 				}
 			}
+			// add the intercept
+			cellenv_hidden_var[i] += 1 * para_snp_cellenv[i][count];					// the intercept term
 		}
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		neuralnet_ac_func(cellenv_hidden_var, num_cellenv);
@@ -187,21 +205,48 @@ void predict()
 		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
-			for(int j=0; j<num_cellenv; j++)
+			// for(int j=0; j<num_cellenv; j++)
+			// {
+			// 	gene_rpkm_exp[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_hidden_var[j];
+			// }
+			// add the intercept
+			for(int j=0; j<num_cellenv + 1; j++)
 			{
-				gene_rpkm_exp[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_hidden_var[j];
+				if(j == num_cellenv)
+				{
+					gene_rpkm_exp[i] += para_cellenv_gene[etissue_index][i][j] * 1;		// the intercept term
+				}
+				else
+				{
+					gene_rpkm_exp[i] += para_cellenv_gene[etissue_index][i][j] * cellenv_hidden_var[j];
+				}
 			}
+
 		}
+
 
 		// ********************* [part3] linear or non-linear batches *********************
 		// from original batch to hidden batch
 		for(int i=0; i<num_batch_hidden; i++)
 		{
 			batch_hidden_var[i] = 0;
-			for(int j=0; j<num_batch; j++)
+			// for(int j=0; j<num_batch; j++)
+			// {
+			// 	batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
+			// }
+			// add the intercept term
+			for(int j=0; j<num_batch + 1; j++)
 			{
-				batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
+				if(j == num_batch)
+				{
+					batch_hidden_var[i] += 1 * para_batch_batch_hidden[i][j];				// the intercept term
+				}
+				else
+				{
+					batch_hidden_var[i] += batch_var[j] * para_batch_batch_hidden[i][j];
+				}
 			}
+
 		}
 		//$$$$$$$$$$$ perform the activation function here (logistic or something else) $$$$$$$$$$$$
 		neuralnet_ac_func(batch_hidden_var, num_batch_hidden);
@@ -209,9 +254,21 @@ void predict()
 		for(int i=0; i<num_gene; i++)
 		{
 			string gene = gene_list[i];
-			for(int j=0; j<num_batch_hidden; j++)
+			// for(int j=0; j<num_batch_hidden; j++)
+			// {
+			// 	gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * batch_hidden_var[j];
+			// }
+			// add the intercept term
+			for(int j=0; j<num_batch_hidden + 1; j++)
 			{
-				gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * batch_hidden_var[j];
+				if(j == num_batch_hidden)
+				{
+					gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * 1;					// the intercept term
+				}
+				else
+				{
+					gene_rpkm_exp[i] += para_batch_hidden_gene[i][j] * batch_hidden_var[j];
+				}
 			}
 		}
 
@@ -231,6 +288,15 @@ void predict()
 	}
 
 
+	// TODO: (Mar.23, 2016) probably also report errors/likelihood in the testing set
+
+
+
+
+
+
+
 	opt_para_release();	
 }
+
 

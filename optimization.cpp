@@ -21,6 +21,7 @@
 #include "opt_para_save.h"
 #include "opt_debugger.h"
 #include "lib_matrix.h"
+#include "opt_hierarchy.h"
 
 
 
@@ -451,6 +452,23 @@ void optimize()
 
 
 
+
+
+	// TODO:
+	// to define and initialze the parent parameter space (only for cis- regulator, and for cellular regulator)
+	// we can use the similar data structure with the original two:
+	//		vector<Matrix_imcomp> cube_para_cis_gene;
+	//		vector<Matrix> cube_para_cellenv_gene;
+	// make the variables visible to the hierarchical clustering sub-routine
+
+
+
+
+
+
+
+
+
 	//======== likelihood ========
 	// save the loglikelihood along the way
 	char filename[100] = "../result/loglike.txt";
@@ -619,6 +637,23 @@ void optimize()
 		//para_inter_save(count1);
 		//
 		//
+
+
+		// (Mar.22, 2016) TODO: now we do the tissue hierarchical prior
+		// we only care about the following two:
+		//		vector<Matrix_imcomp> cube_para_cis_gene;
+		//		vector<Matrix> cube_para_cellenv_gene;
+		// we want do things more general
+
+
+
+
+		hierarchy();
+
+
+
+
+
 
 	}
 

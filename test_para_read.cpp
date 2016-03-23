@@ -23,6 +23,7 @@ using namespace std;
 
 
 // initializing the parameter space
+// NOTE: we have ordered the tissues, and we need to load the parameter files for the ordered tissues
 void para_init()
 {
 	//
@@ -32,7 +33,9 @@ void para_init()
 	//=============== from snp to cell env variables ===============
 	for(int i=0; i<num_cellenv; i++)
 	{
-		float * p = (float *)calloc( num_snp, sizeof(float) );
+		//float * p = (float *)calloc( num_snp, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_snp + 1, sizeof(float) );
 		para_snp_cellenv.push_back(p);
 	}
 
@@ -43,7 +46,9 @@ void para_init()
 		para_cellenv_gene.push_back(vec);
 		for(int i=0; i<num_gene; i++)
 		{
-			float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			//float * p = (float *)calloc( num_cellenv, sizeof(float) );
+			// add the intercept:
+			float * p = (float *)calloc( num_cellenv + 1, sizeof(float) );
 			para_cellenv_gene[j].push_back(p);
 		}
 	}
@@ -69,7 +74,9 @@ void para_init()
 				long first = gene_cis_index[gene].first;  // index
 				long second = gene_cis_index[gene].second;  // index
 				long amount = second - first + 1;
-				float * p = (float *)calloc( amount, sizeof(float) );
+				//float * p = (float *)calloc( amount, sizeof(float) );
+				// add the intercept:
+				float * p = (float *)calloc( amount + 1, sizeof(float) );
 				para_cis_gene[j].push_back(p);
 			}
 		}
@@ -79,14 +86,18 @@ void para_init()
 	//=============== from original batch to hidden batch ===============
 	for(int i=0; i<num_batch_hidden; i++)
 	{
-		float * p = (float *)calloc( num_batch, sizeof(float) );
+		//float * p = (float *)calloc( num_batch, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_batch + 1, sizeof(float) );
 		para_batch_batch_hidden.push_back(p);
 	}
 
 	//=============== from hidden batch to genes ===============
 	for(int i=0; i<num_gene; i++)
 	{
-		float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
+		//float * p = (float *)calloc( num_batch_hidden, sizeof(float) );
+		// add the intercept:
+		float * p = (float *)calloc( num_batch_hidden + 1, sizeof(float) );
 		para_batch_hidden_gene.push_back(p);
 	}
 
@@ -94,13 +105,23 @@ void para_init()
 
 
 
+
 	//
-	// fill in the parameter values
+	// initializing their value of those parameters
+	//
+	// TODO: Don't forget to divide the signal from each pathway into their share
+	//		temporarily don't, cause there are some non-linearality in the hidden layer (maybe the initialization is also not so good)
 	//
 	//==================================== cellular factor pathway =====================================
 	//=============== from snp to cell env variables ===============
 	// vector<float *> para_snp_cellenv
-	char filename[100] = "../result/para_snp_cellenv.txt";
+	char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_snp_cellenv.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
 	FILE * file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
@@ -129,18 +150,52 @@ void para_init()
 		count++;
 	}
 	fclose(file_in);
+
 	//=============== from cell env variables to genes ===============
 	// vector<vector<float *>> para_cellenv_gene
-	for(int i=0; i<num_etissue; i++)
-	{
-		string etissue = etissue_list[i];
-		int etissue_index = i;
+	// get the temp rep first
+	unordered_map<string, string> map_temp;
 
-		char filename[100] = "../result/para_cellenv_gene/";
-		char temp[10];
-		sprintf(temp, "%d", i+1);
-		strcat(filename, "etissue");
-		strcat(filename, temp);
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "etissue_list.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	//FILE * file_in = fopen(filename, "r");
+	file_in = fopen(filename, "r");
+	if(file_in == NULL)
+	{
+		fputs("File error\n", stderr); exit (1);
+	}
+	while(fgets(input, input_length, file_in) != NULL)
+	{
+		trim(input);
+
+		const char * sep = "\t";
+		char * p;
+		p = strtok(input, sep);
+		string etissue = p;
+		
+		p = strtok(NULL, sep);
+		string etissue_index = p;
+
+		map_temp[etissue] = etissue_index;
+	}
+	fclose(file_in);
+
+	// fill the parameter space for each tissue then
+	for(int j=0; j<num_etissue; j++)
+	{
+		string etissue = etissue_list[j];
+		string etissue_index = map_temp[etissue];
+
+		char filename[100];
+		filename[0] = '\0';
+		strcat(filename, file_para_init);
+		strcat(filename, "para_cellenv_gene/etissue");
+		strcat(filename, etissue_index.c_str());
 		strcat(filename, ".txt");
 		//puts("the current file worked on is: ");
 		//puts(filename);
@@ -165,7 +220,7 @@ void para_init()
 			while(p)
 			{
 				float para = stof(p);
-				para_cellenv_gene[etissue_index][count][count1] = para;
+				para_cellenv_gene[j][count][count1] = para;
 				p = strtok(NULL, sep);
 				count1++;
 			}
@@ -175,30 +230,34 @@ void para_init()
 		fclose(file_in);
 	}
 
+
 	//==================================== cis- association pathway =====================================
 	// vector<vector<float *>> para_cis_gene
-	for(int i=0; i<num_etissue; i++)
+	// map_temp can be used here
+	for(int j=0; j<num_etissue; j++)
 	{
-		string etissue = etissue_list[i];
-		int etissue_index = i;
+		// build the rep first, then use it to fill all the parameter space
+		unordered_map<string, vector<float>> rep_para_cis_gene;
 
-		char filename[100] = "../result/para_cis_gene/";
-		char temp[10];
-		sprintf(temp, "%d", i+1);
-		strcat(filename, "etissue");
-		strcat(filename, temp);
+		string etissue = etissue_list[j];
+		string etissue_index = map_temp[etissue];
+
+		char filename[100];
+		filename[0] = '\0';
+		strcat(filename, file_para_init);
+		strcat(filename, "para_cis_gene/etissue");
+		strcat(filename, etissue_index.c_str());
 		strcat(filename, ".txt");
 		//puts("the current file worked on is: ");
 		//puts(filename);
 
-	    FILE * file_out = fopen(filename, "r");
-	    if(file_out == NULL)
-	    {
-	        fputs("File error\n", stderr); exit(1);
-	    }
-		int input_length = 100000;
-		char input[input_length];
-		int count = 0;
+		FILE * file_in = fopen(filename, "r");
+		if(file_in == NULL)
+		{
+			fputs("File error\n", stderr); exit(1);
+		}
+		//int input_length = 100000;
+		//char input[input_length];
 		while(fgets(input, input_length, file_in) != NULL)
 		{
 			trim(input);
@@ -206,27 +265,76 @@ void para_init()
 			const char * sep = "\t";
 			char * p;
 			p = strtok(input, sep);
+			string gene = p;
+			vector<float> vec;
+			rep_para_cis_gene.emplace(gene, vec);
 
-			int count1 = 0;
+			int count = 0;
 			while(p)
 			{
+				count++;
+				if(count == 1)  // this is the gene
+				{
+					p = strtok(NULL, sep);
+					continue;
+				}
+				// append this para, and iterate across all samples
 				float para = stof(p);
-				para_cis_gene[etissue_index][count][count1] = para;
-				p = strtok(NULL, sep);
-				count1++;
-			}
+				// NOTE: there may be "nan" in the cis- parameters, as these parameters are from regression analysis
+				if(isnan(para))
+				{
+					para = 0;
+				}
+				rep_para_cis_gene[gene].push_back(para);
 
-			count++;
+				p = strtok(NULL, sep);
+			}
 		}
 		fclose(file_in);
-		// leaving this etissue
+
+
+		// then fill in the same parameters for all tissue types
+		for(long i=0; i<gene_list.size(); i++)
+		{
+			string gene = gene_list[i];
+			// will not consider xymt genes
+			unordered_map<string, int>::const_iterator got = gene_xymt_rep.find(gene);
+			if ( got != gene_xymt_rep.end() )
+			{
+				continue;
+			}
+			// for security
+			unordered_map<string, vector<float>>::const_iterator got1 = rep_para_cis_gene.find(gene);
+			if ( got1 == rep_para_cis_gene.end() )
+			{
+				continue;
+			}
+
+			long first = gene_cis_index[gene].first;  // index
+			long second = gene_cis_index[gene].second;  // index
+			long amount = second - first + 1;
+			//for(int k=0; k<amount; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
+			// add the intercept:
+			for(int k = 0; k < amount + 1; k++)  // NOTE: we will drop the last item, which is the intercept of the multi-linear model
+			{
+				para_cis_gene[j][i][k] = rep_para_cis_gene[gene][k];
+			}
+			// leaving this gene
+		}
 	}
+
 
 	//==================================== batch effect pathway =====================================
 	//=============== from original batch to hidden batch ===============
 	// vector<float *> para_batch_batch_hidden
-	char filename1[100] = "../result/para_batch_batch_hidden.txt";
-	file_in = fopen(filename1, "r");
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_batch_batch_hidden.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
@@ -254,10 +362,18 @@ void para_init()
 		count++;
 	}
 	fclose(file_in);
+
+
 	//=============== from hidden batch to genes ===============
 	// vector<float *> para_batch_hidden_gene
-	char filename2[100] = "../result/para_batch_hidden_gene.txt";
-	file_in = fopen(filename2, "r");
+	//char filename[100];
+	filename[0] = '\0';
+	strcat(filename, file_para_init);
+	strcat(filename, "para_batch_hidden_gene.txt");
+	//puts("the current file worked on is: ");
+	//puts(filename);
+
+	file_in = fopen(filename, "r");
 	if(file_in == NULL)
 	{
 		fputs("File error\n", stderr); exit (1);
@@ -287,11 +403,11 @@ void para_init()
 	fclose(file_in);
 
 
-
-	// release the huge memory used as buff
+	// release the huge memory used as buffer
 	free(input);
 
 }
+
 
 
 
@@ -305,20 +421,20 @@ void para_release()
 	}
 
 	//=============== from cell env variables to genes ===============
-	for(int j=0; j<num_etissue; j++)
+	for(int i=0; i<num_etissue; i++)
 	{
-		for(int i=0; i<num_gene; i++)
+		for(int j=0; j<num_gene; j++)
 		{
-			free(para_cellenv_gene[j][i]);
+			free(para_cellenv_gene[i][j]);
 		}
 	}
 
 	//=============== initialize: vector<float *> para_cis_gene ===============
-	for(int j=0; j<num_etissue; j++)
+	for(int i=0; i<num_etissue; i++)
 	{
-		for(long i=0; i<gene_list.size(); i++)
+		for(long j=0; j<num_gene; j++)
 		{
-			free(para_cis_gene[j][i]);
+			free(para_cis_gene[i][j]);
 		}
 	}
 
@@ -346,7 +462,7 @@ void gene_cis_index_init()
 	//
 	// with the following:
 	// genotype relevant:
-	// array<vector<long>, 22> snp_pos_list;
+	// array<vector<long>, NUM_CHR> snp_pos_list;
 	// expression relevant:
 	// vector<string> gene_list;
 	// unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)

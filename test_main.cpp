@@ -32,10 +32,27 @@ what to be changed:
 
 
 
+(Mar.23, 2016)
+after checking the training set, I guess I still have the following to do:
+//// [important] what to do to change the dataset from real dataset to simulated dataset?
+// 1. change the file header (source data), from (char filename_data_source[] = "../data_real/";) to (char filename_data_source[] = "../data_simu/";)
+// 2. [no need] change the file header (initial parameters), from (char file_para_init[] = "../result_init/";) to (char file_para_init[] = "../result_init_simu/";)
+// 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables, to (int num_cellenv = 400) and (int num_batch_hidden = 50)
+// 4. change NUM_CHR (Macro), the number of chromosomes
+// 5. change the indicator (of whether this is real data or not) from (int indicator_real = 1) to (int indicator_real = 0)
+// 6. ...
+
+
+
+
+
+
 
 TODO:
-1. to solve the parameter space (data structure; intercept);
-2. with the new data structure, the prediction program should also be changed
+1. Matrix data structure, might not need to change;
+2. THE intercept issue is assured to have not yet been resolved (TODO)
+3. output the testing errors/likelihood in the testing set
+
 
 
 
@@ -88,13 +105,13 @@ int num_cellenv = 400;		// Specified
 long int num_gene = 0;		// TBD
 int num_etissue = 0;		// TBD
 int num_batch = 0;			// TBD
-int num_batch_hidden = 100;	// Specified
+int num_batch_hidden = 50;	// Specified
 int num_individual = 0;		// TBD
 
 
 //// genotype relevant:
-array<vector<string>, 22> snp_name_list;
-array<vector<long>, 22> snp_pos_list;
+array<vector<string>, NUM_CHR> snp_name_list;
+array<vector<long>, NUM_CHR> snp_pos_list;
 unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
@@ -139,14 +156,28 @@ vector<float *> para_batch_hidden_gene;
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
 
 
+//// system control
+// multi-threading mark
+//int MULTI_THREAD = 1;
+// We won't use multi-threading for this testing program
+
 
 //// file name space
 // (note: if we standadize the source data format and name, we only need the upper folder name)
+// data source:
 //char filename_data_source[] = "../data_real/";
 char filename_data_source[] = "../data_simu/";
-//char file_para_init[] = "../result_init/";
-//char file_para_init[] = "../result_init_simu/";
-//char file_para_init[] = "../result_init_simu_with_error/";
+
+// parameter source:
+// we will always load parameters from the directory "../result/"
+char file_para_init[] = "../result/";
+
+
+
+
+//// indicator of whether this is working on real dataset
+// this will be used to dicide parameters in some basic functions, like "sample ID to individual ID" function
+int indicator_real = 0;
 //===========================================================
 
 
@@ -288,6 +319,8 @@ int main()
 			}
 		}
 	}
+
+
 
 
 

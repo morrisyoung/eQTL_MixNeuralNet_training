@@ -7,8 +7,8 @@
 CC=	g++
 OPT=	-std=c++11 -static-libstdc++
 LIBS=	-lm -lpthread
-SRCS_TRAIN=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp batch.cpp opt_multi_thread.cpp opt_nn_acfunc.cpp opt_para_save.cpp opt_debugger.cpp libfunc_matrix.cpp
-OBJS_TRAIN=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o batch.o opt_multi_thread.o opt_nn_acfunc.o opt_para_save.o opt_debugger.o libfunc_matrix.o
+SRCS_TRAIN=	main.cpp basic.cpp expression.cpp genotype.cpp optimization.cpp parameter_init.cpp parameter_save.cpp opt_subroutine.cpp batch.cpp opt_multi_thread.cpp opt_nn_acfunc.cpp opt_para_save.cpp opt_debugger.cpp libfunc_matrix.cpp opt_hierarchy.cpp
+OBJS_TRAIN=	main.o basic.o expression.o genotype.o optimization.o parameter_init.o parameter_save.o opt_subroutine.o batch.o opt_multi_thread.o opt_nn_acfunc.o opt_para_save.o opt_debugger.o libfunc_matrix.o opt_hierarchy.o
 SRCS_TEST=	test_main.cpp basic.cpp expression.cpp genotype.cpp batch.cpp test_para_read.cpp test_predict.cpp test_save.cpp opt_nn_acfunc.cpp
 OBJS_TEST=	test_main.o basic.o expression.o genotype.o batch.o test_para_read.o test_predict.o test_save.o opt_nn_acfunc.o
 

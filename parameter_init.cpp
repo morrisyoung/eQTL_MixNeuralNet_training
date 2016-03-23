@@ -26,6 +26,7 @@ using namespace std;
 
 
 // initializing the parameter space
+// NOTE: we have ordered the tissues, and we need to load the parameter files for the ordered tissues
 void para_init()
 {
 	//
@@ -401,8 +402,9 @@ void para_init()
 	}
 	fclose(file_in);
 
-	// release the huge memory used as buff
+	// release the huge memory used as buffer
 	free(input);
+
 
 
 
@@ -538,7 +540,7 @@ void gene_cis_index_init()
 	//
 	// with the following:
 	// genotype relevant:
-	// array<vector<long>, 22> snp_pos_list;
+	// array<vector<long>, NUM_CHR> snp_pos_list;
 	// expression relevant:
 	// vector<string> gene_list;
 	// unordered_map<string, gene_pos> gene_tss;  // TSS for all genes (including those pruned genes)

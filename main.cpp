@@ -116,7 +116,7 @@
 // 2. change the file header (initial parameters), from (char file_para_init[] = "../result_init/";) to (char file_para_init[] = "../result_init_simu/";)
 // 3. change (int num_cellenv = 400) and (int num_batch_hidden = 100), global variables, to (int num_cellenv = 400) and (int num_batch_hidden = 50)
 // 4. change NUM_CHR (Macro), the number of chromosomes
-// 5. change the indicator (of whether this is real data or not)
+// 5. change the indicator (of whether this is real data or not) from (int indicator_real = 1) to (int indicator_real = 0)
 // 6. ...
 
 
@@ -330,6 +330,7 @@ int main()
 	strcat(filename2, "expression.txt");
 
 	num_gene = gene_train_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
+		// NOTE: we actually initialize the "etissue_list" and "etissue_index_map" in the above routine, and they determines the order of the tissues
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;

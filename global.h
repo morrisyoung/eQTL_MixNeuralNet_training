@@ -1,5 +1,5 @@
 // global.h
-// function
+// function: global variables
 
 #ifndef GLOBAL_H
 #define GLOBAL_H
@@ -15,7 +15,7 @@
 using namespace std;
 
 
-// Macro definition
+// number of chromosomes (in real data, this should be 22; and in simu data, this should be 1)
 #define NUM_CHR 1
 
 
