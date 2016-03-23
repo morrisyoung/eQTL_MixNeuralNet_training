@@ -768,7 +768,7 @@ float forward_loglike_testerror(int indicator, string etissue, int pos, array<fl
 // testing error for one tissue
 // type: MAE or AE (mean absolute error or absolute error)
 float cal_testerror(string etissue)
-{	
+{
 	float testerror = 0;
 
 	cout << "now calculating the testing error (for the current tissue)..." << endl;

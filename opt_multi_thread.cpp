@@ -458,10 +458,10 @@ void aggregation_ave(int etissue_index)
 // this is the working program for each thread, for calculating the log-likelihood
 void * WorkPerThread_loglike_testerror(void * pointer)
 {
+	float result = 0;
+
 	package_loglike_testerror * package_pointer = (package_loglike_testerror *)pointer;
 	int indicator = package_pointer->indicator;
-
-	float result = 0;
 	string etissue = package_pointer->etissue;
 	//=================================================================================================================
 	//******************************************* loglike or testerror ************************************************
@@ -585,7 +585,7 @@ float cal_loglike_multithread(string etissue)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	//
-	finish_table = (int *)calloc(amount_sample, sizeof(int));
+	finish_table = (int *)calloc(amount_sample, sizeof(int));		// calloc --> initialize as 0
 	//
 	pthread_mutex_init(&mut, NULL);
 	memset(&threads, 0, sizeof(threads));
@@ -665,7 +665,7 @@ float cal_testerror_multithread(string etissue)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	//
-	finish_table = (int *)calloc(amount_sample, sizeof(int));
+	finish_table = (int *)calloc(amount_sample, sizeof(int));		// calloc --> initialize as 0
 	//
 	pthread_mutex_init(&mut, NULL);
 	memset(&threads, 0, sizeof(threads));
