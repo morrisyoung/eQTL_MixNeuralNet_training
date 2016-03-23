@@ -394,3 +394,4 @@ void gene_cis_index_init()
 	}
 
 }
+

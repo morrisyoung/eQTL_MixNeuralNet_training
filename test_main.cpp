@@ -16,6 +16,39 @@ several other issues:
 */
 
 
+
+
+/*
+Mar.22:
+I'm re-formating the files for testing set
+what we need:
+1. "./data_real/list_samples_test.txt"
+where do they come from:
+1. "./phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_test"
+what to be changed:
+1. none
+
+
+
+
+
+
+TODO:
+1. to solve the parameter space (data structure; intercept);
+2. with the new data structure, the prediction program should also be changed
+
+
+
+
+*/
+
+
+
+
+
+
+
+
 // standard libraries:
 #include <iostream>
 #include <sys/types.h>
@@ -65,9 +98,8 @@ array<vector<long>, 22> snp_pos_list;
 unordered_map<string, vector<vector<float>>> snp_dosage_rep;
 
 
-//// expression relevant:
+//// expression relevant: (I will redundently load also the training set)
 unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
-unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;	// the predicted version of above one
 unordered_map<string, string> eQTL_samples;										// hashing all eQTL samples to their tissues
 vector<string> gene_list;														// all genes from the source file
 unordered_map<string, int> gene_index_map;										// re-map those genes into their order (reversed hashing of above)
@@ -78,6 +110,16 @@ unordered_map<string, vector<string>> esample_tissue_rep;						// esample lists 
 // information table:
 unordered_map<string, gene_pos> gene_tss;										// TSS for all genes (including those pruned genes)
 unordered_map<string, int> gene_xymt_rep;										// map all the X, Y, MT genes
+
+
+// (Mar.22, 2016)
+// I will replicate the "unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep" and "unordered_map<string, string> eQTL_samples" and "unordered_map<string, vector<string>> esample_tissue_rep;" for the testing dataset:
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_test;	// hashing all eTissues to their actual rep, in which all sample from that tissue is hashed to their rpkm array
+unordered_map<string, string> eQTL_samples_test;	// hashing all eQTL samples to their tissues
+unordered_map<string, vector<string>> esample_tissue_rep_test;	// esample lists of all etissues
+// for prediction:
+unordered_map<string, unordered_map<string, vector<float>>> eQTL_tissue_rep_predict;	// the predicted version of above one
+
 
 
 //// batch variables:
@@ -97,6 +139,14 @@ vector<float *> para_batch_hidden_gene;
 unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis snp indices (start position and end position in the snp vector)
 
 
+
+//// file name space
+// (note: if we standadize the source data format and name, we only need the upper folder name)
+//char filename_data_source[] = "../data_real/";
+char filename_data_source[] = "../data_simu/";
+//char file_para_init[] = "../result_init/";
+//char file_para_init[] = "../result_init_simu/";
+//char file_para_init[] = "../result_init_simu_with_error/";
 //===========================================================
 
 
@@ -147,25 +197,50 @@ int main()
 
 
 
+
 	//===================================== prepare the expression matrix =======================================
-	puts("[xxx] loading the gene rpkm matrix...");
-	char filename1[100] = "../phs000424.v4.pht002743.v4.p1.c1.GTEx_Sample_Attributes.GRU.txt_tissue_type_60_samples_test";
-	char filename2[100] = "../GTEx_Data_2014-01-17_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct_processed_2_gene_normalized";
-	num_gene = gene_rpkm_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
+	// loading the training dataset
+	puts("[xxx] loading the gene rpkm matrix (training)...");
+	char filename1[100];
+	filename1[0] = '\0';
+	strcat(filename1, filename_data_source);
+	strcat(filename1, "list_samples_train.txt");
+	char filename2[100];
+	filename2[0] = '\0';
+	strcat(filename2, filename_data_source);
+	strcat(filename2, "expression.txt");
+
+	num_gene = gene_train_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
 	num_etissue = eQTL_tissue_rep.size();
 	cout << "there are " << num_gene << " genes totally." << endl;
 	cout << "there are totally " << eQTL_samples.size() << " training samples from different eQTL tissues." << endl;
 	cout << "there are " << num_etissue << " eTissues in the current framework." << endl;
-	puts("number of testing samples in each eTissue are as followed:");
+	puts("number of training samples in each eTissue are as followed:");
 	for(auto it=eQTL_tissue_rep.begin(); it != eQTL_tissue_rep.end(); ++it)
 	{
 		string etissue = it->first;
 		cout << etissue << ":" << (it->second).size() << endl;
 	}
+
+
+	// loading the testing dataset
+	puts("[xxx] loading the gene rpkm matrix (testing)...");
+	filename1[0] = '\0';
+	strcat(filename1, filename_data_source);
+	strcat(filename1, "list_samples_test.txt");
+	filename2[0] = '\0';
+	strcat(filename2, filename_data_source);
+	strcat(filename2, "expression.txt");
+
+	gene_test_load(filename1, filename2);  // eQTL_samples; gene_list; eQTL_tissue_rep
+
+
+	// loading others
 	puts("[xxx] loading the tss for genes...");
 	gene_tss_load();  // gene_tss
 	puts("[xxx] loading the X, Y, MT gene list...");
 	gene_xymt_load();  // gene_xymt_rep
+
 
 
 	// refine the following, as the reference are all built on the training dataset
@@ -202,7 +277,7 @@ int main()
 		string etissue = etissue_list[i];
 		unordered_map<string, vector<float>> map;
 		eQTL_tissue_rep_predict.emplace(etissue, map);
-		for(auto it = eQTL_tissue_rep[etissue].begin(); it != eQTL_tissue_rep[etissue].end(); ++it)
+		for(auto it = eQTL_tissue_rep_test[etissue].begin(); it != eQTL_tissue_rep_test[etissue].end(); ++it)
 		{
 			string esample = it->first;
 			vector<float> vec;
@@ -235,7 +310,7 @@ int main()
 	gene_cis_index_init();  // gene_cis_index
 	//==================================== initialize all parameters from learned results =======================================
 	puts("[xxx] parameter space initialization and loading...");
-	para_init();
+	para_init();		// loading the learned parameters
 
 
 
@@ -268,11 +343,12 @@ int main()
 
 
 	//============== timing ends ================
-    gettimeofday(&time_end, NULL);
-    diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
-    printf("Time used totally is %f seconds.\n", diff);
+	gettimeofday(&time_end, NULL);
+	diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
+	printf("Time used totally is %f seconds.\n", diff);
 
 	cout << "[now leave the testing program]\n";
 	return 0;
 }
+
 
