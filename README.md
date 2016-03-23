@@ -99,3 +99,5 @@ it will save the predicted expression data in:
 ../result_predict/etissueX.txt
 ```
 
+and probably also report the testing errors.
+
