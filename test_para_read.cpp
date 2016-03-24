@@ -256,6 +256,10 @@ void para_init()
 		{
 			fputs("File error\n", stderr); exit(1);
 		}
+
+		// I will pick up the gene ID from gene_list
+		int count_gene = 0;										// this is different from the result_init, which saves the gene ID already
+
 		//int input_length = 100000;
 		//char input[input_length];
 		while(fgets(input, input_length, file_in) != NULL)
@@ -265,7 +269,9 @@ void para_init()
 			const char * sep = "\t";
 			char * p;
 			p = strtok(input, sep);
-			string gene = p;
+			//string gene = p;
+			string gene = gene_list[count_gene];				// this is different from the result_init, which saves the gene ID already
+			count_gene += 1;
 			vector<float> vec;
 			rep_para_cis_gene.emplace(gene, vec);
 

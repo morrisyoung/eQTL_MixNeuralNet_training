@@ -410,6 +410,9 @@ int main()
 
 
 
+
+
+
 	//================================= save the parameters and release memory ===================================
 	puts("[xxx] saving the models...");
 	para_save();	// cube_para_cis_gene; matrix_para_snp_cellenv; cube_para_cellenv_gene; matrix_para_batch_batch_hidden; matrix_para_batch_hidden_gene;

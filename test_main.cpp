@@ -50,8 +50,7 @@ after checking the training set, I guess I still have the following to do:
 
 TODO:
 1. Matrix data structure, might not need to change;
-2. THE intercept issue is assured to have not yet been resolved (TODO)
-3. output the testing errors/likelihood in the testing set
+2. output the testing errors/likelihood in the testing set (optional)
 
 
 
