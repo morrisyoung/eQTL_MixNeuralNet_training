@@ -653,8 +653,6 @@ void optimize()
 
 
 
-
-
 	}
 
 
