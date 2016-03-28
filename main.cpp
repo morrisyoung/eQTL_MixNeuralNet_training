@@ -238,10 +238,10 @@ int MULTI_THREAD = 1;
 //char filename_data_source[] = "../data_real/";
 char filename_data_source[] = "../data_simu/";
 //char file_para_init[] = "../result_init/";
-//char file_para_init[] = "../result_init_simu/";
+char file_para_init[] = "../result_init_simu/";
 
 // DEBUG: (testing initializing the model parameters with errors from the true model)
-char file_para_init[] = "../result_init_simu_with_error/";
+//char file_para_init[] = "../result_init_simu_with_error/";
 
 
 

@@ -3,7 +3,6 @@
 ## when "make test", the testing program will be compiled
 ##
 
-#CC=	/ifs/scratch/c2b2/ip_lab/sy2515/HPC/shuo-gcc-4.9.1/bin/g++
 CC=	g++
 OPT=	-std=c++11 -static-libstdc++
 LIBS=	-lm -lpthread

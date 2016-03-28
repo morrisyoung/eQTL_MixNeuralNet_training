@@ -49,12 +49,36 @@ Matrix matrix_para_dev_batch_batch_hidden;
 Matrix matrix_para_dev_batch_hidden_gene;
 
 
+
+
+//=====================================================
+//********************** hierarchy ********************
+//=====================================================
+// the hierarchy:
+
+
+
+// containers:
+
+
+
+
+
+
+
+
+
+
+
+
 // some assistant components:
 // the prior number for each un-pruned snp for regularization (from pruned snps and chromatin states); per etissue, per chromosome, for each snp
 // TODO: we also still need to integrate distance prior later on with the following prior information
 vector<vector<vector<float>>> prior_tissue_vector;
 // pairwise phylogenetic distance between etissues
-vector<vector<float>> tissue_hierarchical_pairwise;
+//vector<vector<float>> tissue_hierarchical_pairwise;		--> changed to the new variables above; as we prepare the hierarchy as what we need them to be
+
+
 
 
 // learning control parameters:
@@ -240,6 +264,9 @@ void opt_snp_prior_load()
 // TODO: maybe we should check whether this makes the results better
 void opt_tissue_hierarchy_load()
 {
+
+	/*	Mar.27: change the hierarchy data structures
+
 	// target: vector<vector<float>> tissue_hierarchical_pairwise;
 	// init
 	for(int i=0; i<num_etissue; i++)
@@ -300,6 +327,22 @@ void opt_tissue_hierarchy_load()
 
 	}
 	fclose(file_in);
+
+
+	*/
+
+
+
+	//=====================================================
+	//********************** hierarchy ********************
+	//=====================================================
+
+	cout << "now loading the tissue hierarchy..." << endl;
+
+
+
+
+
 
 }
 
@@ -380,6 +423,19 @@ void opt_para_init()
 	matrix_para_dev_batch_hidden_gene.init(num_gene, num_batch_hidden + 1);
 
 
+
+	//=====================================================
+	//********************** hierarchy ********************
+	//=====================================================
+
+	cout << "initializing the hierarchy prior containers" << endl;
+
+
+
+
+
+
+
 }
 
 
@@ -431,6 +487,18 @@ void opt_para_release()
 
 	//=============== matrix_para_dev_batch_hidden_gene ===============
 	matrix_para_dev_batch_hidden_gene.release();
+
+
+	//=====================================================
+	//********************** hierarchy ********************
+	//=====================================================
+
+	cout << "releasing the hierarchy prior containers" << endl;
+
+
+
+
+
 
 
 }
@@ -565,40 +633,50 @@ void optimize()
 
 
 
+
+				//=========================================================================================================
+				//****************************************** loglike or testerror *****************************************
+				//=========================================================================================================
+				int num_check_every = 5;
+
 				//======== likelihood ========
 				// (Feb.14) after we finish this mini-batch, we'll need to check the log-likelihood of the model (for the current tissue); or maybe check every several mini-batches
-				float loglike;
-				if(MULTI_THREAD)
+				if(count3 % num_check_every == 0)
 				{
-					loglike = cal_loglike_multithread(etissue);
+					float loglike;
+					if(MULTI_THREAD)
+					{
+						loglike = cal_loglike_multithread(etissue);
+					}
+					else  // I expect this won't be used
+					{
+						loglike = cal_loglike(etissue);
+					}
+
+					char buf[1024];
+					sprintf(buf, "%f\t", loglike);
+					fwrite(buf, sizeof(char), strlen(buf), file_out_loglike);
 				}
-				else  // I expect this won't be used
-				{
-					loglike = cal_loglike(etissue);
-				}
-
-				char buf[1024];
-				sprintf(buf, "%f\t", loglike);
-				fwrite(buf, sizeof(char), strlen(buf), file_out_loglike);
-
-
 
 				//======== testing error (predictive error) ========
 				// we can check every several mini-batches
-				float testerror;
-				if(MULTI_THREAD)
+				if(count3 % num_check_every == 0)
 				{
-					testerror = cal_testerror_multithread(etissue);
-				}
-				else  // I expect this won't be used
-				{
-					testerror = cal_testerror(etissue);
-				}
+					float testerror;
+					if(MULTI_THREAD)
+					{
+						testerror = cal_testerror_multithread(etissue);
+					}
+					else  // I expect this won't be used
+					{
+						testerror = cal_testerror(etissue);
+					}
 
-				//char buf[1024];
-				sprintf(buf, "%f\t", testerror);
-				fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
+					//char buf[1024];
+					sprintf(buf, "%f\t", testerror);
+					fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
 
+				}
 
 
 
@@ -648,7 +726,9 @@ void optimize()
 
 
 
+
 		hierarchy();
+
 
 
 
