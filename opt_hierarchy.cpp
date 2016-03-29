@@ -88,13 +88,17 @@ kn_p1	k1_p2	k1_p3	...	k1_pn		pn 		fn(leaves, root)
 
 -->
 A x P = B
+B = C x D (parameter matrix x data matrix)
 
 -->
-P = A^{-1} x B
+P = A^{-1} x (C x D)
+(the only thing that's changed is the D; so we can prepare A^{-1} and C in advance)
+
 
 // I will make the following variables local
 vector<vector<float>> matrix_computation;						// --> A
-vector<float> array_computation;								// --> B
+vector<vector<float>> matrix_data_para;							// --> C
+vector<float> array_data;										// --> D (to fill in each round)
 vector<float> P;												// --> P
 
 
@@ -119,13 +123,51 @@ return cube_para_cis_gene_parent, cube_para_cellenv_gene_parent and [6]
 
 
 
-
-// func: inverse A, and do A^{-1} x B^{T} to get P
+// func: A^{-1} x (C x D)
 // input involves the following:
-//	vector<vector<float>> *  matrix_computation;						// --> A
-//	vector<float> array_computation;								// --> B
+//	vector<vector<float>> matrix_computation;						// --> A
+//	vector<vector<float>> matrix_data_para;							// --> C
+//	vector<float> array_data;										// --> D (has been fillin before entering)
 //	vector<float> P;												// --> P
-void matrix_inv_multiply(vector<vector<float>> * matrix_computation_pointer, vector<float> * array_computation_pointer, vector<float> * P_pointer, int index1, int index2)
+void matrix_multiply(
+	vector<vector<float>> * matrix_computation_pointer,
+	vector<vector<float>> * matrix_data_para_pointer,
+	vector<float> * array_data_pointer,
+	vector<float> * P_pointer)
+{
+	float * list_temp = (float *)calloc( num_internode, sizeof(float) );
+
+	for(int i=0; i<num_internode; i++)
+	{
+		list_temp[i] = 0;
+		for(int j=0; j<num_etissue + 1; j++)
+		{
+			list_temp[i] += (* matrix_data_para_pointer)[i][j] * (* array_data_pointer)[j];
+		}
+	}
+
+	for(int i=0; i<num_internode; i++)
+	{
+		(* P_pointer)[i] = 0;
+		for(int j=0; j<num_internode; j++)
+		{
+			(* P_pointer)[i] += (* matrix_computation_pointer)[i][j] * list_temp[j];
+		}
+	}
+
+	free(list_temp);
+	return;
+}
+
+
+
+
+
+// func: fill in A and C; inverse A
+// input involves the following:
+//	vector<vector<float>> matrix_computation;						// --> A
+//	vector<vector<float>> matrix_data_para;							// --> C
+void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer, vector<vector<float>> * matrix_data_para_pointer)
 {
 	// do something
 	for(int i=0; i<num_internode; i++)
@@ -140,29 +182,16 @@ void matrix_inv_multiply(vector<vector<float>> * matrix_computation_pointer, vec
 		float branch3 = hash_internode_neighbor[internode][2].branch;
 		
 
-		//==== check the three, fill in A and B
-
-		// how to get the value for one leaf:
-		string etissue;
-		int etissue_index = etissue_index_map[etissue];
-		float value1 = cube_para_cis_gene[etissue_index].get(index1, index2);
-		float value2 = cube_para_cellenv_gene[etissue_index].get(index1, index2);
+		//==== check the three, fill in A and C
 
 
-
-		//==== inverse A, and multiply B (getting P')
-
-
-		//==== use P' to fill in P
-
+		//==== inverse A
 
 
 	}
 
-
 	return;
 }
-
 
 
 
@@ -190,7 +219,8 @@ void hierarchy()
 
 	//==== and the following local ones:
 	//vector<vector<float>> matrix_computation;						// --> A
-	//vector<float> array_computation;								// --> B
+	//vector<vector<float>> matrix_data_para;						// --> C
+	//vector<float> array_data;										// --> D (to fill in each round)
 	//vector<float> P;												// --> P
 	vector<vector<float>> matrix_computation;						// --> A
 	for(int i=0; i<num_internode; i++)
@@ -202,11 +232,24 @@ void hierarchy()
 			matrix_computation[i].push_back(0);
 		}
 	}
-	vector<float> array_computation;								// --> B
+	vector<vector<float>> matrix_data_para;							// --> C
 	for(int i=0; i<num_internode; i++)
 	{
-		array_computation.push_back(0);
+		vector<float> vec;
+		matrix_data_para.push_back(vec);
+		for(int j=0; j<num_etissue + 1; j++)	// having the coefficients for all leaves and the root
+		{
+			matrix_data_para[i].push_back(0);
+		}
 	}
+	hierarchy_matrix_prepare(&matrix_computation, &matrix_data_para);
+
+	vector<float> array_data;										// --> D
+	for(int i=0; i<num_etissue + 1; i++)		// including the root
+	{
+		array_data.push_back(0);
+	}
+
 	vector<float> P;												// --> P
 	for(int i=0; i<num_internode; i++)
 	{
@@ -222,29 +265,19 @@ void hierarchy()
 		int num_regulator = cube_para_cis_gene_parent[0].get_dimension2(i);		// can use any tissue to retrieve the dimension
 		for(int j=0; j<num_regulator; j++)
 		{
-			//============= variable preparation =============
-			//vector<vector<float>> matrix_computation;						// --> A
-			//vector<float> array_computation;								// --> B
-			//vector<float> P;												// --> P
-			for(int count1=0; count1<matrix_computation.size(); count1++)
+			//==== fill in array_data
+			for(int count=0; count<num_etissue + 1; count++)		// including the root
 			{
-				for(int count2=0; count2<matrix_computation[count1].size(); count2++)
+				if(count == num_etissue)							// this is the root
 				{
-					matrix_computation[count1][count2] = 0;
+					array_data[count] = 0;
 				}
-			}
-			for(int count1=0; count1<array_computation.size(); count1++)
-			{
-				array_computation[count1] = 0;
-			}
-			for(int count1=0; count1<P.size(); count1++)
-			{
-				P[count1] = 0;
+
+				array_data[i] = cube_para_cis_gene[count].get(i, j);
 			}
 
-
-  			//==== inverse "xxx", do A^{-1} x B^{T} (probably through libraries)
-			matrix_inv_multiply(&matrix_computation, &array_computation, &P, i, j);
+			//==== hierarchy calculation
+			matrix_multiply(&matrix_computation, &matrix_data_para, &array_data, &P);
 
 
   			//==== fill in cube_para_cis_gene_parent[x][i][j], as the computation matrices will be re-used
@@ -273,29 +306,19 @@ void hierarchy()
 		int num_regulator = cube_para_cellenv_gene_parent[0].get_dimension2();		// can use any tissue to retrieve the dimension
 		for(int j=0; j<num_regulator; j++)
 		{
-			//============= variable preparation =============
-			//vector<vector<float>> matrix_computation;						// --> A
-			//vector<float> array_computation;								// --> B
-			//vector<float> P;												// --> P
-			for(int count1=0; count1<matrix_computation.size(); count1++)
+			//==== fill in array_data
+			for(int count=0; count<num_etissue + 1; count++)		// including the root
 			{
-				for(int count2=0; count2<matrix_computation[count1].size(); count2++)
+				if(count == num_etissue)							// this is the root
 				{
-					matrix_computation[count1][count2] = 0;
+					array_data[count] = 0;
 				}
-			}
-			for(int count1=0; count1<array_computation.size(); count1++)
-			{
-				array_computation[count1] = 0;
-			}
-			for(int count1=0; count1<P.size(); count1++)
-			{
-				P[count1] = 0;
+
+				array_data[i] = cube_para_cellenv_gene[count].get(i, j);
 			}
 
-
-  			//==== inverse "xxx", do A^{-1} x B^{T} (probably through libraries)
-			matrix_inv_multiply(&matrix_computation, &array_computation, &P, i, j);
+			//==== hierarchy calculation
+			matrix_multiply(&matrix_computation, &matrix_data_para, &array_data, &P);
 
 
   			//==== fill in cube_para_cellenv_gene_parent[x][i][j], as the computation matrices will be re-used
@@ -307,8 +330,6 @@ void hierarchy()
 				int parent_index = internode_index_map[parent];
 
 				cube_para_cellenv_gene_parent[count].assign(i, j, P[parent_index]);
-
-
 			}
 
 		}// end j, the current regulator

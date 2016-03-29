@@ -16,7 +16,10 @@ using namespace std;
 
 
 
-void matrix_inv_multiply(vector<vector<float>> *, vector<float> *, vector<float> *, int, int);
+void matrix_multiply(vector<vector<float>> *, vector<vector<float>> *, vector<float> *, vector<float> *);
+
+
+void hierarchy_matrix_prepare(vector<vector<float>> *, vector<vector<float>> *);
 
 
 void hierarchy();
