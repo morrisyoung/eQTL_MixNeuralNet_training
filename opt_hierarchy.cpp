@@ -209,7 +209,7 @@ void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer
 		}
 
 		// check neighbor2 (leaf or not)
-		unordered_map<string, hierarchy_neighbor>::const_iterator got = hash_leaf_parent.find(neighbor2);
+		got = hash_leaf_parent.find(neighbor2);
 		if( got != hash_leaf_parent.end() )		// this is a leaf
 		{
 			int etissue_index = etissue_index_map[neighbor2];

@@ -385,7 +385,7 @@ void opt_tissue_hierarchy_load()
 		hierarchy_neighbor tuple;
 		tuple.node = parent;
 		tuple.branch = branch;
-		hash_leaf_parent[leaf] = tuple;
+		hash_leaf_parent.emplace(leaf, tuple);
 	}
 	while(1)
 	{
@@ -405,23 +405,23 @@ void opt_tissue_hierarchy_load()
 
 		vector<hierarchy_neighbor> vec;
 
-		hierarchy_neighbor tuple;
-		tuple.node = neighbor1;
-		tuple.branch = branch1;
-		vec.push_back(tuple);
+		hierarchy_neighbor tuple1;
+		tuple1.node = neighbor1;
+		tuple1.branch = branch1;
+		vec.push_back(tuple1);
 
-		hierarchy_neighbor tuple;
-		tuple.node = neighbor2;
-		tuple.branch = branch2;
-		vec.push_back(tuple);
+		hierarchy_neighbor tuple2;
+		tuple2.node = neighbor2;
+		tuple2.branch = branch2;
+		vec.push_back(tuple2);
 
-		hierarchy_neighbor tuple;
-		tuple.node = neighbor3;
-		tuple.branch = branch3;
-		vec.push_back(tuple);
+		hierarchy_neighbor tuple3;
+		tuple3.node = neighbor3;
+		tuple3.branch = branch3;
+		vec.push_back(tuple3);
 
 
-		hash_leaf_parent[internode] = vec;
+		hash_internode_neighbor.emplace(internode, vec);
 	}
 
 
