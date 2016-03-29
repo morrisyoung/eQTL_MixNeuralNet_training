@@ -6,7 +6,6 @@
 
 
 #include <string>
-#include "global.h"
 #include "lib_matrix.h"
 #include <array>
 #include <vector>
@@ -14,6 +13,10 @@
 
 using namespace std;
 
+
+
+
+void matrix_inv_multiply(vector<vector<float>> *, vector<float> *, vector<float> *, int, int);
 
 
 void hierarchy();

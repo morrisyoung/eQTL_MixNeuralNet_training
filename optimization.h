@@ -13,6 +13,10 @@
 using namespace std;
 
 
+
+
+
+
 extern array<float *, NUM_CHR> snp_dosage_list;
 extern float * gene_rpkm_exp;  // with length "num_gene"
 extern float * cellenv_hidden_var;  // with length "num_cellenv"
@@ -25,6 +29,29 @@ extern Matrix matrix_para_dev_snp_cellenv;
 extern vector<Matrix> cube_para_dev_cellenv_gene;
 extern Matrix matrix_para_dev_batch_batch_hidden;
 extern Matrix matrix_para_dev_batch_hidden_gene;
+
+
+
+
+typedef struct hierarchy_neighbor
+{
+	string node;
+    float branch;
+}hierarchy_neighbor;
+
+
+extern vector<Matrix_imcomp> cube_para_cis_gene_parent;
+extern vector<Matrix> cube_para_cellenv_gene_parent;
+
+
+extern unordered_map<string, hierarchy_neighbor> hash_leaf_parent;
+extern unordered_map<string, vector< hierarchy_neighbor >> hash_internode_neighbor;
+extern vector<string> internode_list;
+extern unordered_map<string, int> internode_index_map;
+extern int num_internode;
+extern vector<float> etissue_dis_par_list;
+
+
 
 
 // some assistant components:

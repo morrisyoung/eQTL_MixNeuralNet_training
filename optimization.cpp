@@ -54,18 +54,24 @@ Matrix matrix_para_dev_batch_hidden_gene;
 //=====================================================
 //********************** hierarchy ********************
 //=====================================================
-// the hierarchy:
-
-
-
 // containers:
+vector<Matrix_imcomp> cube_para_cis_gene_parent;
+vector<Matrix> cube_para_cellenv_gene_parent;
 
 
-
-
-
-
-
+// the hierarchy:
+// what to build for the hierarchy computing (prepared and renewed):
+//		[2]. hashing all the leaves to their parents (in order to retrieve the parental variable array)
+//		[4]. hashing all the internal nodes to their children and parent (with length to them, or the variance), in order to build the computational matrices
+//		[5]. having a bi-directional list for the internal nodes (in order to build and fill in computtional matrices)
+//		(6). building the tissue distance list (to its parent) based on etissue_list, to be used by the actual regularization
+unordered_map<string, hierarchy_neighbor> hash_leaf_parent;		// --> [2]
+unordered_map<string, vector< hierarchy_neighbor >> hash_internode_neighbor;
+																// --> [4]
+vector<string> internode_list;									// --> [5]
+unordered_map<string, int> internode_index_map;					// --> [5]
+int num_internode;
+vector<float> etissue_dis_par_list;								// --> (6)
 
 
 
@@ -342,6 +348,30 @@ void opt_tissue_hierarchy_load()
 
 
 
+	// the hierarchy:
+	// what to build for the hierarchy computing (prepared and renewed):
+	//		[2]. hashing all the leaves to their parents (in order to retrieve the parental variable array)
+	//		[4]. hashing all the internal nodes to their children and parent (with length to them, or the variance), in order to build the computational matrices
+	//		[5]. having a bi-directional list for the internal nodes (in order to build and fill in computtional matrices)
+	//		(6). building the tissue distance list (to its parent) based on etissue_list, to be used by the actual regularization
+	
+	//unordered_map<string, hierarchy_neighbor> hash_leaf_parent;		// --> [2]
+	//unordered_map<string, vector< hierarchy_neighbor >> hash_internode_neighbor;
+																	// --> [4]
+	//vector<string> internode_list;									// --> [5]
+	//unordered_map<string, int> internode_index_map;					// --> [5]
+	//int num_internode;
+	//vector<float> etissue_dis_par_list;								// --> (6)
+
+
+
+
+
+
+
+
+
+
 
 
 }
@@ -427,13 +457,28 @@ void opt_para_init()
 	//=====================================================
 	//********************** hierarchy ********************
 	//=====================================================
-
 	cout << "initializing the hierarchy prior containers" << endl;
 
+	//=============== cube_para_cis_gene_parent ===============
+	for(int j=0; j<num_etissue; j++)
+	{
+		Matrix_imcomp matrix_imcomp;
+		matrix_imcomp.init(num_gene);
+		for(long int i=0; i<num_gene; i++)
+		{
+			int dimension = cube_para_dev_cis_gene[j].get_dimension2(i);
+			matrix_imcomp.init_element(i, dimension);
+		}
+		cube_para_cis_gene_parent.push_back(matrix_imcomp);
+	}
 
-
-
-
+	//=============== cube_para_cellenv_gene_parent ===============
+	for(int j=0; j<num_etissue; j++)
+	{
+		Matrix matrix;
+		matrix.init(num_gene, num_cellenv + 1);						// we do have the intercept term here
+		cube_para_cellenv_gene_parent.push_back(matrix);
+	}
 
 
 }
@@ -492,13 +537,19 @@ void opt_para_release()
 	//=====================================================
 	//********************** hierarchy ********************
 	//=====================================================
-
 	cout << "releasing the hierarchy prior containers" << endl;
 
+	//=============== cube_para_cis_gene_parent ===============
+	for(int j=0; j<num_etissue; j++)
+	{
+		cube_para_cis_gene_parent[j].release();
+	}
 
-
-
-
+	//=============== cube_para_cellenv_gene_parent ===============
+	for(int j=0; j<num_etissue; j++)
+	{
+		cube_para_cellenv_gene_parent[j].release();
+	}
 
 
 }
