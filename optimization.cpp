@@ -347,7 +347,6 @@ void opt_tissue_hierarchy_load()
 
 
 
-
 	// the hierarchy:
 	// what to build for the hierarchy computing (prepared and renewed):
 	//		[2]. hashing all the leaves to their parents (in order to retrieve the parental variable array)
@@ -357,7 +356,7 @@ void opt_tissue_hierarchy_load()
 	
 	//unordered_map<string, hierarchy_neighbor> hash_leaf_parent;		// --> [2]
 	//unordered_map<string, vector< hierarchy_neighbor >> hash_internode_neighbor;
-																	// --> [4]
+																		// --> [4]
 	//vector<string> internode_list;									// --> [5]
 	//unordered_map<string, int> internode_index_map;					// --> [5]
 	//int num_internode;
@@ -367,14 +366,95 @@ void opt_tissue_hierarchy_load()
 
 
 
+	// TODO (Mar.29): load the following two:
+	//unordered_map<string, hierarchy_neighbor> hash_leaf_parent;		// --> [2]
+	//unordered_map<string, vector< hierarchy_neighbor >> hash_internode_neighbor;
+																		// --> [4]
+	while(1)
+	{
+		//
+		//
+		//
+		//
+		//
+
+		string leaf;
+		string parent;
+		float branch;
+
+		hierarchy_neighbor tuple;
+		tuple.node = parent;
+		tuple.branch = branch;
+		hash_leaf_parent[leaf] = tuple;
+	}
+	while(1)
+	{
+		//
+		//
+		//
+		//
+		//
+
+		string internode;
+		string neighbor1;		// child1 node
+		float branch1;
+		string neighbor2;		// child2 node
+		float branch2;
+		string neighbor3;		// parent node
+		float branch3;
+
+		vector<hierarchy_neighbor> vec;
+
+		hierarchy_neighbor tuple;
+		tuple.node = neighbor1;
+		tuple.branch = branch1;
+		vec.push_back(tuple);
+
+		hierarchy_neighbor tuple;
+		tuple.node = neighbor2;
+		tuple.branch = branch2;
+		vec.push_back(tuple);
+
+		hierarchy_neighbor tuple;
+		tuple.node = neighbor3;
+		tuple.branch = branch3;
+		vec.push_back(tuple);
+
+
+		hash_leaf_parent[internode] = vec;
+	}
 
 
 
+	//vector<string> internode_list;									// --> [5]
+	//unordered_map<string, int> internode_index_map;					// --> [5]
+	//int num_internode;
+	int count = 0;
+	for( auto it = hash_internode_neighbor.begin(); it != hash_internode_neighbor.end(); ++it )
+	{
+		string internode = it->first;
+		internode_list.push_back(internode);
+		internode_index_map[internode] = count;
+		count += 1;
+	}
+	num_internode = count;
+
+	//vector<float> etissue_dis_par_list;								// --> (6)
+	for(int i=0; i<num_etissue; i++)
+	{
+		etissue_dis_par_list.push_back(0);
+	}
+	for(auto it = hash_leaf_parent.begin(); it != hash_leaf_parent.end(); ++it )
+	{
+		string leaf = it->first;
+		int etissue_index = etissue_index_map[leaf];
+		etissue_dis_par_list[etissue_index] = (it->second).branch;
+	}
 
 
-
-
+	return;
 }
+
 
 
 

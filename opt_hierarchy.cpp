@@ -26,6 +26,10 @@ using namespace std;
 
 
 
+string root = "root";
+
+
+
 /*
 //// input:
 //		vector<Matrix_imcomp> cube_para_cis_gene;
@@ -167,25 +171,74 @@ void matrix_multiply(
 // input involves the following:
 //	vector<vector<float>> matrix_computation;						// --> A
 //	vector<vector<float>> matrix_data_para;							// --> C
+// task: take derivative for each variable in the joint distribution
+//	the solution should have the following format:
+//	-(1/l1)*(x1-x)-(1/l2)*(x2-x)+(1/l3)*(x-x3)
+//		where (x1, l1) is child 1, (x2, l2) is child 2, and (x3, l3) is the parent (with branch length)
+//		child1 and child2 might be leaves, and parent might be the root
 void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer, vector<vector<float>> * matrix_data_para_pointer)
 {
-	// do something
 	for(int i=0; i<num_internode; i++)
 	{
 		string internode = internode_list[i];
 
-		string neighbor1 = hash_internode_neighbor[internode][0].node;
+		string neighbor1 = hash_internode_neighbor[internode][0].node;		// child1
 		float branch1 = hash_internode_neighbor[internode][0].branch;
-		string neighbor2 = hash_internode_neighbor[internode][1].node;
+		float branch1_inv = 1 / branch1;
+		string neighbor2 = hash_internode_neighbor[internode][1].node;		// child2
 		float branch2 = hash_internode_neighbor[internode][1].branch;
-		string neighbor3 = hash_internode_neighbor[internode][2].node;
+		float branch2_inv = 1 / branch2;
+		string neighbor3 = hash_internode_neighbor[internode][2].node;		// parent
 		float branch3 = hash_internode_neighbor[internode][2].branch;
-		
+		float branch3_inv = 1 / branch3;
 
 		//==== check the three, fill in A and C
+		(* matrix_computation_pointer)[i][i] = branch1_inv + branch2_inv + branch3_inv;
+
+		// check neighbor1 (leaf or not)
+		unordered_map<string, hierarchy_neighbor>::const_iterator got = hash_leaf_parent.find(neighbor1);
+		if( got != hash_leaf_parent.end() )		// this is a leaf
+		{
+			int etissue_index = etissue_index_map[neighbor1];
+			(* matrix_data_para_pointer)[i][etissue_index] += branch1_inv;
+		}
+		else									// this is an internal node
+		{
+			int internode_index = internode_index_map[neighbor1];
+			(* matrix_computation_pointer)[i][internode_index] = -branch1_inv;
+		}
+
+		// check neighbor2 (leaf or not)
+		unordered_map<string, hierarchy_neighbor>::const_iterator got = hash_leaf_parent.find(neighbor2);
+		if( got != hash_leaf_parent.end() )		// this is a leaf
+		{
+			int etissue_index = etissue_index_map[neighbor2];
+			(* matrix_data_para_pointer)[i][etissue_index] += branch2_inv;
+		}
+		else									// this is an internal node
+		{
+			int internode_index = internode_index_map[neighbor2];
+			(* matrix_computation_pointer)[i][internode_index] = -branch2_inv;
+		}
+
+		// check neighbor3 (root or not)
+  		if(neighbor3.compare(root) == 0)
+		{
+			(* matrix_data_para_pointer)[i][num_etissue] += branch3_inv;		// the last element is the root
+		}
+		else
+		{
+			int internode_index = internode_index_map[neighbor3];
+			(* matrix_computation_pointer)[i][internode_index] = -branch3_inv;
+		}
 
 
 		//==== inverse A
+
+
+
+
+
 
 
 	}
