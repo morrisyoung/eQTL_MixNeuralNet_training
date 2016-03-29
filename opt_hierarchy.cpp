@@ -19,10 +19,96 @@
 #include <math.h>       /* exp */
 #include "lib_matrix.h"
 #include "opt_hierarchy.h"
+#include <cmath>
+
+
 
 
 
 using namespace std;
+
+
+
+
+//======================================================================================================
+//========================================== matrix inversion ==========================================
+//======================================================================================================
+/*
+Matrix inversion:
+copy right @:
+	http://stanford.edu/~liszt90/acm/notebook.html#file14
+	GaussJordan.cc 14/35
+
+// Gauss-Jordan elimination with full pivoting.
+//
+// Uses:
+//   (1) solving systems of linear equations (AX=B)
+//   (2) inverting matrices (AX=I)
+//   (3) computing determinants of square matrices
+//
+// Running time: O(n^3)
+//
+// INPUT:    a[][] = an nxn matrix
+//           b[][] = an nxm matrix
+//
+// OUTPUT:   X      = an nxm matrix (stored in b[][])
+//           A^{-1} = an nxn matrix (stored in a[][])
+//           returns determinant of a[][]
+*/
+
+const double EPS = 1e-10;
+
+typedef vector<int> VI;
+typedef float T;
+typedef vector<T> VT;
+typedef vector<VT> VVT;
+
+
+T GaussJordan(VVT &a, VVT &b) {
+  const int n = a.size();
+  const int m = b[0].size();
+  VI irow(n), icol(n), ipiv(n);
+  T det = 1;
+
+  for (int i = 0; i < n; i++) {
+    int pj = -1, pk = -1;
+    for (int j = 0; j < n; j++) if (!ipiv[j])
+      for (int k = 0; k < n; k++) if (!ipiv[k])
+	if (pj == -1 || fabs(a[j][k]) > fabs(a[pj][pk])) { pj = j; pk = k; }
+    if (fabs(a[pj][pk]) < EPS) { cerr << "Matrix is singular." << endl; exit(0); }
+    ipiv[pk]++;
+    swap(a[pj], a[pk]);
+    swap(b[pj], b[pk]);
+    if (pj != pk) det *= -1;
+    irow[i] = pj;
+    icol[i] = pk;
+
+    T c = 1.0 / a[pk][pk];
+    det *= a[pk][pk];
+    a[pk][pk] = 1.0;
+    for (int p = 0; p < n; p++) a[pk][p] *= c;
+    for (int p = 0; p < m; p++) b[pk][p] *= c;
+    for (int p = 0; p < n; p++) if (p != pk) {
+      c = a[p][pk];
+      a[p][pk] = 0;
+      for (int q = 0; q < n; q++) a[p][q] -= a[pk][q] * c;
+      for (int q = 0; q < m; q++) b[p][q] -= b[pk][q] * c;      
+    }
+  }
+
+  for (int p = n-1; p >= 0; p--) if (irow[p] != icol[p]) {
+    for (int k = 0; k < n; k++) swap(a[k][irow[p]], a[k][icol[p]]);
+  }
+
+  return det;
+}
+//======================================================================================================
+//========================================== matrix inversion ==========================================
+//======================================================================================================
+
+
+
+
 
 
 
@@ -184,13 +270,13 @@ void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer
 
 		string neighbor1 = hash_internode_neighbor[internode][0].node;		// child1
 		float branch1 = hash_internode_neighbor[internode][0].branch;
-		float branch1_inv = 1 / branch1;
+		float branch1_inv = 1.0 / branch1;
 		string neighbor2 = hash_internode_neighbor[internode][1].node;		// child2
 		float branch2 = hash_internode_neighbor[internode][1].branch;
-		float branch2_inv = 1 / branch2;
+		float branch2_inv = 1.0 / branch2;
 		string neighbor3 = hash_internode_neighbor[internode][2].node;		// parent
 		float branch3 = hash_internode_neighbor[internode][2].branch;
-		float branch3_inv = 1 / branch3;
+		float branch3_inv = 1.0 / branch3;
 
 		//==== check the three, fill in A and C
 		(* matrix_computation_pointer)[i][i] = branch1_inv + branch2_inv + branch3_inv;
@@ -233,11 +319,20 @@ void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer
 		}
 
 
+
 		//==== inverse A
+		vector<vector<float>> matrix ((* matrix_computation_pointer));
+		// for(int count1=0; count1<num_internode; count1++)
+		// {
+		// 	vector<float> vec;
+		// 	matrix.push_back(vec);
+		// 	for(int count2=0; count2<num_internode; count2++)
+		// 	{
+		// 		matrix[count1].push_back((* matrix_computation_pointer)[count1][count2]);
+		// 	}
+		// }
 
-
-
-
+		double det = GaussJordan((* matrix_computation_pointer), matrix);
 
 
 
@@ -245,6 +340,7 @@ void hierarchy_matrix_prepare(vector<vector<float>> * matrix_computation_pointer
 
 	return;
 }
+
 
 
 
@@ -323,7 +419,7 @@ void hierarchy()
 			{
 				if(count == num_etissue)							// this is the root
 				{
-					array_data[count] = 0;
+					array_data[count] = 0;							// we set the root prior as 0-array
 				}
 
 				array_data[i] = cube_para_cis_gene[count].get(i, j);
@@ -388,6 +484,7 @@ void hierarchy()
 		}// end j, the current regulator
 
 	}//end i, the current gene
+
 
 
 
