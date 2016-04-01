@@ -88,7 +88,7 @@ vector<vector<vector<float>>> prior_tissue_vector;
 
 
 // learning control parameters:
-int iter_learn_out = 2;  // iteration across all tissues
+int iter_learn_out = 1;  // iteration across all tissues
 //int iter_learn_in = 200;  // iteration across all samples from one tissue 			--> (Mar.8, 2016) this is probably too much (we used 3:40 for running only one tissue; maybe 50 is good enough, as the changing speed is much slower)
 int iter_learn_in = 50;
 int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
@@ -641,8 +641,18 @@ void opt_para_release()
 void optimize()
 {
 	puts("============== entering the optimization routine...");
-	puts("[xx] loading the tissue hierarchy...");
-	opt_tissue_hierarchy_load();
+
+
+
+
+	// Mar.30 DEBUG
+	// the hierarchy code has not yet been finished; so I comment this routine here
+	//puts("[xx] loading the tissue hierarchy...");
+	//opt_tissue_hierarchy_load();
+
+
+
+
 	puts("[xx] initializing the parameter space in this optimization routine...");
 	opt_para_init();
 	puts("[xx] loading the prior information for cis- snps...");
@@ -693,6 +703,7 @@ void optimize()
 
 	for(int count1=0; count1<iter_learn_out; count1++)  // one count1 is for iteration across all tissues
 	{
+
 		for(int count2=0; count2<num_etissue; count2++)  // one count2 is for one tissue
 		{
 			string etissue = etissue_list[count2];
@@ -765,6 +776,12 @@ void optimize()
 
 
 
+
+
+
+
+				// Mar.31: DEBUG, profiling the code
+				/*
 				//=========================================================================================================
 				//****************************************** loglike or testerror *****************************************
 				//=========================================================================================================
@@ -808,7 +825,19 @@ void optimize()
 					fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
 
 				}
+				*/
 
+
+
+
+
+
+
+
+
+				// DEBUG
+				// Mar.30: DEBUG: run only mini-batch to see the functionality
+				break;
 
 
 
@@ -826,6 +855,14 @@ void optimize()
 
 			//======== testing error (predictive error) ========
 			fwrite("\n", sizeof(char), 1, file_out_testerror);
+
+
+
+
+
+
+			// DEBUG: won't consider other tissues
+			break;
 
 
 
@@ -857,14 +894,20 @@ void optimize()
 
 
 
-
-		hierarchy();
-
+		//hierarchy();
 
 
 
 
-	}
+	}// leave the current outer iteration
+
+
+
+
+
+
+
+
 
 
 

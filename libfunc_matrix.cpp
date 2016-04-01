@@ -22,6 +22,18 @@ using namespace std;
 
 
 
+
+// Apr.1: let's do the multi-threading for regularization and gradient descent routines:
+//	void para_penalty_lasso_approx(Matrix matrix_para, Matrix matrix_para_dev, float lambda, float sigma)
+//	void para_penalty_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_imcomp_para_dev, vector<vector<float>> repo_prior, float lambda_lasso, float lambda_ridge, float sigma)
+//	void para_gradient_descent(Matrix matrix_para, Matrix matrix_para_dev, float rate)
+//	void para_gradient_descent_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_imcomp_para_dev, float rate)
+// I can do this because this happens after the whole mini-batch, so there are no multi-threading any more
+// I will write the multi-threading version of these routines in "libfunc_matrix_mt.cpp"
+
+
+
+
 //============================================ task specific functions =================================================
 // func: add the LASSO penalty term in the matrix_para_dev; destroy type
 //		the matrix_para is used to calculate the derivative term, that will be added to the matrix_para_dev
@@ -129,6 +141,15 @@ void para_gradient_descent_cis(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp m
 
 	return;
 }
+
+
+
+
+
+
+
+
+
 
 
 

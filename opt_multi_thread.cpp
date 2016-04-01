@@ -28,7 +28,8 @@ using namespace std;
 
 
 // local global variables
-int num_thread = 12;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
+//int num_thread = 12;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
+// instead of declaring here, I will declare "num_thread" in the real global scope
 pthread_mutex_t mut;			// mutex used by all the threads
 int * finish_table;				// finish table for all the samples in this batch ()
 

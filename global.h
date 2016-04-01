@@ -102,6 +102,8 @@ extern Matrix matrix_para_batch_hidden_gene;
 
 //// system control
 extern int MULTI_THREAD;
+extern int num_thread;
+
 
 
 

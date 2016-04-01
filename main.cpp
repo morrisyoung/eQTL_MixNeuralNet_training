@@ -123,6 +123,15 @@
 
 
 
+// notes (Mar.31):
+// 1. I did the calling by reference for complex data structures through their real address (* xxx), but not the & marker in the definition of the called functions (the arguments); I tested the speed of the two, and they seem to have the same performance; thus I won't change the code this time, though it looks weird.
+
+
+
+
+
+
+
 
 
 #include <iostream>
@@ -230,6 +239,10 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 //// system control
 // multi-threading mark
 int MULTI_THREAD = 1;
+
+int num_thread = 12;				// there are at maximum 8 cores in C2B2 cluster, but our main thread doesn't do extensive computation here
+
+
 
 
 

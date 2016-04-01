@@ -167,6 +167,7 @@ void forward_backward_prop_batch(string etissue, int pos_start, int num_esample)
 
 
 
+
 	cout << "[@@] leaving the forward-backward propagation..." << endl;
 
 }
