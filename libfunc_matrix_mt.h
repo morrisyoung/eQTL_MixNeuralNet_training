@@ -24,14 +24,16 @@ using namespace std;
 
 
 
-//==== regularization
+
+//==== regularization ====
+void * WorkPerThread_penalty_lasso_approx(void *);
+void para_penalty_lasso_approx_mt(Matrix, Matrix, float, float);
 
 
 
 
 
-
-//==== gradient descent
+//==== gradient descent ====
 void * WorkPerThread_gradient_descent(void *);
 void para_gradient_descent_mt(Matrix, Matrix, float);
 

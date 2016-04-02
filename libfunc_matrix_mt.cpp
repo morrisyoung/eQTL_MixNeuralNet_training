@@ -20,7 +20,9 @@ using namespace std;
 
 
 // local global variables
-pthread_mutex_t mut_gd;			// mutex used by all the threads
+pthread_mutex_t mut_regu;				// mutex used by all the threads
+pthread_mutex_t mut_gd;				// mutex used by all the threads
+int * finish_table_regu;			// finish table for all the samples in this batch ()
 int * finish_table_gd;				// finish table for all the samples in this batch ()
 
 
@@ -38,34 +40,156 @@ int * finish_table_gd;				// finish table for all the samples in this batch ()
 
 
 
-/*
+//=============================================================================================================
 //============================================ regularization =================================================
+//=============================================================================================================
+//==== local global variables ====
+Matrix matrix_para_regu_global;
+Matrix matrix_para_dev_regu_global;
+float lambda_global;
+float sigma_global;
+
+
+// this is the working program for each thread, for gradient descent
+void * WorkPerThread_penalty_lasso_approx(void * pointer)
+{
+	int * package_pointer = (int *)pointer;
+	int thread_index = (* package_pointer);
+	long int dimension1 = matrix_para_regu_global.get_dimension1();
+	long int dimension2 = matrix_para_regu_global.get_dimension2();
+
+
+	while(1)
+	{
+		int count = -1;
+		//================ check whether there are still left samples to be processed ================
+		// if there are, take into this thread; otherwise, terminate this thread
+		pthread_mutex_lock(&mut_regu);
+		for(long int i=0; i<dimension1; i++)
+		{
+			if(finish_table_regu[i] == 0)
+			{
+				count = i;
+				finish_table_regu[i] = 1;
+				break;
+			}
+		}
+		pthread_mutex_unlock(&mut_regu);
+
+		if(count == -1)  // no left samples for processing
+		{
+			break;
+		}
+
+		//================ work on the current sample ================
+		for(long int j=0; j<dimension2; j++)
+		{
+			/// the value of current para beta:
+			float beta = matrix_para_regu_global.get(count, j);
+			/// the derivative of the beta:
+			float derivative = beta / sqrt (beta * beta + sigma_global);  // this is an approximation of the LASSO regularization
+			/// and the value of its derivative should be added with that derivative term for regularization:
+			matrix_para_dev_regu_global.add_on(count, j, lambda_global * derivative);
+		}
+
+	}// all samples finished
+
+
+	pthread_exit(NULL);
+}
+
+
 // func: add the LASSO penalty term in the matrix_para_dev; destroy type
 //		the matrix_para is used to calculate the derivative term, that will be added to the matrix_para_dev
 void para_penalty_lasso_approx_mt(Matrix matrix_para, Matrix matrix_para_dev, float lambda, float sigma)
 {
+	cout << "[@@@] now do the regularization for Matrix (multithreading)..." << endl;
+	//==== local global variables assignment
+	matrix_para_regu_global = matrix_para;
+	matrix_para_dev_regu_global = matrix_para_dev;
+	lambda_global = lambda;
+	sigma_global = sigma;
+
 	long int dimension1 = matrix_para.get_dimension1();
-	long int dimension2 = matrix_para.get_dimension2();
 
+	//=============================== multi-threading parameter initialization ===============================
+	// allocating all the other threads from here
+	pthread_t threads[num_thread];
+	void * status;
+	pthread_attr_t attr;
+	// Initialize and set thread joinable
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	//
+	finish_table_regu = (int *)calloc(dimension1, sizeof(int));		// calloc --> initialize as 0
+	//
+	pthread_mutex_init(&mut_regu, NULL);
+	memset(&threads, 0, sizeof(threads));
 
-	for(int i=0; i<dimension1; i++)
+	//=============================== thread local memory preparation (not yet allocation heap) ===============================
+	int para_array[num_thread];			// we only need the thread# in this program
+	for(int i=0; i<num_thread; i++)
 	{
-		for(int j=0; j<dimension2; j++)
+		para_array[i] = i;
+	}
+
+	//=============================== thread initialization ===============================
+	for(int i=0; i<num_thread; i++)
+	{
+		cout << "main() : creating thread#" << i+1 << endl;
+		int rc = pthread_create(&threads[i], NULL, WorkPerThread_penalty_lasso_approx, (void *)&para_array[i]);
+		if(rc)
 		{
-			/// the value of current para beta:
-			float beta = matrix_para.get(i, j);
-			/// the derivative of the beta:
-			float derivative = beta / sqrt (beta * beta + sigma);  // this is an approximation of the LASSO regularization
-			/// and the value of its derivative should be added with that derivative term for regularization:
-			matrix_para_dev.add_on(i, j, lambda * derivative);
+			cout << "Error:unable to create thread," << rc << endl;
+			exit(-1);
 		}
 	}
+
+	//===================== waiting for all the threads to terminate =====================
+	// free attribute and wait for the other threads
+	pthread_attr_destroy(&attr);
+	for(int i=0; i<num_thread; i++)
+	{
+		int rc = pthread_join(threads[i], &status);
+		if(rc)
+		{
+			cout << "Error:unable to join " << rc << endl;
+			exit(-1);
+		}
+		cout << "Main: completed thread#" << i+1;
+		cout << " exiting with status: " << status << endl;
+	}
+
+	//===================== finish and quit =====================
+	free(finish_table_regu);
+	cout << "[@@@] finishing the gradient descent for Matrix (multi-treading mode)..." << endl;
 
 	return;
 }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 // func:
 //		regularization for the cis- parameters, with both lasso and ridge (composed as elastic net)
 //		for sparsity and pruning signal
@@ -107,6 +231,8 @@ void para_penalty_cis_mt(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_
 	return;
 }
 */
+
+
 
 
 
