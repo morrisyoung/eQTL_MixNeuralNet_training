@@ -29,6 +29,8 @@ using namespace std;
 void * WorkPerThread_penalty_lasso_approx(void *);
 void para_penalty_lasso_approx_mt(Matrix, Matrix, float, float);
 
+void * WorkPerThread_penalty_cis(void *);
+void para_penalty_cis_mt(Matrix_imcomp, Matrix_imcomp, vector<vector<float>> &, float, float, float);
 
 
 
