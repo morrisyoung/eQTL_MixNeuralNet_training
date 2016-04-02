@@ -20,6 +20,7 @@
 #include "opt_nn_acfunc.h"
 #include "opt_debugger.h"
 #include "libfunc_matrix.h"
+#include "libfunc_matrix_mt.h"
 #include <cmath>        // std::abs
 
 
@@ -409,6 +410,14 @@ void forward_backward(int etissue_index,
 
 void regularization(int etissue_index)
 {
+
+
+	// Apr.2: I'm testing the speedup of mt code of this routine
+	int marker_mt = 1;
+
+
+
+
 	cout << "[@@] entering the regularization routine..." << endl;
 
 	// there are several classes of prior knowledge that we need to consider
@@ -512,40 +521,71 @@ void regularization(int etissue_index)
 
 
 
+	if(marker_mt)
+	{
+		//===================================== part#1 =====================================
+		// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, (and the distance prior)
+		// TODO: not yet integrated the distance prior information
+		para_penalty_cis_mt(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], prior_tissue_vector[etissue_index], lambda_lasso, lambda_ridge, sigma);
+
+
+		//===================================== part#2 =====================================
+		// 2.1. snp to cellenv
+		para_penalty_lasso_approx_mt(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, lambda_snp_cellenv, sigma);
+		// 2.2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
+		para_penalty_lasso_approx_mt(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], lambda_cellenv_gene, sigma);
+
+
+		//===================================== part#3 =====================================
+		// 3.1. tissue hierarchy regularization;
+		// 3.2. or we can simply use group LASSO to encourage the tissue consistency;
+		// TODO: test later on
+		//
+		//
+		//
+
+
+		//===================================== part#4 =====================================
+		// 4. penalize the batch variables hashly
+		// 4.1. from batch to batch_hidden:
+		para_penalty_lasso_approx_mt(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, lambda_batch_batch_hidden, sigma);
+		// 4.2. from batch_hidden to gene:
+		para_penalty_lasso_approx_mt(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, lambda_batch_hidden_gene, sigma);
+	}
+	else
+	{
+		//===================================== part#1 =====================================
+		// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, (and the distance prior)
+		// TODO: not yet integrated the distance prior information
+		para_penalty_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], prior_tissue_vector[etissue_index], lambda_lasso, lambda_ridge, sigma);
+
+
+		//===================================== part#2 =====================================
+		// 2.1. snp to cellenv
+		para_penalty_lasso_approx(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, lambda_snp_cellenv, sigma);
+		// 2.2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
+		para_penalty_lasso_approx(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], lambda_cellenv_gene, sigma);
+
+
+		//===================================== part#3 =====================================
+		// 3.1. tissue hierarchy regularization;
+		// 3.2. or we can simply use group LASSO to encourage the tissue consistency;
+		// TODO: test later on
+		//
+		//
+		//
+
+
+		//===================================== part#4 =====================================
+		// 4. penalize the batch variables hashly
+		// 4.1. from batch to batch_hidden:
+		para_penalty_lasso_approx(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, lambda_batch_batch_hidden, sigma);
+		// 4.2. from batch_hidden to gene:
+		para_penalty_lasso_approx(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, lambda_batch_hidden_gene, sigma);
+	}
 
 
 
-
-
-
-	//===================================== part#1 =====================================
-	// 1. sparsity of cis- regulation, accompanied by ridge regression, achieved by elastic-net tuned by the prior number, (and the distance prior)
-	// TODO: not yet integrated the distance prior information
-	para_penalty_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], prior_tissue_vector[etissue_index], lambda_lasso, lambda_ridge, sigma);
-
-
-	//===================================== part#2 =====================================
-	// 2.1. snp to cellenv
-	para_penalty_lasso_approx(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, lambda_snp_cellenv, sigma);
-	// 2.2. sparsity (LASSO) for the coefficients from cell env to expression (with the assumption that one gene is only affected by several handful cell env)
-	para_penalty_lasso_approx(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], lambda_cellenv_gene, sigma);
-
-
-	//===================================== part#3 =====================================
-	// 3.1. tissue hierarchy regularization;
-	// 3.2. or we can simply use group LASSO to encourage the tissue consistency;
-	// TODO: test later on
-	//
-	//
-	//
-
-
-	//===================================== part#4 =====================================
-	// 4. penalize the batch variables hashly
-	// 4.1. from batch to batch_hidden:
-	para_penalty_lasso_approx(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, lambda_batch_batch_hidden, sigma);
-	// 4.2. from batch_hidden to gene:
-	para_penalty_lasso_approx(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, lambda_batch_hidden_gene, sigma);
 
 
 	cout << "[@@] leaving the regularization routine..." << endl;
@@ -555,33 +595,66 @@ void regularization(int etissue_index)
 
 
 
-
 // for all parameters in our scope, we do p = p - rate_learner * dp (we have all the components in the right hand, as followed)
 void gradient_descent(int etissue_index)
 {
+
+	// Apr.2: I'm testing the speedup of mt code of this routine
+	int marker_mt = 1;
+
+
 	cout << "[@@] entering the gradient descent..." << endl;
 
-	//============================================ pathway#1 ================================================
 
-	//====================== cube_para_cis_gene ==========================
-	para_gradient_descent_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], rate_learner);
-
-
-	//============================================ pathway#2 ================================================
-	//====================== matrix_para_snp_cellenv ==========================
-	para_gradient_descent(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, rate_learner);
-
-	//====================== cube_para_cellenv_gene ==========================
-	para_gradient_descent(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], rate_learner);
+	if(marker_mt)
+	{
+		//============================================ pathway#1 ================================================
+		//====================== cube_para_cis_gene ==========================
+		para_gradient_descent_cis_mt(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], rate_learner);
 
 
-	//============================================ pathway#3 ================================================
-	//====================== matrix_para_batch_batch_hidden ==========================
-	para_gradient_descent(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, rate_learner);
+		//============================================ pathway#2 ================================================
+		//====================== matrix_para_snp_cellenv ==========================
+		para_gradient_descent_mt(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, rate_learner);
 
 
-	//====================== matrix_para_batch_hidden_gene ==========================
-	para_gradient_descent(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, rate_learner);
+		//====================== cube_para_cellenv_gene ==========================
+		para_gradient_descent_mt(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], rate_learner);
+
+
+		//============================================ pathway#3 ================================================
+		//====================== matrix_para_batch_batch_hidden ==========================
+		para_gradient_descent_mt(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, rate_learner);
+
+
+		//====================== matrix_para_batch_hidden_gene ==========================
+		para_gradient_descent_mt(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, rate_learner);
+
+	}
+	else
+	{
+		//============================================ pathway#1 ================================================
+		//====================== cube_para_cis_gene ==========================
+		para_gradient_descent_cis(cube_para_cis_gene[etissue_index], cube_para_dev_cis_gene[etissue_index], rate_learner);
+
+
+		//============================================ pathway#2 ================================================
+		//====================== matrix_para_snp_cellenv ==========================
+		para_gradient_descent(matrix_para_snp_cellenv, matrix_para_dev_snp_cellenv, rate_learner);
+
+
+		//====================== cube_para_cellenv_gene ==========================
+		para_gradient_descent(cube_para_cellenv_gene[etissue_index], cube_para_dev_cellenv_gene[etissue_index], rate_learner);
+
+
+		//============================================ pathway#3 ================================================
+		//====================== matrix_para_batch_batch_hidden ==========================
+		para_gradient_descent(matrix_para_batch_batch_hidden, matrix_para_dev_batch_batch_hidden, rate_learner);
+
+
+		//====================== matrix_para_batch_hidden_gene ==========================
+		para_gradient_descent(matrix_para_batch_hidden_gene, matrix_para_dev_batch_hidden_gene, rate_learner);
+	}
 
 
 	cout << "[@@] leaving the gradient descent..." << endl;

@@ -677,7 +677,6 @@ void optimize()
 
 
 
-
 	//======== likelihood ========
 	// save the loglikelihood along the way
 	char filename[100] = "../result/loglike.txt";

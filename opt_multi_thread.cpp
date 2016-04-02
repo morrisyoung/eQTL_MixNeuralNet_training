@@ -20,6 +20,8 @@
 #include <string.h>
 #include "expression.h"
 #include "lib_matrix.h"
+#include <sys/time.h>
+
 
 
 
@@ -311,11 +313,35 @@ void opt_mt_control(string etissue, int pos_start, int num_esample)
 	//
 
 
+
+
+
+
+	// DEBUG: mt speedup
+    struct timeval time_start;
+    struct timeval time_end;
+    double diff;
+
+	//==== calling by reference
+    gettimeofday(&time_start, NULL);
+
+
 	//===================== regularize, gradient descent, and release space =====================
 	//// add the regularization terms into the derivatives
 	regularization(etissue_index);
 	/// gradient descent
 	gradient_descent(etissue_index);
+
+
+	gettimeofday(&time_end, NULL);
+	diff = (double)(time_end.tv_sec-time_start.tv_sec) + (double)(time_end.tv_usec-time_start.tv_usec)/1000000;
+	printf("Time used totally (for regularization and gradient descent) is %f seconds.\n", diff);
+
+
+
+
+
+
 
 	//// free the memory allocated for these threads
 	for(int i=0; i<num_thread; i++)

@@ -135,7 +135,7 @@ void para_penalty_lasso_approx_mt(Matrix matrix_para, Matrix matrix_para_dev, fl
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
 	{
-		cout << "main() : creating thread#" << i+1 << endl;
+		//cout << "main() : creating thread#" << i+1 << endl;
 		int rc = pthread_create(&threads[i], NULL, WorkPerThread_penalty_lasso_approx, (void *)&para_array[i]);
 		if(rc)
 		{
@@ -155,8 +155,8 @@ void para_penalty_lasso_approx_mt(Matrix matrix_para, Matrix matrix_para_dev, fl
 			cout << "Error:unable to join " << rc << endl;
 			exit(-1);
 		}
-		cout << "Main: completed thread#" << i+1;
-		cout << " exiting with status: " << status << endl;
+		//cout << "Main: completed thread#" << i+1;
+		//cout << " exiting with status: " << status << endl;
 	}
 
 	//===================== finish and quit =====================
@@ -288,7 +288,7 @@ void para_penalty_cis_mt(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
 	{
-		cout << "main() : creating thread#" << i+1 << endl;
+		//cout << "main() : creating thread#" << i+1 << endl;
 		int rc = pthread_create(&threads[i], NULL, WorkPerThread_gradient_descent_cis, (void *)&para_array[i]);
 		if(rc)
 		{
@@ -308,8 +308,8 @@ void para_penalty_cis_mt(Matrix_imcomp matrix_imcomp_para, Matrix_imcomp matrix_
 			cout << "Error:unable to join " << rc << endl;
 			exit(-1);
 		}
-		cout << "Main: completed thread#" << i+1;
-		cout << " exiting with status: " << status << endl;
+		//cout << "Main: completed thread#" << i+1;
+		//cout << " exiting with status: " << status << endl;
 	}
 
 	//===================== finish and quit =====================
@@ -422,7 +422,7 @@ void para_gradient_descent_mt(Matrix matrix_para, Matrix matrix_para_dev, float 
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
 	{
-		cout << "main() : creating thread#" << i+1 << endl;
+		//cout << "main() : creating thread#" << i+1 << endl;
 		int rc = pthread_create(&threads[i], NULL, WorkPerThread_gradient_descent, (void *)&para_array[i]);
 		if(rc)
 		{
@@ -442,8 +442,8 @@ void para_gradient_descent_mt(Matrix matrix_para, Matrix matrix_para_dev, float 
 			cout << "Error:unable to join " << rc << endl;
 			exit(-1);
 		}
-		cout << "Main: completed thread#" << i+1;
-		cout << " exiting with status: " << status << endl;
+		//cout << "Main: completed thread#" << i+1;
+		//cout << " exiting with status: " << status << endl;
 	}
 
 	//===================== finish and quit =====================
@@ -542,7 +542,7 @@ void para_gradient_descent_cis_mt(Matrix_imcomp matrix_imcomp_para, Matrix_imcom
 	//=============================== thread initialization ===============================
 	for(int i=0; i<num_thread; i++)
 	{
-		cout << "main() : creating thread#" << i+1 << endl;
+		//cout << "main() : creating thread#" << i+1 << endl;
 		int rc = pthread_create(&threads[i], NULL, WorkPerThread_gradient_descent_cis, (void *)&para_array[i]);
 		if(rc)
 		{
@@ -562,8 +562,8 @@ void para_gradient_descent_cis_mt(Matrix_imcomp matrix_imcomp_para, Matrix_imcom
 			cout << "Error:unable to join " << rc << endl;
 			exit(-1);
 		}
-		cout << "Main: completed thread#" << i+1;
-		cout << " exiting with status: " << status << endl;
+		//cout << "Main: completed thread#" << i+1;
+		//cout << " exiting with status: " << status << endl;
 	}
 
 	//===================== finish and quit =====================
