@@ -88,7 +88,7 @@ vector<vector<vector<float>>> prior_tissue_vector;
 
 
 // learning control parameters:
-int iter_learn_out = 1;  // iteration across all tissues
+int iter_learn_out = 4;  // iteration across all tissues
 //int iter_learn_in = 200;  // iteration across all samples from one tissue 			--> (Mar.8, 2016) this is probably too much (we used 3:40 for running only one tissue; maybe 50 is good enough, as the changing speed is much slower)
 int iter_learn_in = 50;
 int batch_size = 20;  // better be 20												--> (Jan.27) testing mode
@@ -662,16 +662,12 @@ void optimize()
 
 
 
-
 	// TODO:
 	// to define and initialze the parent parameter space (only for cis- regulator, and for cellular regulator)
 	// we can use the similar data structure with the original two:
 	//		vector<Matrix_imcomp> cube_para_cis_gene;
 	//		vector<Matrix> cube_para_cellenv_gene;
 	// make the variables visible to the hierarchical clustering sub-routine
-
-
-
 
 
 
@@ -775,12 +771,6 @@ void optimize()
 
 
 
-
-
-
-
-				// Mar.31: DEBUG, profiling the code
-				/*
 				//=========================================================================================================
 				//****************************************** loglike or testerror *****************************************
 				//=========================================================================================================
@@ -824,10 +814,6 @@ void optimize()
 					fwrite(buf, sizeof(char), strlen(buf), file_out_testerror);
 
 				}
-				*/
-
-
-
 
 
 
@@ -836,7 +822,7 @@ void optimize()
 
 				// DEBUG
 				// Mar.30: DEBUG: run only mini-batch to see the functionality
-				break;
+				//break;
 
 
 
@@ -861,7 +847,7 @@ void optimize()
 
 
 			// DEBUG: won't consider other tissues
-			break;
+			//break;
 
 
 

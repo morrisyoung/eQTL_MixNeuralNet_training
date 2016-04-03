@@ -236,6 +236,7 @@ unordered_map<string, tuple_long> gene_cis_index;  // mapping the gene to cis sn
 
 
 
+
 //// system control
 // multi-threading mark
 int MULTI_THREAD = 1;
@@ -251,10 +252,10 @@ int num_thread = 12;				// there are at maximum 8 cores in C2B2 cluster, but our
 //char filename_data_source[] = "../data_real/";
 char filename_data_source[] = "../data_simu/";
 //char file_para_init[] = "../result_init/";
-char file_para_init[] = "../result_init_simu/";
+//char file_para_init[] = "../result_init_simu/";
 
 // DEBUG: (testing initializing the model parameters with errors from the true model)
-//char file_para_init[] = "../result_init_simu_with_error/";
+char file_para_init[] = "../result_init_simu_with_error/";
 
 
 

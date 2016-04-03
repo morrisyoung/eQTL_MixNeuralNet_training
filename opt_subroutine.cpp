@@ -411,10 +411,10 @@ void forward_backward(int etissue_index,
 void regularization(int etissue_index)
 {
 
-
 	// Apr.2: I'm testing the speedup of mt code of this routine
+	// Apr.3: I will fix this multi-threading feature of this routine
+	// I make this marker local, as I think it's better to be local
 	int marker_mt = 1;
-
 
 
 
@@ -600,6 +600,8 @@ void gradient_descent(int etissue_index)
 {
 
 	// Apr.2: I'm testing the speedup of mt code of this routine
+	// Apr.3: I will fix this multi-threading feature of this routine
+	// I make this marker local, as I think it's better to be local
 	int marker_mt = 1;
 
 
